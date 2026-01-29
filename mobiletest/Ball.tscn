@@ -1,0 +1,28 @@
+[gd_scene load_steps=7 format=3 uid="uid://28r0kvna02fa"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_dgxcw"]
+friction = 0.3
+bounce = 0.65
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_42pkt"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_gynk7"]
+
+[sub_resource type="Gradient" id="Gradient_05xks"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_7tuj4"]
+gradient = SubResource("Gradient_05xks")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t35me"]
+albedo_color = Color(0.864947, 0.472243, 0.749348, 1)
+albedo_texture = SubResource("GradientTexture1D_7tuj4")
+
+[node name="Node3D" type="RigidBody3D"]
+physics_material_override = SubResource("PhysicsMaterial_dgxcw")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_42pkt")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_gynk7")
+surface_material_override/0 = SubResource("StandardMaterial3D_t35me")

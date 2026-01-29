@@ -1,0 +1,141 @@
+[gd_scene load_steps=11 format=3 uid="uid://bv8pffbgbo3f1"]
+
+[ext_resource type="PackedScene" uid="uid://28r0kvna02fa" path="res://Ball.tscn" id="1_p11c8"]
+[ext_resource type="Script" path="res://main.gd" id="1_qvhgb"]
+[ext_resource type="Script" path="res://joystick_l.gd" id="2_a8t8x"]
+[ext_resource type="Script" path="res://ball1.gd" id="3_6ws8q"]
+[ext_resource type="Script" path="res://joystick_r.gd" id="3_ejuqh"]
+[ext_resource type="Script" path="res://ball2.gd" id="4_7m5vp"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jbav6"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_dbuwg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6wy7t"]
+bg_color = Color(0.266667, 0.266667, 0.266667, 0.533333)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_35euh"]
+bg_color = Color(1, 1, 1, 0.866667)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.266575, 0.266575, 0.266575, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_qvhgb")
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape3D_jbav6")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 20, 0, 0, 0)
+mesh = SubResource("BoxMesh_dbuwg")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 10, 10, 10)
+fov = 90.0
+
+[node name="Ball1" parent="." instance=ExtResource("1_p11c8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1, 0)
+script = ExtResource("3_6ws8q")
+
+[node name="Ball2" parent="." instance=ExtResource("1_p11c8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, 0)
+script = ExtResource("4_7m5vp")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="JoystickL" type="Control" parent="UI"]
+layout_mode = 3
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -200.0
+offset_right = 200.0
+grow_vertical = 0
+script = ExtResource("2_a8t8x")
+
+[node name="Background" type="Panel" parent="UI/JoystickL"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_6wy7t")
+
+[node name="Knob" type="Panel" parent="UI/JoystickL"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_35euh")
+
+[node name="JoystickR" type="Control" parent="UI"]
+layout_mode = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -120.0
+offset_right = -80.0
+offset_bottom = -80.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("3_ejuqh")
+
+[node name="Background" type="Panel" parent="UI/JoystickR"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_6wy7t")
+
+[node name="Knob" type="Panel" parent="UI/JoystickR"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_35euh")
