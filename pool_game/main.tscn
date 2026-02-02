@@ -80,6 +80,9 @@ bounce = 1.0
 friction = 0.0
 bounce = 1.0
 
+[sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
+font_size = 18
+
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
 
@@ -97,6 +100,7 @@ shape = SubResource("BoxShape3D_7dm0k")
 [node name="CueBall" type="RigidBody3D" parent="." unique_id=1587648222]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 physics_material_override = SubResource("PhysicsMaterial_1bvp3")
+linear_damp = 0.5
 script = ExtResource("2_0xm2m")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CueBall" unique_id=1601161265]
@@ -108,6 +112,7 @@ mesh = SubResource("SphereMesh_7dm0k")
 [node name="Ball0" type="RigidBody3D" parent="." unique_id=529300356]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3241496, 1, 0)
 physics_material_override = SubResource("PhysicsMaterial_1bvp3")
+linear_damp = 0.5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ball0" unique_id=369811833]
 shape = SubResource("SphereShape3D_7dm0k")
@@ -180,5 +185,13 @@ points = PackedVector2Array(-18, 19, -23, 65)
 width = 5.0
 default_color = Color(0.45840502, 0.45840508, 0.45840502, 0.5294118)
 script = ExtResource("3_h2yge")
+
+[node name="TickLabel" type="Label" parent="Control" unique_id=287979515]
+layout_mode = 1
+offset_left = 17.0
+offset_top = 11.0
+offset_right = 164.0
+offset_bottom = 84.0
+label_settings = SubResource("LabelSettings_h2yge")
 
 [connection signal="new_turn" from="." to="Control/ShootLine" method="_on_main_new_turn"]

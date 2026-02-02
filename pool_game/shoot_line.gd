@@ -5,12 +5,11 @@ extends Line2D
 var dir: Vector2 = Vector2(0, 0)
 var playing: bool = true
 
-
 func _input(event: InputEvent) -> void:
 	if playing and event.is_action("click") and dir != null:
 		print("hitting: ", dir)
 		playing = false
-		cue_ball.apply_central_impulse(Vector3(dir.x, 0, dir.y) / 50)
+		cue_ball.apply_central_impulse(Vector3(dir.x, 0, dir.y) / 5)
 
 
 func draw_shoot_line():
