@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://cjgh3own5ppcr"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_1bvp3"]
+friction = 0.0
+rough = true
+bounce = 1.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_7dm0k"]
+radius = 1.0
+
+[sub_resource type="Gradient" id="Gradient_1bvp3"]
+colors = PackedColorArray(0.85026735, 0.2788765, 0, 1, 1.1551381e-06, 0.6009288, 0.68872863, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_h2yge"]
+gradient = SubResource("Gradient_1bvp3")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1bvp3"]
+albedo_color = Color(1, 0.9263333, 0.87, 1)
+albedo_texture = SubResource("GradientTexture2D_h2yge")
+
+[sub_resource type="SphereMesh" id="SphereMesh_lquwl"]
+lightmap_size_hint = Vector2i(33, 17)
+material = SubResource("StandardMaterial3D_1bvp3")
+radius = 1.0
+height = 2.0
+
+[node name="Ball0" type="RigidBody3D" unique_id=1364153728]
+physics_material_override = SubResource("PhysicsMaterial_1bvp3")
+linear_damp = 0.5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1368237875]
+shape = SubResource("SphereShape3D_7dm0k")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=617264105]
+mesh = SubResource("SphereMesh_lquwl")

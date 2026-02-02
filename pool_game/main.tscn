@@ -42,22 +42,6 @@ material = SubResource("StandardMaterial3D_h2yge")
 radius = 1.0
 height = 2.0
 
-[sub_resource type="Gradient" id="Gradient_1bvp3"]
-colors = PackedColorArray(0.85026735, 0.2788765, 0, 1, 1.1551381e-06, 0.6009288, 0.68872863, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_h2yge"]
-gradient = SubResource("Gradient_1bvp3")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1bvp3"]
-albedo_color = Color(1, 0.9263333, 0.87, 1)
-albedo_texture = SubResource("GradientTexture2D_h2yge")
-
-[sub_resource type="SphereMesh" id="SphereMesh_lquwl"]
-lightmap_size_hint = Vector2i(33, 17)
-material = SubResource("StandardMaterial3D_1bvp3")
-radius = 1.0
-height = 2.0
-
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_lquwl"]
 friction = 0.0
 bounce = 1.0
@@ -108,17 +92,6 @@ shape = SubResource("SphereShape3D_7dm0k")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="CueBall" unique_id=1590091616]
 mesh = SubResource("SphereMesh_7dm0k")
-
-[node name="Ball0" type="RigidBody3D" parent="." unique_id=529300356]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3241496, 1, 0)
-physics_material_override = SubResource("PhysicsMaterial_1bvp3")
-linear_damp = 0.5
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ball0" unique_id=369811833]
-shape = SubResource("SphereShape3D_7dm0k")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ball0" unique_id=1707739835]
-mesh = SubResource("SphereMesh_lquwl")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, 0.7071067, 0.7071067, 0, -0.7071067, 0.7071067, 0, 0, 0)
