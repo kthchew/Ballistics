@@ -16,7 +16,7 @@ const ball_scene = preload("res://ball.tscn")
 func _ready() -> void:
 	var cue_ball: RigidBody3D = $CueBall
 	balls.append(cue_ball)
-	init_break_triangle(5, 0)
+	init_break_triangle(56, 0)
 	
 			
 func init_break_triangle(x_shift: float, z_shift: float):

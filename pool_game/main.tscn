@@ -89,7 +89,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_7dm0k")
 shape = SubResource("BoxShape3D_7dm0k")
 
 [node name="CueBall" type="RigidBody3D" parent="." unique_id=1587648222]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
 mass = 10.0
 physics_material_override = SubResource("PhysicsMaterial_1bvp3")
 linear_damp = 0.2
@@ -102,12 +102,10 @@ shape = SubResource("SphereShape3D_7dm0k")
 mesh = SubResource("SphereMesh_7dm0k")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
-transform = Transform3D(1, 0, 0, 0, 0.7071067, 0.7071067, 0, -0.7071067, 0.7071067, 0, 0, 0)
-visible = false
+transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
-transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0, 0, 35.000004)
-projection = 1
+transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.0658141e-14, 0, 1.0658141e-14, 1.0000001, 0, -3.6527392e-06, 118.564926)
 size = 50.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1196470335]
