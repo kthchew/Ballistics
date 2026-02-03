@@ -19,19 +19,26 @@ func _ready() -> void:
 	init_break_triangle(5, 0)
 	
 			
-func init_break_triangle(x: float, z: float):
-	var ball_ind = 0
+func init_break_triangle(x_shift: float, z_shift: float):
+	var ball_ind: int = 0
+	var ball_radius: float = 2.85
+	var spacing: float = 1.05
 	for i in range(5):
 		for j in range(i + 1):
 			print(str(i) + " "  + str(j))
 			var ball_node: Node = ball_scene.instantiate()
 			ball_node.name = "Ball%s" % i
-			ball_node.position = Vector3(x + i * sqrt(3), 1, z - i + 2 * j)
+			var x: float = x_shift + spacing * i * ball_radius * sqrt(3)
+			var y: float = ball_radius
+			var z: float = z_shift + (-i + 2 * j) * ball_radius * spacing
+			ball_node.position = Vector3(x, y, z)
 			
 			balls.append(ball_node)
 			add_child(ball_node)
 			
 			ball_ind += 1
+	
+	#print(($"Ball0".position - $"Ball1".position).length())
 	
 	
 func check_all_not_moving() -> bool:

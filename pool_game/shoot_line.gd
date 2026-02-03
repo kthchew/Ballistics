@@ -9,7 +9,7 @@ func _input(event: InputEvent) -> void:
 	if playing and event.is_action("click") and dir != null:
 		print("hitting: ", dir)
 		playing = false
-		cue_ball.apply_central_impulse(Vector3(dir.x, 0, dir.y) / 5)
+		cue_ball.apply_central_impulse(5 * Vector3(dir.x, 0, dir.y))
 
 
 func draw_shoot_line():
