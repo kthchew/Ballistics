@@ -74,6 +74,9 @@ bounce = 1.0
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
 font_size = 18
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_1bvp3"]
+size = Vector3(224, 5, 112)
+
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
 
@@ -92,7 +95,7 @@ shape = SubResource("BoxShape3D_7dm0k")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
 mass = 10.0
 physics_material_override = SubResource("PhysicsMaterial_1bvp3")
-linear_damp = 0.2
+linear_damp = 1.0
 script = ExtResource("2_0xm2m")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CueBall" unique_id=1601161265]
@@ -173,5 +176,11 @@ offset_top = 11.0
 offset_right = 164.0
 offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_h2yge")
+
+[node name="Ceiling" type="StaticBody3D" parent="." unique_id=1931088315]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.85, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ceiling" unique_id=59686199]
+shape = SubResource("BoxShape3D_1bvp3")
 
 [connection signal="new_turn" from="." to="Control/ShootLine" method="_on_main_new_turn"]

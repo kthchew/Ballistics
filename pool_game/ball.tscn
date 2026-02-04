@@ -27,7 +27,7 @@ height = 5.7
 [node name="Ball0" type="RigidBody3D" unique_id=1364153728]
 mass = 10.0
 physics_material_override = SubResource("PhysicsMaterial_1bvp3")
-linear_damp = 0.2
+linear_damp = 1.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1368237875]
 shape = SubResource("SphereShape3D_7dm0k")

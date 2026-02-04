@@ -2,29 +2,35 @@ extends Line2D
 
 
 @onready var cue_ball = $"../../CueBall"
-var dir: Vector2 = Vector2(0, 0)
+var shoot_vec: Vector2 = Vector2(0, 0)
 var playing: bool = true
 
 func _input(event: InputEvent) -> void:
-	if playing and event.is_action("click") and dir != null:
-		print("hitting: ", dir)
+	if playing and event.is_action("click") and shoot_vec != null:
+		print("hitting: ", shoot_vec)
 		playing = false
-		cue_ball.apply_central_impulse(5 * Vector3(dir.x, 0, dir.y))
+		var hit_vec = Vector3(shoot_vec.x, 0, shoot_vec.y)
+		var hit_strength: float = 0.5 * hit_vec.length() ** 2
+		var hit_dir: Vector3 = hit_vec.normalized()
+		cue_ball.apply_central_impulse(hit_strength * hit_dir)
 
 
 func draw_shoot_line():
-	# Draw one endpoint at the mouse position
 	# Subtracting get_global_position() converts the mouse position to local
-	var mouse_pos = get_parent().get_local_mouse_position()
-	set_point_position(0, mouse_pos)
+	var mouse_pos: Vector2 = get_parent().get_local_mouse_position()
 	
-	# Draw other endpoint at the cue ball position
-	var camera = get_viewport().get_camera_3d()
-	var ball_pos = cue_ball.global_position
-	var ball_screen_pos = camera.unproject_position(ball_pos) - get_global_position()
-	set_point_position(1, ball_screen_pos)
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	var ball_pos: Vector3 = cue_ball.global_position
+	var ball_screen_pos: Vector2 = camera.unproject_position(ball_pos) - get_global_position()
 	
-	dir = ball_screen_pos - mouse_pos
+	shoot_vec = ball_screen_pos - mouse_pos
+	shoot_vec = min(200, 0.7 * shoot_vec.length()) * shoot_vec.normalized()
+	
+	# Draw one endpoint of line at the ball
+	set_point_position(0, ball_screen_pos)
+	
+	# Draw other endpoint toward the mouse position
+	set_point_position(1, ball_screen_pos - shoot_vec)
 
 
 func _process(delta):
