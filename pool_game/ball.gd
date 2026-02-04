@@ -13,4 +13,7 @@ func _input(event):
 		
 func _physics_process(delta):
 	pass
+	#if linear_velocity.length() < 0.5:
+		#linear_damp = 1
+		#angular_damp = 1
 	

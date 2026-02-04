@@ -50,15 +50,12 @@ albedo_color = Color(0, 0.23, 0.10733334, 1)
 
 [node name="Node3D" type="Node3D" unique_id=333268487]
 
-[node name="Table" parent="." unique_id=324515682 instance=ExtResource("1_jd0nb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3293152, 0.2496643, -0.1910286)
+[node name="Table" parent="." unique_id=1804429974 instance=ExtResource("1_jd0nb")]
 material_override = SubResource("StandardMaterial3D_jd0nb")
 
-[node name="Cube" parent="Table" index="0" unique_id=788890535]
+[node name="Cube" parent="Table" index="0" unique_id=1110088709]
+transform = Transform3D(224, 0, 0, 0, 30, 0, 0, 0, 112, 0, 0, 0)
 mesh = SubResource("ArrayMesh_jd0nb")
 surface_material_override/0 = SubResource("StandardMaterial3D_v5i0k")
-
-[node name="CollisionShape3D" parent="Table/Cube/StaticBody3D" parent_id_path=PackedInt32Array(324515682, 1595404185) index="0" unique_id=106481118]
-visible = false
 
 [editable path="Table"]
