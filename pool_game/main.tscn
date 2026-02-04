@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://comor5ekwua50" path="res://ball.gd" id="2_0xm2m"]
 [ext_resource type="Script" uid="uid://bvigvjg3qqj3h" path="res://shoot_line.gd" id="3_h2yge"]
+[ext_resource type="PackedScene" uid="uid://bpaxx4tn7mr6j" path="res://table.tscn" id="4_1bvp3"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_h2yge"]
 rough = true
@@ -81,7 +82,8 @@ size = Vector3(224, 5, 112)
 script = ExtResource("1_ig7tw")
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=848895596]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.425, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -90.15269, 0)
+visible = false
 physics_material_override = SubResource("PhysicsMaterial_h2yge")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=479891135]
@@ -92,7 +94,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_7dm0k")
 shape = SubResource("BoxShape3D_7dm0k")
 
 [node name="CueBall" type="RigidBody3D" parent="." unique_id=1587648222]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -83.45543, 2.85, 43.485058)
 mass = 10.0
 physics_material_override = SubResource("PhysicsMaterial_1bvp3")
 linear_damp = 1.0
@@ -105,13 +107,13 @@ shape = SubResource("SphereShape3D_7dm0k")
 mesh = SubResource("SphereMesh_7dm0k")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
-transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.7071067, 0.7071067, 0, -0.7071067, 0.7071067, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
 transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.0658141e-14, 0, 1.0658141e-14, 1.0000001, 0, -3.6527392e-06, 118.564926)
 size = 50.0
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1196470335]
+[node name="Light" type="DirectionalLight3D" parent="." unique_id=1196470335]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 26.1799, 0)
 shadow_enabled = true
 
@@ -178,9 +180,12 @@ offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_h2yge")
 
 [node name="Ceiling" type="StaticBody3D" parent="." unique_id=1931088315]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ceiling" unique_id=59686199]
 shape = SubResource("BoxShape3D_1bvp3")
+
+[node name="Table" parent="." unique_id=333268487 instance=ExtResource("4_1bvp3")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, -1.425, 0)
 
 [connection signal="new_turn" from="." to="Control/ShootLine" method="_on_main_new_turn"]
