@@ -36,6 +36,8 @@ script = ExtResource("1_ig7tw")
 [node name="CueBall" type="RigidBody3D" parent="." unique_id=1587648222]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
 physics_material_override = ExtResource("2_7mycd")
+linear_damp = 0.5
+angular_damp = 0.5
 script = ExtResource("2_0xm2m")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CueBall" unique_id=1601161265]

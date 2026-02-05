@@ -10,10 +10,14 @@ var angular_speed_threshold: float = 0.25
 # physics defaults to 60 ticks per second
 var static_ticks_threshold = 60
 var cur_static_ticks = 0
+var player_ind: int = 0
+var scores = [0, 0]
+var playing: bool = true
 
 const ball_scene = preload("res://ball.tscn")
 
 func _ready() -> void:
+	playing = true
 	var cue_ball: RigidBody3D = $CueBall
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
@@ -62,18 +66,28 @@ func delete_fallen_balls() -> void:
 			ball.linear_velocity = Vector3(0, 0, 0)
 			ball.angular_velocity = Vector3(0, 0, 0)
 			continue
+			
+		scores[player_ind] += 1
 		balls.erase(ball)
 		ball.queue_free()
 
 func _physics_process(delta: float) -> void:
+	print(playing)
 	delete_fallen_balls()
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
+		playing = false
 		cur_static_ticks = 0
 	
-	tick_label.text = "Static Ticks: " + str(cur_static_ticks)
+	var label_txt = "Static Ticks: " + str(cur_static_ticks)
+	label_txt += "\nCurrent Player: " + str(player_ind + 1)
+	label_txt += "\nPlayer 1 Score: " + str(scores[0])
+	label_txt += "\nPlayer 2 Score: " + str(scores[1])
+	tick_label.text = label_txt
 	
-	if cur_static_ticks == static_ticks_threshold:
+	if !playing and cur_static_ticks == static_ticks_threshold:
+		player_ind = 1 - player_ind
 		new_turn.emit()
+		playing = true
 	
