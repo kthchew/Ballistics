@@ -3,21 +3,8 @@
 [ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://comor5ekwua50" path="res://ball.gd" id="2_0xm2m"]
 [ext_resource type="Script" uid="uid://bvigvjg3qqj3h" path="res://shoot_line.gd" id="3_h2yge"]
+[ext_resource type="PackedScene" uid="uid://bvjsktncikt31" path="res://dome.tscn" id="3_lquwl"]
 [ext_resource type="PackedScene" uid="uid://bpaxx4tn7mr6j" path="res://table.tscn" id="4_1bvp3"]
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_h2yge"]
-rough = true
-bounce = 1.0
-absorbent = true
-
-[sub_resource type="BoxMesh" id="BoxMesh_7dm0k"]
-size = Vector3(224, 2.85, 112)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7dm0k"]
-albedo_color = Color(0, 0.22, 0.05866666, 1)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_7dm0k"]
-size = Vector3(224, 2.85, 112)
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_1bvp3"]
 friction = 0.0
@@ -44,54 +31,11 @@ material = SubResource("StandardMaterial3D_h2yge")
 radius = 2.85
 height = 5.7
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_lquwl"]
-friction = 0.0
-bounce = 1.0
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_h2yge"]
-size = Vector3(3, 3.65, 118)
-
-[sub_resource type="BoxMesh" id="BoxMesh_h2yge"]
-size = Vector3(3, 3.65, 118)
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_7mycd"]
-friction = 0.0
-bounce = 1.0
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_272bh"]
-friction = 0.0
-bounce = 1.0
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_ig7tw"]
-size = Vector3(3, 3.65, 224)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ig7tw"]
-size = Vector3(3, 3.65, 224)
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_5vw27"]
-friction = 0.0
-bounce = 1.0
-
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
 font_size = 18
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_1bvp3"]
-size = Vector3(224, 5, 112)
-
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
-
-[node name="Ground" type="StaticBody3D" parent="." unique_id=848895596]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -90.15269, 0)
-visible = false
-physics_material_override = SubResource("PhysicsMaterial_h2yge")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=479891135]
-mesh = SubResource("BoxMesh_7dm0k")
-surface_material_override/0 = SubResource("StandardMaterial3D_7dm0k")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=158326457]
-shape = SubResource("BoxShape3D_7dm0k")
 
 [node name="CueBall" type="RigidBody3D" parent="." unique_id=1587648222]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
@@ -115,45 +59,7 @@ size = 50.0
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 26.1799, 0)
 shadow_enabled = true
 
-[node name="Wall" type="StaticBody3D" parent="." unique_id=306936476]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -113.5, 1.825, 0)
-physics_material_override = SubResource("PhysicsMaterial_lquwl")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall" unique_id=2014420160]
-shape = SubResource("BoxShape3D_h2yge")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Wall" unique_id=1293488385]
-mesh = SubResource("BoxMesh_h2yge")
-
-[node name="Wall2" type="StaticBody3D" parent="." unique_id=1379058156]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 113.5, 1.825, 0)
-physics_material_override = SubResource("PhysicsMaterial_7mycd")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall2" unique_id=42883556]
-shape = SubResource("BoxShape3D_h2yge")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Wall2" unique_id=1366921510]
-mesh = SubResource("BoxMesh_h2yge")
-
-[node name="Wall3" type="StaticBody3D" parent="." unique_id=1526559669]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 1.825, 57.5)
-physics_material_override = SubResource("PhysicsMaterial_272bh")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall3" unique_id=560607039]
-shape = SubResource("BoxShape3D_ig7tw")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Wall3" unique_id=74801648]
-mesh = SubResource("BoxMesh_ig7tw")
-
-[node name="Wall4" type="StaticBody3D" parent="." unique_id=71214218]
-transform = Transform3D(-4.3711385e-08, 0, 1, 0, 0.99999994, 0, -0.99999994, 0, -4.371139e-08, 0, 1.825, -57.5)
-physics_material_override = SubResource("PhysicsMaterial_5vw27")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall4" unique_id=236108568]
-shape = SubResource("BoxShape3D_ig7tw")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Wall4" unique_id=1133172412]
-mesh = SubResource("BoxMesh_ig7tw")
+[node name="Dome" parent="." unique_id=1266447434 instance=ExtResource("3_lquwl")]
 
 [node name="Control" type="Control" parent="." unique_id=386163020]
 layout_mode = 3
@@ -177,13 +83,7 @@ offset_right = 164.0
 offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_h2yge")
 
-[node name="Ceiling" type="StaticBody3D" parent="." unique_id=1931088315]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ceiling" unique_id=59686199]
-shape = SubResource("BoxShape3D_1bvp3")
-
 [node name="Table" parent="." unique_id=333268487 instance=ExtResource("4_1bvp3")]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, -15, 0)
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -0.10971069, -15.336487, -0.08026123)
 
 [connection signal="new_turn" from="." to="Control/ShootLine" method="_on_main_new_turn"]
