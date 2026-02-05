@@ -41,7 +41,7 @@ _subresources={
 "nodes": {
 "PATH:Cube": {
 "generate/physics": true,
-"physics/physics_material_override": Object(PhysicsMaterial,"resource_local_to_scene":false,"resource_name":"","friction":0.5,"rough":true,"bounce":1.0,"absorbent":true,"script":null)
+"physics/physics_material_override": Object(PhysicsMaterial,"resource_local_to_scene":false,"resource_name":"","friction":1.0,"rough":true,"bounce":0.0,"absorbent":true,"script":null)
 ,
 "physics/shape_type": 2
 }

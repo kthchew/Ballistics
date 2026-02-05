@@ -1,11 +1,7 @@
 [gd_scene format=3 uid="uid://cjgh3own5ppcr"]
 
+[ext_resource type="PhysicsMaterial" uid="uid://chxig6vtldm8i" path="res://ball.tres" id="1_41u45"]
 [ext_resource type="Script" uid="uid://comor5ekwua50" path="res://ball.gd" id="1_x8fbi"]
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_1bvp3"]
-friction = 0.0
-rough = true
-bounce = 1.0
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_7dm0k"]
 radius = 2.85
@@ -27,7 +23,7 @@ radius = 2.85
 height = 5.7
 
 [node name="Ball0" type="RigidBody3D" unique_id=1364153728]
-physics_material_override = SubResource("PhysicsMaterial_1bvp3")
+physics_material_override = ExtResource("1_41u45")
 script = ExtResource("1_x8fbi")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1368237875]

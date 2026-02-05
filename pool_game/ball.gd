@@ -1,5 +1,7 @@
 extends RigidBody3D
 
+var last_vel: Vector3 = Vector3(0, 0, 0)
+
 func _input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.is_action("move_right"):
@@ -10,10 +12,9 @@ func _input(event):
 			apply_central_impulse(Vector3(0, 0, -50))
 		elif event.is_action("move_down"):
 			apply_central_impulse(Vector3(0, 0, 50))
-		
+
 func _physics_process(delta):
-	pass
-	#if linear_velocity.length() < 0.5:
-		#linear_damp = 1
-		#angular_damp = 1
+	#if last_vel.length() > 0.2 and linear_velocity.length() < 0.2:
+		#linear_damp = 0.5
+	last_vel = linear_velocity
 	

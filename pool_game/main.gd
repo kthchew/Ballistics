@@ -23,11 +23,12 @@ func init_break_triangle(x_shift: float, z_shift: float):
 	var ball_ind: int = 0
 	var ball_radius: float = 2.85
 	var spacing: float = 1.05
+	
 	for i in range(5):
 		for j in range(i + 1):
 			print(str(i) + " "  + str(j))
 			var ball_node: Node = ball_scene.instantiate()
-			ball_node.name = "Ball%s" % i
+			ball_node.name = "Ball%s" % ball_ind
 			var x: float = x_shift + spacing * i * ball_radius * sqrt(3)
 			var y: float = ball_radius
 			var z: float = z_shift + (-i + 2 * j) * ball_radius * spacing
@@ -48,8 +49,24 @@ func check_all_not_moving() -> bool:
 			return false
 	return true
 
+func delete_fallen_balls() -> void:
+	var balls_to_erase: Array[RigidBody3D] = []
+	for ball in balls:
+		if ball.position.y < -10:
+			print(ball.name + " fell")
+			balls_to_erase.append(ball)
+	
+	for ball in balls_to_erase:
+		if ball.name == "CueBall":
+			ball.position = Vector3(0, 10, 0)
+			ball.linear_velocity = Vector3(0, 0, 0)
+			ball.angular_velocity = Vector3(0, 0, 0)
+			continue
+		balls.erase(ball)
+		ball.queue_free()
 
 func _physics_process(delta: float) -> void:
+	delete_fallen_balls()
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
