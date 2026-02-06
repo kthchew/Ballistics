@@ -6,15 +6,16 @@
 [sub_resource type="SphereShape3D" id="SphereShape3D_7dm0k"]
 radius = 2.85
 
-[sub_resource type="Gradient" id="Gradient_1bvp3"]
-colors = PackedColorArray(0.85026735, 0.2788765, 0, 1, 1.1551381e-06, 0.6009288, 0.68872863, 1)
+[sub_resource type="Gradient" id="Gradient_41u45"]
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_h2yge"]
-gradient = SubResource("Gradient_1bvp3")
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ktgx5"]
+gradient = SubResource("Gradient_41u45")
+fill_from = Vector2(0, 0.56125355)
+fill_to = Vector2(1, 0.54131055)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1bvp3"]
 albedo_color = Color(1, 0.9263333, 0.87, 1)
-albedo_texture = SubResource("GradientTexture2D_h2yge")
+albedo_texture = SubResource("GradientTexture2D_ktgx5")
 
 [sub_resource type="SphereMesh" id="SphereMesh_lquwl"]
 lightmap_size_hint = Vector2i(33, 17)

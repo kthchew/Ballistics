@@ -58,6 +58,19 @@ func init_break_triangle(x_shift: float, z_shift: float):
 			var mesh = ball_node.get_node("MeshInstance3D")
 			var material: Material = StandardMaterial3D.new()
 			
+			if ball_num > 8:
+				var gradient: Gradient = Gradient.new()
+				gradient.remove_point(0)
+				gradient.remove_point(0)
+				gradient.add_point(0.25, Color(1, 1, 1))
+				gradient.add_point(0.5, Color(0, 0, 0))
+				gradient.add_point(0.75, Color(1, 1, 1))
+				var gradient_texture: GradientTexture2D = GradientTexture2D.new()
+				gradient_texture.fill_from = Vector2(0.5, 0)
+				gradient_texture.fill_to = Vector2(0.5, 1)
+				gradient_texture.gradient = gradient
+				material.albedo_texture = gradient_texture
+			
 			var color_num = ball_num
 			if color_num > 8:
 				color_num -= 8
@@ -66,7 +79,6 @@ func init_break_triangle(x_shift: float, z_shift: float):
 			print(color_num)
 			print(color)
 			material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
-			#material.albedo_texture = null
 			
 			mesh.set_surface_override_material(0, material)
 			
