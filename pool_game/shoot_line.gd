@@ -2,17 +2,21 @@ extends Line2D
 
 
 @onready var cue_ball = $"../../CueBall"
+@onready var main = $"../../../Main"
 var shoot_vec: Vector2 = Vector2(0, 0)
-var playing: bool = true
+
+# in real life, 30 mph break == 13.4112 m/s
+# max break velocity should be about 1350 m/s
 
 func _input(event: InputEvent) -> void:
-	if playing and event.is_action("click") and shoot_vec != null:
+	if main != null and main.playing and event.is_action("click") and shoot_vec != null:
 		print("hitting: ", shoot_vec)
-		playing = false
+		#playing = false
 		var hit_vec = Vector3(shoot_vec.x, 0, shoot_vec.y)
-		var hit_strength: float = 0.5 * hit_vec.length() ** 2
+		var hit_strength: float = 1.7e-4 * hit_vec.length() ** 2
 		var hit_dir: Vector3 = hit_vec.normalized()
-		cue_ball.apply_central_impulse(hit_strength * hit_dir)
+		print("Hit vector length: " + str(hit_strength))
+		cue_ball.apply_central_impulse(hit_strength * hit_vec)
 
 
 func draw_shoot_line():
@@ -34,12 +38,15 @@ func draw_shoot_line():
 
 
 func _process(delta):
-	if playing:
+	if main == null:
+		return
+	if main.playing:
 		draw_shoot_line()
 	else:
 		set_point_position(0, Vector2(-1, -1))
-		set_point_position(1, Vector2(-1, -1))		
+		set_point_position(1, Vector2(-1, -1))
 	
 
 func _on_main_new_turn() -> void:
-	playing = true
+	pass
+	#playing = true

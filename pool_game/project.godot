@@ -55,6 +55,8 @@ pointing/emulate_touch_from_mouse=true
 [physics]
 
 3d/physics_engine="Jolt Physics"
+jolt_physics_3d/limits/max_linear_velocity=100000000.0
+jolt_physics_3d/limits/max_angular_velocity=1745329.2519943295
 3d/default_gravity=980.0
 
 [rendering]
