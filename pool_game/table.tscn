@@ -14,11 +14,11 @@ albedo_color = Color(0, 0.23, 0.10733334, 1)
 [node name="Table" parent="." unique_id=1184412081 instance=ExtResource("1_jd0nb")]
 material_override = SubResource("StandardMaterial3D_jd0nb")
 
-[node name="Cube" parent="Table" index="0" unique_id=499915610]
+[node name="Cube" parent="Table" index="0" unique_id=1859679205]
 transform = Transform3D(224, 0, 0, 0, 30, 0, 0, 0, 112, 0, 0, 0)
 surface_material_override/0 = SubResource("StandardMaterial3D_v5i0k")
 
-[node name="StaticBody3D" parent="Table/Cube" index="0" unique_id=873097530]
+[node name="StaticBody3D" parent="Table/Cube" index="0" unique_id=264544771]
 physics_material_override = ExtResource("2_v5i0k")
 
 [editable path="Table"]

@@ -17,5 +17,8 @@ func _input(event):
 func _physics_process(delta):
 	#if last_vel.length() > 0.2 and linear_velocity.length() < 0.2:
 		#linear_damp = 0.5
+	#if ball_num == 0:
+		#print(linear_velocity)
+		#print(global_position)
 	last_vel = linear_velocity
 	

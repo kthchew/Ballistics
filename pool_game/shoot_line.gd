@@ -5,14 +5,18 @@ extends Line2D
 @onready var main = $"../../../Main"
 var shoot_vec: Vector2 = Vector2(0, 0)
 
+# in real life, 30 mph break == 13.4112 m/s
+# max break velocity should be about 1350 m/s
+
 func _input(event: InputEvent) -> void:
 	if main != null and main.playing and event.is_action("click") and shoot_vec != null:
 		print("hitting: ", shoot_vec)
 		#playing = false
 		var hit_vec = Vector3(shoot_vec.x, 0, shoot_vec.y)
-		var hit_strength: float = 0.1 * hit_vec.length() ** 2
+		var hit_strength: float = 1.7e-4 * hit_vec.length() ** 2
 		var hit_dir: Vector3 = hit_vec.normalized()
-		cue_ball.apply_central_impulse(hit_strength * hit_dir)
+		print("Hit vector length: " + str(hit_strength))
+		cue_ball.apply_central_impulse(hit_strength * hit_vec)
 
 
 func draw_shoot_line():
