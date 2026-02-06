@@ -40,8 +40,9 @@ func init_break_triangle(x_shift: float, z_shift: float):
 	]
 	
 	var ball_nums = range(1, 16)
+	ball_nums.erase(8)
 	ball_nums.shuffle()
-	print(ball_nums)
+	ball_nums.insert(4, 8)
 	
 	for i in range(5):
 		for j in range(i + 1):
