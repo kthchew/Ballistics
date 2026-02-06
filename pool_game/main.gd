@@ -22,6 +22,35 @@ func _ready() -> void:
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
 	
+
+func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
+	var mesh = ball_node.get_node("MeshInstance3D")
+	var material: Material = StandardMaterial3D.new()
+	
+	if ball_num > 8:
+		var gradient: Gradient = Gradient.new()
+		gradient.remove_point(0)
+		gradient.remove_point(0)
+		gradient.add_point(0.4, Color(1, 1, 1))
+		gradient.add_point(0.4, Color(0, 0, 0))
+		gradient.add_point(0.6, Color(0, 0, 0))
+		gradient.add_point(0.6, Color(1, 1, 1))
+		var gradient_texture: GradientTexture2D = GradientTexture2D.new()
+		gradient_texture.fill_from = Vector2(0.5, 0)
+		gradient_texture.fill_to = Vector2(0.5, 1)
+		gradient_texture.gradient = gradient
+		material.albedo_texture = gradient_texture
+	
+	var color_num = ball_num
+	if color_num > 8:
+		color_num -= 8
+	var color = colors[color_num - 1]
+	print(ball_num)
+	print(color_num)
+	print(color)
+	material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
+	
+	mesh.set_surface_override_material(0, material)
 			
 func init_break_triangle(x_shift: float, z_shift: float):
 	var ball_ind: int = 0
@@ -55,32 +84,7 @@ func init_break_triangle(x_shift: float, z_shift: float):
 			var z: float = z_shift + (-i + 2 * j) * ball_radius * spacing
 			ball_node.position = Vector3(x, y, z)
 			
-			var mesh = ball_node.get_node("MeshInstance3D")
-			var material: Material = StandardMaterial3D.new()
-			
-			if ball_num > 8:
-				var gradient: Gradient = Gradient.new()
-				gradient.remove_point(0)
-				gradient.remove_point(0)
-				gradient.add_point(0.25, Color(1, 1, 1))
-				gradient.add_point(0.5, Color(0, 0, 0))
-				gradient.add_point(0.75, Color(1, 1, 1))
-				var gradient_texture: GradientTexture2D = GradientTexture2D.new()
-				gradient_texture.fill_from = Vector2(0.5, 0)
-				gradient_texture.fill_to = Vector2(0.5, 1)
-				gradient_texture.gradient = gradient
-				material.albedo_texture = gradient_texture
-			
-			var color_num = ball_num
-			if color_num > 8:
-				color_num -= 8
-			var color = colors[color_num - 1]
-			print(ball_num)
-			print(color_num)
-			print(color)
-			material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
-			
-			mesh.set_surface_override_material(0, material)
+			color_ball(ball_node, ball_num, colors)
 			
 			balls.append(ball_node)
 			add_child(ball_node)
