@@ -33,6 +33,8 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 
 func _on_aim_changed(touch_pos: Vector2):
+	if !playing:
+		return
 	var ball_screen_pos = $CameraPivot/Camera3D.unproject_position(cue_ball.global_position)
 	var dir = touch_pos - ball_screen_pos
 
@@ -42,7 +44,8 @@ func _on_aim_changed(touch_pos: Vector2):
 	if not has_aimed:
 		has_aimed = true
 		aim_line.visible = true
-
+		
+	aim_line.global_position = ball_screen_pos
 	aim_line.set_angle(dir.angle())
 
 func _on_force_changed(value):
@@ -54,7 +57,7 @@ func _on_fire_pressed():
 	var angle = aim_line.angle
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
-	var force = dir * (strength * 50)
+	var force = dir * (strength * 5)
 
 	var up = Vector3.UP
 	if abs(dir.dot(up)) > 0.9:
