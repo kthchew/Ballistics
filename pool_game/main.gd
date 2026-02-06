@@ -28,18 +28,50 @@ func init_break_triangle(x_shift: float, z_shift: float):
 	var ball_radius: float = 2.85
 	var spacing: float = 1.05
 	
+	var colors = [
+		[255, 215, 4], 
+		[0, 0, 254], 
+		[255, 0, 0], 
+		[128, 0, 129], 
+		[254, 165, 0], 
+		[35, 139, 35], 
+		[128, 0, 1],
+		[0, 0, 0],
+	]
+	
+	var ball_nums = range(1, 16)
+	ball_nums.shuffle()
+	print(ball_nums)
+	
 	for i in range(5):
 		for j in range(i + 1):
 			print(str(i) + " "  + str(j))
 			var ball_node: Node = ball_scene.instantiate()
-			ball_node.name = "Ball%s" % ball_ind
+			var ball_num: int = ball_nums[ball_ind]
+			ball_node.name = "Ball%s" % ball_num
 			var x: float = x_shift + spacing * i * ball_radius * sqrt(3)
 			var y: float = ball_radius
 			var z: float = z_shift + (-i + 2 * j) * ball_radius * spacing
 			ball_node.position = Vector3(x, y, z)
 			
+			var mesh = ball_node.get_node("MeshInstance3D")
+			var material: Material = StandardMaterial3D.new()
+			
+			var color_num = ball_num
+			if color_num > 8:
+				color_num -= 8
+			var color = colors[color_num - 1]
+			print(ball_num)
+			print(color_num)
+			print(color)
+			material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
+			#material.albedo_texture = null
+			
+			mesh.set_surface_override_material(0, material)
+			
 			balls.append(ball_node)
 			add_child(ball_node)
+			
 			
 			ball_ind += 1
 	
@@ -72,7 +104,6 @@ func delete_fallen_balls() -> void:
 		ball.queue_free()
 
 func _physics_process(delta: float) -> void:
-	print(playing)
 	delete_fallen_balls()
 	if check_all_not_moving():
 		cur_static_ticks += 1
