@@ -1,6 +1,7 @@
 extends RigidBody3D
 
 var last_vel: Vector3 = Vector3(0, 0, 0)
+var ball_num: int = 0
 
 func _input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():

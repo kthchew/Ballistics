@@ -3,6 +3,7 @@ extends Node3D
 signal new_turn
 
 @onready var tick_label: Label = $"Control/TickLabel"
+@onready var cue_ball: RigidBody3D = $CueBall
 
 var balls: Array[RigidBody3D] = []
 var speed_threshold: float = 0.25
@@ -10,15 +11,15 @@ var angular_speed_threshold: float = 0.25
 # physics defaults to 60 ticks per second
 var static_ticks_threshold = 60
 var cur_static_ticks = 0
-var player_ind: int = 0
+var player_ind: int = 1
 var scores = [0, 0]
 var playing: bool = true
+var cue_ball_potted: bool = false
 
 const ball_scene = preload("res://ball.tscn")
 
 func _ready() -> void:
 	playing = true
-	var cue_ball: RigidBody3D = $CueBall
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
 	
@@ -75,10 +76,10 @@ func init_break_triangle(x_shift: float, z_shift: float):
 	
 	for i in range(5):
 		for j in range(i + 1):
-			print(str(i) + " "  + str(j))
 			var ball_node: Node = ball_scene.instantiate()
 			var ball_num: int = ball_nums[ball_ind]
 			ball_node.name = "Ball%s" % ball_num
+			ball_node.ball_num = ball_num
 			var x: float = x_shift + spacing * i * ball_radius * sqrt(3)
 			var y: float = ball_radius
 			var z: float = z_shift + (-i + 2 * j) * ball_radius * spacing
@@ -91,8 +92,6 @@ func init_break_triangle(x_shift: float, z_shift: float):
 			
 			
 			ball_ind += 1
-	
-	#print(($"Ball0".position - $"Ball1".position).length())
 	
 	
 func check_all_not_moving() -> bool:
@@ -110,15 +109,28 @@ func delete_fallen_balls() -> void:
 			balls_to_erase.append(ball)
 	
 	for ball in balls_to_erase:
-		if ball.name == "CueBall":
-			ball.position = Vector3(0, 10, 0)
+		if ball.ball_num == 0:
+			ball.position = Vector3(-2000, 0, 0)
 			ball.linear_velocity = Vector3(0, 0, 0)
 			ball.angular_velocity = Vector3(0, 0, 0)
+			ball.global_rotation = Vector3(0, 0, 0)
+			ball.freeze = true
+			cue_ball_potted = true
+			cue_ball.hide()
 			continue
+		elif ball.ball_num > 8:
+			scores[1] += 1
+		elif ball.ball_num < 8:
+			scores[0] += 1
+		if ball.ball_num == 8:
+			if scores[player_ind] == 7:
+				scores[player_ind] += 1
+			else:
+				scores[player_ind] = -1000
 			
-		scores[player_ind] += 1
 		balls.erase(ball)
 		ball.queue_free()
+
 
 func _physics_process(delta: float) -> void:
 	delete_fallen_balls()
@@ -135,7 +147,13 @@ func _physics_process(delta: float) -> void:
 	tick_label.text = label_txt
 	
 	if !playing and cur_static_ticks == static_ticks_threshold:
-		player_ind = 1 - player_ind
-		new_turn.emit()
-		playing = true
+		if cue_ball_potted:
+			cue_ball_potted = false
+			cue_ball.freeze = false
+			cue_ball.show()
+			cue_ball.position = Vector3(-56.0, 2.85, 0)
+		else:
+			player_ind = 1 - player_ind
+			new_turn.emit()
+			playing = true
 	

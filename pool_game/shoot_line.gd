@@ -10,7 +10,7 @@ func _input(event: InputEvent) -> void:
 		print("hitting: ", shoot_vec)
 		#playing = false
 		var hit_vec = Vector3(shoot_vec.x, 0, shoot_vec.y)
-		var hit_strength: float = 0.5 * hit_vec.length() ** 2
+		var hit_strength: float = 0.1 * hit_vec.length() ** 2
 		var hit_dir: Vector3 = hit_vec.normalized()
 		cue_ball.apply_central_impulse(hit_strength * hit_dir)
 
@@ -40,7 +40,7 @@ func _process(delta):
 		draw_shoot_line()
 	else:
 		set_point_position(0, Vector2(-1, -1))
-		set_point_position(1, Vector2(-1, -1))		
+		set_point_position(1, Vector2(-1, -1))
 	
 
 func _on_main_new_turn() -> void:
