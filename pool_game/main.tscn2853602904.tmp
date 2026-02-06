@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://comeyp103ci14"]
 
 [ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://comor5ekwua50" path="res://ball.gd" id="2_0xm2m"]
 [ext_resource type="PhysicsMaterial" uid="uid://chxig6vtldm8i" path="res://ball.tres" id="2_7mycd"]
+[ext_resource type="Script" uid="uid://bvigvjg3qqj3h" path="res://shoot_line.gd" id="3_h2yge"]
 [ext_resource type="PackedScene" uid="uid://bvjsktncikt31" path="res://dome.tscn" id="3_lquwl"]
 [ext_resource type="PackedScene" uid="uid://bpaxx4tn7mr6j" path="res://table.tscn" id="4_1bvp3"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
@@ -71,6 +73,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
 physics_material_override = ExtResource("2_7mycd")
 linear_damp = 0.5
 angular_damp = 0.5
+script = ExtResource("2_0xm2m")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CueBall" unique_id=1601161265]
 shape = SubResource("SphereShape3D_7dm0k")
@@ -103,6 +106,7 @@ grow_vertical = 2
 points = PackedVector2Array(-18, 19, -23, 65)
 width = 5.0
 default_color = Color(0.45840502, 0.45840508, 0.45840502, 0.5294118)
+script = ExtResource("3_h2yge")
 
 [node name="TickLabel" type="Label" parent="Control" unique_id=287979515]
 layout_mode = 1
