@@ -28,6 +28,8 @@ func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
 	var material: Material = StandardMaterial3D.new()
 	
+	ball_node.rotation = Vector3(0, 0, PI / 2)
+	
 	if ball_num > 8:
 		var gradient: Gradient = Gradient.new()
 		gradient.remove_point(0)
@@ -46,9 +48,6 @@ func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 	if color_num > 8:
 		color_num -= 8
 	var color = colors[color_num - 1]
-	print(ball_num)
-	print(color_num)
-	print(color)
 	material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
 	
 	mesh.set_surface_override_material(0, material)
@@ -90,7 +89,6 @@ func init_break_triangle(x_shift: float, z_shift: float):
 			balls.append(ball_node)
 			add_child(ball_node)
 			
-			
 			ball_ind += 1
 	
 	
@@ -113,7 +111,7 @@ func delete_fallen_balls() -> void:
 			ball.position = Vector3(-2000, 0, 0)
 			ball.linear_velocity = Vector3(0, 0, 0)
 			ball.angular_velocity = Vector3(0, 0, 0)
-			ball.global_rotation = Vector3(0, 0, 0)
+			ball.rotation = Vector3(0, 0, 0)
 			ball.freeze = true
 			cue_ball_potted = true
 			cue_ball.hide()
