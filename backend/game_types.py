@@ -1,0 +1,8 @@
+from enum import Enum
+
+
+class GameType(Enum):
+    EIGHT_BALL_MULTIPLAYER = 1
+    EIGHT_BALL_SINGLEPLAYER = 2
+    CRAZY_EIGHT_BALL_MULTIPLAYER = 3
+    CRAZY_EIGHT_BALL_SINGLEPLAYER = 4

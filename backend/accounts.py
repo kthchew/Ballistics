@@ -7,6 +7,12 @@ from pyargon2 import hash
 uri = os.environ['BALLISTIC_SERV_DB_STRING']
 client = mongo_client.MongoClient(uri)
 
+class Account:
+    def __init__(self, username: str, password: str):
+        self.username = username
+        self.password = password
+        self.current_game_id = None
+
 def check_user_exists(username: str):
     db = client['ballistic_serv']
     users_collection = db['users']
@@ -22,7 +28,7 @@ def register_user(username: str, password: str):
     hashed_password = hash(password, salt=salt)
     users_collection.insert_one({'username': username, 'password': hashed_password, 'salt': salt})
 
-def check_valid_login(username: str, password: str):
+def check_valid_login(username: str, password: str) -> bool:
     db = client['ballistic_serv']
     users_collection = db['users']
     user = users_collection.find_one({'username': username})
