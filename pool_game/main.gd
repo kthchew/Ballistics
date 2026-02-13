@@ -1,7 +1,6 @@
 extends Node3D
 
 var has_aimed := false
-signal new_turn
 
 @onready var tick_label: Label = $"Control/TickLabel"
 @onready var cue_ball: RigidBody3D = $CueBall
@@ -208,6 +207,5 @@ func _physics_process(delta: float) -> void:
 			cue_ball.position = Vector3(-56.0, 2.85, 0)
 		else:
 			player_ind = 1 - player_ind
-			new_turn.emit()
 			playing = true
 	
