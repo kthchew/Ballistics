@@ -1,11 +1,8 @@
-import os
 import secrets
+import database
 
-from pymongo import mongo_client
 from pyargon2 import hash
 
-uri = os.environ['BALLISTIC_SERV_DB_STRING']
-client = mongo_client.MongoClient(uri)
 
 class Account:
     def __init__(self, username: str, password: str):
@@ -14,26 +11,31 @@ class Account:
         self.current_game_id = None
 
 def check_user_exists(username: str):
-    db = client['ballistic_serv']
-    users_collection = db['users']
+    users_collection = database.db['users']
     user = users_collection.find_one({'username': username})
     return user is not None
 
 def register_user(username: str, password: str):
     if check_user_exists(username):
         raise ValueError("A user with that name already exists")
-    db = client['ballistic_serv']
-    users_collection = db['users']
+    users_collection = database.db['users']
     salt = secrets.token_urlsafe(16)
     hashed_password = hash(password, salt=salt)
     users_collection.insert_one({'username': username, 'password': hashed_password, 'salt': salt})
 
 def check_valid_login(username: str, password: str) -> bool:
-    db = client['ballistic_serv']
-    users_collection = db['users']
+    users_collection = database.db['users']
     user = users_collection.find_one({'username': username})
     if user is None:
         return False
     stored_hashed_password = user['password']
     salt = user['salt']
     return hash(password, salt=salt) == stored_hashed_password
+
+def join_game(username: str, game_id: str):
+    users_collection = database.db['users']
+    users_collection.update_one({'username': username}, {'$set': {'current_game_id': game_id}})
+
+def leave_game(username: str):
+    users_collection = database.db['users']
+    users_collection.update_one({'username': username}, {'$set': {'current_game_id': None}})
