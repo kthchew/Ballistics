@@ -101,11 +101,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ShootLine" type="Line2D" parent="Control" unique_id=365693871]
-points = PackedVector2Array(-18, 19, -23, 65)
-width = 5.0
-default_color = Color(0.45840502, 0.45840508, 0.45840502, 0.5294118)
-
 [node name="TickLabel" type="Label" parent="Control" unique_id=287979515]
 layout_mode = 1
 offset_left = 17.0
