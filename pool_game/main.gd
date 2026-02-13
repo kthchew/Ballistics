@@ -9,6 +9,7 @@ signal new_turn
 @onready var slider = $UI/ForceSlider
 @onready var fire_button = $UI/FireButton
 @onready var aimer = $UI/Aimer
+@onready var ai_controller = $AIController3D
 
 var balls: Array[RigidBody3D] = []
 var speed_threshold: float = 0.25
@@ -31,6 +32,9 @@ func _ready() -> void:
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
+	
+	ai_controller.init(self)
+	ai_controller.fire.connect(_on_fire_pressed)
 
 func _on_aim_changed(touch_pos: Vector2):
 	if !playing:
@@ -53,8 +57,10 @@ func _on_force_changed(value):
 	$UI/AimLine.set_force_strength(normalized)
 
 func _on_fire_pressed():
-	var strength = slider.value
-	var angle = aim_line.angle
+	#var strength = slider.value
+	#var angle = aim_line.angle
+	var strength = ai_controller.action_power * 100
+	var angle = ai_controller.action_angle * PI
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
 	var force = dir * (strength * 5)
@@ -67,7 +73,8 @@ func _on_fire_pressed():
 	var forward = right.cross(dir).normalized()
 
 	var face_radius = 0.5
-	var joy = aimer.output
+	#var joy = aimer.output
+	var joy = Vector2(ai_controller.action_posx, ai_controller.action_posy)
 	var offset_3d = right * (joy.x * face_radius) + forward * (-joy.y * face_radius)
 
 	var local_offset = offset_3d
@@ -171,19 +178,29 @@ func delete_fallen_balls() -> void:
 			ball.freeze = true
 			cue_ball_potted = true
 			cue_ball.hide()
+			ai_controller.reward -= 2
 			continue
 		elif ball.ball_num > 8:
 			scores[1] += 1
+			ai_controller.reward -= 1
 		elif ball.ball_num < 8:
 			scores[0] += 1
+			ai_controller.reward += 1
 		if ball.ball_num == 8:
 			if scores[player_ind] == 7:
 				scores[player_ind] += 1
+				ai_controller.reward += 10
 			else:
 				scores[player_ind] = -1000
+				ai_controller.reward -= 10
 			
-		balls.erase(ball)
-		ball.queue_free()
+		ball.position = Vector3(0, 0, -10)
+		ball.linear_velocity = Vector3(0, 0, 0)
+		ball.angular_velocity = Vector3(0, 0, 0)	
+		ball.freeze = true
+		ball.hide()
+		#balls.erase(ball)
+		#ball.queue_free()
 
 
 func _physics_process(delta: float) -> void:
