@@ -1,6 +1,5 @@
 extends Node3D
 
-var has_aimed := false
 
 @onready var debug_label: Label = $Control/DebugLabel
 @onready var cue_ball: RigidBody3D = $CueBall
@@ -8,7 +7,11 @@ var has_aimed := false
 @onready var slider = $UI/ForceSlider
 @onready var fire_button = $UI/FireButton
 @onready var aimer = $UI/Aimer
+@onready var camera = $CameraPivot/Camera3D
 
+enum GameState {AIMING, MIDTURN, PLACING}
+
+var has_aimed := false
 var balls: Array[RigidBody3D] = []
 var speed_threshold: float = 0.25
 var angular_speed_threshold: float = 0.25
@@ -18,7 +21,7 @@ var cur_static_ticks = 0
 var player_ind: int = 1
 var scores: Array[int] = [0, 0]
 var balls_sunk: Array[int] = [0, 0]
-var playing: bool = true
+var game_state: GameState = GameState.AIMING
 var turn_num: int = -1
 var cue_ball_potted: bool = false
 var solids_player = -1
@@ -26,7 +29,7 @@ var solids_player = -1
 const ball_scene = preload("res://ball.tscn")	
 
 func _ready() -> void:
-	playing = true
+	game_state = GameState.AIMING
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
 	
@@ -37,9 +40,22 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 
 func _on_aim_changed(touch_pos: Vector2):
-	if !playing:
+	if game_state == GameState.MIDTURN:
 		return
-	var ball_screen_pos = $CameraPivot/Camera3D.unproject_position(cue_ball.global_position)
+		
+	if game_state == GameState.PLACING:
+		print("Shooting placing ray")
+		var ray_origin = camera.project_ray_origin(touch_pos)
+		var ray_normal = camera.project_ray_normal(touch_pos)
+		
+		var drop_plane = Plane(Vector3.UP, Vector3(0, 2.85, 0))
+		
+		# 3. Get intersection point
+		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
+		reset_cue_ball(intersection)
+		return
+		
+	var ball_screen_pos: Vector2 = camera.unproject_position(cue_ball.global_position)
 	var dir = touch_pos - ball_screen_pos
 
 	if dir.length() < 20:
@@ -77,12 +93,11 @@ func _on_fire_pressed():
 	var local_offset = offset_3d
 
 	cue_ball.apply_impulse(force, local_offset)
+	cue_ball.first_hit_ball_num = 0
 
 	has_aimed = false
 	aim_line.visible = false
 	aimer._reset_knob()
-		
-	
 
 func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
@@ -151,7 +166,6 @@ func init_break_triangle(x_shift: float, z_shift: float):
 			
 			ball_ind += 1
 	
-	
 func check_all_not_moving() -> bool:
 	for ball in balls:
 		if ball.get_linear_velocity().length() > speed_threshold \
@@ -160,7 +174,8 @@ func check_all_not_moving() -> bool:
 	return true
 	
 func hide_cue_ball(ball) -> void:
-	ball.position = Vector3(-2000, 0, 0)
+	print("Hiding cue ball, pos = " + str(ball.global_position))
+	ball.global_position = Vector3(2000, 2000, 2000)
 	ball.linear_velocity = Vector3(0, 0, 0)
 	ball.angular_velocity = Vector3(0, 0, 0)
 	ball.rotation = Vector3(0, 0, 0)
@@ -211,36 +226,61 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 	balls.erase(ball)
 	ball.queue_free()
 	
-func reset_cue_ball() -> void:
+func reset_cue_ball(pos: Vector3) -> void:
+	print("Resetting cue ball to pos: " + str(pos))
+	cue_ball.teleport(pos)
 	cue_ball_potted = false
 	cue_ball.freeze = false
 	cue_ball.show()
-	cue_ball.position = Vector3(-56.0, 2.85, 0)
+	cue_ball.linear_velocity = Vector3(0, 0, 0)
+	game_state = GameState.AIMING
+	
+# TODO: if 8 ball is the only ball left, it is allowed
+func check_for_first_hit_scratch() -> bool:
+	var first_hit_ball_num = cue_ball.first_hit_ball_num 
+	if first_hit_ball_num == -1:
+		return false
+	if solids_player == player_ind and not (1 <= first_hit_ball_num and first_hit_ball_num <= 7):
+		return true
+	if solids_player == 1 - player_ind and not (9 <= first_hit_ball_num and first_hit_ball_num <= 15):
+		return true
+	return false
+	
+func check_for_scratch():
+	return cue_ball_potted or check_for_first_hit_scratch()
 
 func start_new_turn() -> void:
-	if cue_ball_potted:
-		reset_cue_ball()
+	if check_for_scratch():
+		print("Scratch registered")
+		game_state = GameState.PLACING
+		#reset_cue_ball()
 	# resetting cue ball creates movement, so we have to let the system change turns after it stops moving, 
 	# hence the else
 	else:
+		print("Starting new turn")
 		turn_num += 1
 		player_ind = 1 - player_ind
-		playing = true
+		game_state = GameState.AIMING
+	cue_ball.first_hit_ball_num = -1
 		
 func _physics_process(delta: float) -> void:
 	process_fallen_balls()
 	
+	if game_state == GameState.PLACING:
+		return
+		
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
-		playing = false
+		game_state = GameState.MIDTURN
 		cur_static_ticks = 0
 	
-	if !playing and cur_static_ticks == static_ticks_threshold:
+	if game_state == GameState.MIDTURN and cur_static_ticks == static_ticks_threshold:
 		start_new_turn()
 	
 func fill_debug_label() -> void:
 	var label_txt = "Static Ticks: " + str(cur_static_ticks)
+	label_txt += "\nGame State: " + str(game_state)
 	label_txt += "\nTurn Num: " + str(turn_num)
 	label_txt += "\nCurrent Player Ind: " + str(player_ind)
 	label_txt += "\nPlayer 0 Score: " + str(scores[0])
@@ -248,6 +288,7 @@ func fill_debug_label() -> void:
 	label_txt += "\nSolids Player: " + str(solids_player)
 	label_txt += "\nSolids Sunk: " + str(balls_sunk[0])
 	label_txt += "\nStripes Sunk: " + str(balls_sunk[1])
+	label_txt += "\nFirst Hit: " + str(cue_ball.first_hit_ball_num)
 	debug_label.text = label_txt
 
 func _process(delta: float) -> void:

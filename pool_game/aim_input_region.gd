@@ -10,3 +10,6 @@ func _gui_input(event):
 
 	if dragging and event is InputEventScreenDrag:
 		emit_signal("aim_changed", event.position)
+		
+	if event is InputEventMouseButton:
+		emit_signal("aim_changed", event.position)

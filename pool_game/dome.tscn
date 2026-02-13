@@ -19,15 +19,15 @@ size = Vector3(304, 40, 192)
 
 [node name="Dome" type="Node3D" unique_id=1266447434]
 
-[node name="Wall" type="StaticBody3D" parent="." unique_id=973948531]
+[node name="Wall1" type="StaticBody3D" parent="." unique_id=973948531]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -112, 0, 0)
 physics_material_override = ExtResource("1_4aa8u")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall" unique_id=115981617]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall1" unique_id=115981617]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 10, 0)
 shape = SubResource("BoxShape3D_h2yge")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Wall" unique_id=861992198]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Wall1" unique_id=861992198]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.825, 0)
 mesh = SubResource("BoxMesh_h2yge")
 
