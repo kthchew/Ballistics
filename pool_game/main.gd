@@ -2,7 +2,7 @@ extends Node3D
 
 var has_aimed := false
 
-@onready var tick_label: Label = $"Control/TickLabel"
+@onready var debug_label: Label = $Control/DebugLabel
 @onready var cue_ball: RigidBody3D = $CueBall
 @onready var aim_line = $UI/AimLine
 @onready var slider = $UI/ForceSlider
@@ -16,9 +16,12 @@ var angular_speed_threshold: float = 0.25
 var static_ticks_threshold = 60
 var cur_static_ticks = 0
 var player_ind: int = 1
-var scores = [0, 0]
+var scores: Array[int] = [0, 0]
+var balls_sunk: Array[int] = [0, 0]
 var playing: bool = true
+var turn_num: int = -1
 var cue_ball_potted: bool = false
+var solids_player = -1
 
 const ball_scene = preload("res://ball.tscn")	
 
@@ -26,7 +29,9 @@ func _ready() -> void:
 	playing = true
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
+	
 	aim_line.visible = false
+	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
@@ -153,59 +158,97 @@ func check_all_not_moving() -> bool:
 		or ball.get_angular_velocity().length() > angular_speed_threshold:
 			return false
 	return true
+	
+func hide_cue_ball(ball) -> void:
+	ball.position = Vector3(-2000, 0, 0)
+	ball.linear_velocity = Vector3(0, 0, 0)
+	ball.angular_velocity = Vector3(0, 0, 0)
+	ball.rotation = Vector3(0, 0, 0)
+	ball.freeze = true
+	cue_ball_potted = true
+	cue_ball.hide()
+	
+func process_fallen_balls() -> void:
+	var fallen_balls: Array[RigidBody3D] = find_fallen_balls()
+	for ball in fallen_balls:
+		process_fallen_ball(ball)
 
-func delete_fallen_balls() -> void:
-	var balls_to_erase: Array[RigidBody3D] = []
+func find_fallen_balls() -> Array[RigidBody3D]:
+	var fallen_balls: Array[RigidBody3D] = []
 	for ball in balls:
 		if ball.position.y < -10:
 			print(ball.name + " fell")
-			balls_to_erase.append(ball)
+			fallen_balls.append(ball)
+	return fallen_balls 
 	
-	for ball in balls_to_erase:
-		if ball.ball_num == 0:
-			ball.position = Vector3(-2000, 0, 0)
-			ball.linear_velocity = Vector3(0, 0, 0)
-			ball.angular_velocity = Vector3(0, 0, 0)
-			ball.rotation = Vector3(0, 0, 0)
-			ball.freeze = true
-			cue_ball_potted = true
-			cue_ball.hide()
-			continue
-		elif ball.ball_num > 8:
-			scores[1] += 1
-		elif ball.ball_num < 8:
-			scores[0] += 1
-		if ball.ball_num == 8:
-			if scores[player_ind] == 7:
-				scores[player_ind] += 1
-			else:
-				scores[player_ind] = -1000
-			
-		balls.erase(ball)
-		ball.queue_free()
+func process_fallen_ball(ball: RigidBody3D) -> void:
+	if ball.is_cue_ball():
+		hide_cue_ball(ball)
+		return
+		
+	# 8 ball fell
+	if ball.is_eight_ball():
+		if scores[player_ind] == 7:
+			scores[player_ind] += 1
+		else:
+			scores[player_ind] = -1000
+	else:
+		if ball.is_solid():
+			balls_sunk[0] += 1
+		elif ball.is_stripe():
+			balls_sunk[1] += 1
+		
+		if turn_num > 0 and solids_player == -1:
+			if ball.is_solid():
+				solids_player = player_ind
+			elif ball.is_stripe():
+				solids_player = 1 - player_ind
+		
+		if solids_player != -1:
+			scores[solids_player] = balls_sunk[0]
+			scores[1 - solids_player] = balls_sunk[1]
+	
+	balls.erase(ball)
+	ball.queue_free()
+	
+func reset_cue_ball() -> void:
+	cue_ball_potted = false
+	cue_ball.freeze = false
+	cue_ball.show()
+	cue_ball.position = Vector3(-56.0, 2.85, 0)
 
-
+func start_new_turn() -> void:
+	if cue_ball_potted:
+		reset_cue_ball()
+	# resetting cue ball creates movement, so we have to let the system change turns after it stops moving, 
+	# hence the else
+	else:
+		turn_num += 1
+		player_ind = 1 - player_ind
+		playing = true
+		
 func _physics_process(delta: float) -> void:
-	delete_fallen_balls()
+	process_fallen_balls()
+	
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
 		playing = false
 		cur_static_ticks = 0
 	
-	var label_txt = "Static Ticks: " + str(cur_static_ticks)
-	label_txt += "\nCurrent Player: " + str(player_ind + 1)
-	label_txt += "\nPlayer 1 Score: " + str(scores[0])
-	label_txt += "\nPlayer 2 Score: " + str(scores[1])
-	tick_label.text = label_txt
-	
 	if !playing and cur_static_ticks == static_ticks_threshold:
-		if cue_ball_potted:
-			cue_ball_potted = false
-			cue_ball.freeze = false
-			cue_ball.show()
-			cue_ball.position = Vector3(-56.0, 2.85, 0)
-		else:
-			player_ind = 1 - player_ind
-			playing = true
+		start_new_turn()
 	
+func fill_debug_label() -> void:
+	var label_txt = "Static Ticks: " + str(cur_static_ticks)
+	label_txt += "\nTurn Num: " + str(turn_num)
+	label_txt += "\nCurrent Player Ind: " + str(player_ind)
+	label_txt += "\nPlayer 0 Score: " + str(scores[0])
+	label_txt += "\nPlayer 1 Score: " + str(scores[1])
+	label_txt += "\nSolids Player: " + str(solids_player)
+	label_txt += "\nSolids Sunk: " + str(balls_sunk[0])
+	label_txt += "\nStripes Sunk: " + str(balls_sunk[1])
+	debug_label.text = label_txt
+
+func _process(delta: float) -> void:
+	fill_debug_label()

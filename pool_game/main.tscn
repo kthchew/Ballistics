@@ -101,7 +101,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TickLabel" type="Label" parent="Control" unique_id=287979515]
+[node name="DebugLabel" type="Label" parent="Control" unique_id=287979515]
 layout_mode = 1
 offset_left = 17.0
 offset_top = 11.0

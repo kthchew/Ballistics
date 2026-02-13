@@ -11,6 +11,8 @@ func set_angle(a: float):
 	angle = a
 	rotation = angle
 
+# in real life, 30 mph break == 13.4112 m/s
+# max break velocity should be about 1350 m/s
 func set_force_strength(strength: float):
 	strength = clamp(strength, 0.0, 1.0)
 	var length = lerp(min_length, max_length, strength)

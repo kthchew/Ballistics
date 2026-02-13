@@ -15,3 +15,17 @@ func _physics_process(delta):
 
 	if angular_velocity.length() < 0.1:
 		angular_velocity = Vector3.ZERO
+
+
+func is_cue_ball():
+	return ball_num == 0	
+
+func is_solid():
+	return 0 < ball_num and ball_num < 8
+	
+func is_eight_ball():
+	return ball_num == 8
+	
+func is_stripe():
+	return ball_num > 8
+	
