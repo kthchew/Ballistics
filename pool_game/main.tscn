@@ -10,7 +10,6 @@
 [ext_resource type="Script" uid="uid://6c5fyhqo7d12" path="res://line_2d.gd" id="9_4c57u"]
 [ext_resource type="Script" uid="uid://b8a4li8lvbc73" path="res://single_controller.gd" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
-[ext_resource type="Script" uid="uid://dw43wplnt70pi" path="res://addons/godot_rl_agents/sync.gd" id="12_dg77c"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
 font_size = 18
@@ -191,10 +190,5 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 script = ExtResource("11_dg77c")
 reset_after = 25000
 metadata/_custom_type_script = "uid://c3x2s2t3a8tf5"
-
-[node name="Sync" type="Node" parent="." unique_id=923973208]
-script = ExtResource("12_dg77c")
-action_repeat = 200
-metadata/_custom_type_script = "uid://dw43wplnt70pi"
 
 [connection signal="new_turn" from="." to="Control/ShootLine" method="_on_main_new_turn"]

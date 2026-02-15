@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://da63um2nk4gb1"]
+
+[ext_resource type="PackedScene" uid="uid://comeyp103ci14" path="res://main.tscn" id="1_bju55"]
+[ext_resource type="Script" uid="uid://dw43wplnt70pi" path="res://addons/godot_rl_agents/sync.gd" id="2_lomod"]
+
+[node name="Train" type="Node3D" unique_id=1442971388]
+
+[node name="Main" parent="." unique_id=1362962675 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139.90192, 0, -73.75618)
+
+[node name="Main2" parent="." unique_id=1981781114 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 389.90192, 0, -73.75618)
+
+[node name="Main3" parent="." unique_id=43832042 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139.90192, 0, -232.853)
+
+[node name="Main4" parent="." unique_id=1558965491 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 389.90192, 0, -232.853)
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=400205645]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 410.669, 0)
+current = true
+
+[node name="Main5" parent="." unique_id=650631735 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139.90192, 0, 230.62236)
+
+[node name="Main6" parent="." unique_id=1106873304 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 389.90192, 0, 230.62236)
+
+[node name="Main7" parent="." unique_id=1713042444 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139.90192, 0, 71.52554)
+
+[node name="Main8" parent="." unique_id=388819644 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 389.90192, 0, 71.52554)
+
+[node name="Main9" parent="." unique_id=686002830 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -380.2923, 0, -73.75618)
+
+[node name="Main10" parent="." unique_id=694929315 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -130.2923, 0, -73.75618)
+
+[node name="Main11" parent="." unique_id=57745612 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -380.2923, 0, -232.853)
+
+[node name="Main12" parent="." unique_id=1480908804 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -130.2923, 0, -232.853)
+
+[node name="Main13" parent="." unique_id=583495375 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -380.2923, 0, 230.62236)
+
+[node name="Main14" parent="." unique_id=1660604225 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -130.2923, 0, 230.62236)
+
+[node name="Main15" parent="." unique_id=171410312 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -380.2923, 0, 71.52554)
+
+[node name="Main16" parent="." unique_id=1300684722 instance=ExtResource("1_bju55")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -130.2923, 0, 71.52554)
+
+[node name="Sync" type="Node" parent="." unique_id=2141449231]
+script = ExtResource("2_lomod")
+action_repeat = 200
+metadata/_custom_type_script = "uid://dw43wplnt70pi"

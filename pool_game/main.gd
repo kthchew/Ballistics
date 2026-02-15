@@ -70,6 +70,7 @@ func _on_fire_pressed():
 	#var strength = slider.value
 	#var angle = aim_line.angle
 	var strength = ai_controller.action_power * 100
+	ai_controller.reward += strength / 10
 	var angle = ai_controller.action_angle * PI
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()

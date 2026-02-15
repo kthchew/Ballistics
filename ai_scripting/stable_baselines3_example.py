@@ -46,13 +46,15 @@ parser.add_argument("--seed", type=int, default=0, help="seed of the experiment"
 parser.add_argument(
     "--resume_model_path",
     default=None,
+    # default="single_agent.zip",
     type=str,
     help="The path to a model file previously saved using --save_model_path or a checkpoint saved using "
     "--save_checkpoints_frequency. Use this to resume training or infer from a saved model.",
 )
 parser.add_argument(
     "--save_model_path",
-    default=None,
+    # default=None,
+    default="single_agent.zip",
     type=str,
     help="The path to use for saving the trained sb3 model after training is complete. Saved model can be used later "
     "to resume training. Extension will be set to .zip",
@@ -69,13 +71,15 @@ parser.add_argument(
 )
 parser.add_argument(
     "--onnx_export_path",
-    default=None,
+    # default=None,
+    default="single_agent.onnx",
     type=str,
     help="If included, will export onnx file after training to the path specified.",
 )
 parser.add_argument(
     "--timesteps",
-    default=1_000_000,
+    # default=1_000_000,
+    default=1_000_000_000,
     type=int,
     help="The number of environment steps to train for, default is 1_000_000. If resuming from a saved model, "
     "it will continue training for this amount of steps from the saved state without counting previously trained "
@@ -202,7 +206,7 @@ if args.resume_model_path is None:
     #     learning_rate=learning_rate,
     # )
     # policy_kwargs = dict(log_std_init=log(1.0))
-    model: PPO = PPO("MultiInputPolicy", env, verbose=1, n_epochs=10, learning_rate=0.0003, clip_range=0.2, ent_coef=0.0085, n_steps=128, batch_size=160, tensorboard_log=args.experiment_dir)
+    model: PPO = PPO("MultiInputPolicy", env, verbose=1, n_epochs=10, learning_rate=0.0003, clip_range=0.2, ent_coef=0.0085, n_steps=128, batch_size=128, tensorboard_log=args.experiment_dir)
 else:
     path_zip = pathlib.Path(args.resume_model_path)
     print("Loading model: " + os.path.abspath(path_zip))
