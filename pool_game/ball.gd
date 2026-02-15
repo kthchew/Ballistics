@@ -3,6 +3,8 @@ extends RigidBody3D
 var last_vel: Vector3 = Vector3(0, 0, 0)
 var ball_num: int = 0
 
+@onready var ai_controller = $"../AIController3D"
+
 '''
 func _input(event):
 	if event is InputEventKey and event.pressed and not event.is_echo():
@@ -20,6 +22,8 @@ func reset():
 	position = Vector3(-56.0, 2.85, 0)
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)	
+	freeze = false
+	show()
 
 func _physics_process(delta):
 	#if last_vel.length() > 0.2 and linear_velocity.length() < 0.2:
@@ -38,3 +42,8 @@ func _physics_process(delta):
 
 	if angular_velocity.length() < 0.1:
 		angular_velocity = Vector3.ZERO
+
+
+func _on_body_entered(body: Node) -> void:
+	if body.name.contains("Ball") and body.ball_num < 8:
+		ai_controller.reward += 0.1

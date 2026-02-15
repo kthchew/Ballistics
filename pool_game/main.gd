@@ -36,8 +36,11 @@ func _ready() -> void:
 
 func start_game() -> void:
 	playing = true
-	balls = []
+	while balls.size() > 1:
+		balls[1].queue_free()
+		balls.remove_at(1)
 	scores = [0, 0]
+	balls = []
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
 	aim_line.visible = false

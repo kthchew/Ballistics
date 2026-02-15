@@ -1,5 +1,7 @@
 .DS_Store
-rl-venv/
+
+.venv/
+ai_scripting/logs
 
 # Godot 4+ specific ignores
 .godot/
