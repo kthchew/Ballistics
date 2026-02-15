@@ -15,6 +15,12 @@ func _input(event):
 		elif event.is_action("move_down"):
 			apply_central_impulse(Vector3(0, 0, 50))
 '''
+
+func reset():
+	position = Vector3(-56.0, 2.85, 0)
+	linear_velocity = Vector3(0, 0, 0)
+	angular_velocity = Vector3(0, 0, 0)	
+
 func _physics_process(delta):
 	#if last_vel.length() > 0.2 and linear_velocity.length() < 0.2:
 		#linear_damp = 0.5

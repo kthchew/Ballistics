@@ -4,7 +4,7 @@ class_name AIController3D
 enum ControlModes { INHERIT_FROM_SYNC, HUMAN, TRAINING, ONNX_INFERENCE, RECORD_EXPERT_DEMOS }
 @export var control_mode: ControlModes = ControlModes.INHERIT_FROM_SYNC
 @export var onnx_model_path := ""
-@export var reset_after := 1000
+@export var reset_after := 10000
 
 @export_group("Record expert demos mode options")
 ## Path where the demos will be saved. The file can later be used for imitation learning.
@@ -14,7 +14,7 @@ enum ControlModes { INHERIT_FROM_SYNC, HUMAN, TRAINING, ONNX_INFERENCE, RECORD_E
 ## Action will be repeated for n frames. Will introduce control lag if larger than 1.
 ## Can be used to ensure that action_repeat on inference and training matches
 ## the recorded demonstrations.
-@export var action_repeat: int = 1
+@export var action_repeat: int = 200
 
 @export_group("Multi-policy mode options")
 ## Allows you to set certain agents to use different policies.

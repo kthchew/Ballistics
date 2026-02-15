@@ -25,16 +25,23 @@ var cue_ball_potted: bool = false
 const ball_scene = preload("res://ball.tscn")	
 
 func _ready() -> void:
-	playing = true
-	balls.append(cue_ball)
-	init_break_triangle(56, 0)
-	aim_line.visible = false
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
 	
 	ai_controller.init(self)
 	ai_controller.fire.connect(_on_fire_pressed)
+	
+	start_game()
+
+func start_game() -> void:
+	playing = true
+	balls = []
+	scores = [0, 0]
+	balls.append(cue_ball)
+	init_break_triangle(56, 0)
+	aim_line.visible = false
+	cue_ball_potted = false
 
 func _on_aim_changed(touch_pos: Vector2):
 	if !playing:
@@ -193,6 +200,7 @@ func delete_fallen_balls() -> void:
 			else:
 				scores[player_ind] = -1000
 				ai_controller.reward -= 10
+			ai_controller.needs_reset = true
 			
 		ball.position = Vector3(0, 0, -10)
 		ball.linear_velocity = Vector3(0, 0, 0)
@@ -204,6 +212,12 @@ func delete_fallen_balls() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if (ai_controller.needs_reset):
+		ai_controller.reset()
+		cue_ball.reset()
+		start_game()
+		return
+	
 	delete_fallen_balls()
 	if check_all_not_moving():
 		cur_static_ticks += 1

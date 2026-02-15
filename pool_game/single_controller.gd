@@ -21,9 +21,13 @@ func init(player: Node3D):
 	_player = player
 
 
+func sort_balls_by_num(a, b):
+	return (a.ball_num < b.ball_num)
+
 #-- Methods that need implementing using the "extend script" option in Godot --#
 func get_obs() -> Dictionary:
 	var balls = _player.balls
+	balls.sort_custom(sort_balls_by_num)
 	var obs = []
 	for ball in balls: 
 		var pos = ball.global_position
