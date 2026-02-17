@@ -2,12 +2,12 @@
 
 [ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://cue_ball.tscn" id="2_kek77"]
-[ext_resource type="PackedScene" uid="uid://bvjsktncikt31" path="res://dome.tscn" id="3_lquwl"]
-[ext_resource type="PackedScene" uid="uid://bpaxx4tn7mr6j" path="res://table.tscn" id="4_1bvp3"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://djqal2dmt158r" path="res://aimer.gd" id="8_5vw27"]
 [ext_resource type="Script" uid="uid://30h4vbvl3432" path="res://aim_line.gd" id="8_kek77"]
 [ext_resource type="Script" uid="uid://6c5fyhqo7d12" path="res://line_2d.gd" id="9_4c57u"]
+[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://dome_2.tscn" id="9_kek77"]
+[ext_resource type="PackedScene" uid="uid://boqetj8b1khhq" path="res://table_2.tscn" id="10_4c57u"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
@@ -47,20 +47,18 @@ corner_radius_bottom_left = 100
 script = ExtResource("1_ig7tw")
 
 [node name="CueBall" parent="." unique_id=1266988142 instance=ExtResource("2_kek77")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 7.565, 0)
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
 transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.0658141e-14, 0, 1.0658141e-14, 1.0000001, 0, -3.6527392e-06, 118.564926)
-size = 50.0
+size = 130.0
 
 [node name="Light" type="DirectionalLight3D" parent="." unique_id=1196470335]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 26.1799, 0)
 shadow_enabled = true
-
-[node name="Dome" parent="." unique_id=1266447434 instance=ExtResource("3_lquwl")]
 
 [node name="Control" type="Control" parent="." unique_id=386163020]
 layout_mode = 3
@@ -77,9 +75,6 @@ offset_top = 11.0
 offset_right = 164.0
 offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_h2yge")
-
-[node name="Table" parent="." unique_id=333268487 instance=ExtResource("4_1bvp3")]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -0.10971069, -15.336487, -0.08026123)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1888597792]
 
@@ -179,3 +174,7 @@ grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
+
+[node name="Table2" parent="." unique_id=1843591312 instance=ExtResource("10_4c57u")]
+
+[node name="Dome2" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
