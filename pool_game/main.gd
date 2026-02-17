@@ -70,7 +70,7 @@ func _on_fire_pressed():
 	#var strength = slider.value
 	#var angle = aim_line.angle
 	var strength = ai_controller.action_power * 100
-	ai_controller.reward += strength / 10
+	ai_controller.reward += ai_controller.action_power / 10 / 2
 	var angle = ai_controller.action_angle * PI
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
@@ -196,7 +196,7 @@ func delete_fallen_balls() -> void:
 			ai_controller.reward -= 1
 		elif ball.ball_num < 8:
 			scores[0] += 1
-			ai_controller.reward += 1
+			ai_controller.reward += 2
 		if ball.ball_num == 8:
 			if scores[player_ind] == 7:
 				scores[player_ind] += 1
@@ -233,6 +233,7 @@ func _physics_process(delta: float) -> void:
 	label_txt += "\nCurrent Player: " + str(player_ind + 1)
 	label_txt += "\nPlayer 1 Score: " + str(scores[0])
 	label_txt += "\nPlayer 2 Score: " + str(scores[1])
+	label_txt += "\nAI reward: " + str(ai_controller.reward)
 	tick_label.text = label_txt
 	
 	if !playing and cur_static_ticks == static_ticks_threshold:

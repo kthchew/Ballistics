@@ -26,6 +26,7 @@ parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument(
     "--env_path",
     default=None,
+    # default="../pool_game/ball-istics.exe",
     type=str,
     help="The Godot binary to use, do not include for in editor training",
 )
@@ -46,8 +47,8 @@ parser.add_argument(
 parser.add_argument("--seed", type=int, default=0, help="seed of the experiment")
 parser.add_argument(
     "--resume_model_path",
-    # default=None,
-    default="single_agent.zip",
+    default=None,
+    # default="single_agent.zip",
     type=str,
     help="The path to a model file previously saved using --save_model_path or a checkpoint saved using "
     "--save_checkpoints_frequency. Use this to resume training or infer from a saved model.",
@@ -55,7 +56,7 @@ parser.add_argument(
 parser.add_argument(
     "--save_model_path",
     default=None,
-    # default="single_agent.zip",
+    # default="single_agent_break_test.zip",
     type=str,
     help="The path to use for saving the trained sb3 model after training is complete. Saved model can be used later "
     "to resume training. Extension will be set to .zip",
@@ -111,6 +112,7 @@ parser.add_argument(
 parser.add_argument("--speedup", default=1, type=int, help="Whether to speed up the physics in the env")
 parser.add_argument(
     "--n_parallel",
+    # default=16,
     default=1,
     type=int,
     help="How many instances of the environment executable to " "launch - requires --env_path to be set if > 1.",

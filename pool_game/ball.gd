@@ -45,5 +45,7 @@ func _physics_process(delta):
 
 
 func _on_body_entered(body: Node) -> void:
-	if body.name.contains("Ball") and body.ball_num < 8:
-		ai_controller.reward += 0.2
+	if body.name.contains("Ball"): 
+		ai_controller.reward += 0.05
+		if body.ball_num < 8:
+			ai_controller.reward += 0.2
