@@ -3,7 +3,7 @@ import accounts
 import game
 import json
 
-from flask import Flask, session, request
+from flask import Flask, session, request, jsonify
 from game import GameInstance
 
 app = Flask(__name__)
@@ -70,6 +70,20 @@ def leave_game():
     else:
         return "Failed to leave game", 500
 
+@app.get("/getGame")
+def get_game():
+    if 'username' not in session:
+        return "Unauthorized", 401
+    username = session['username']
+    users_collection = accounts.database.db['users']
+    user = users_collection.find_one({'username': username})
+    if user is None:
+        return "User not found", 401
+    current_game_id = user['current_game_id']
+    if current_game_id is None:
+        return "User is not in a game", 400
+    game_instance = game.get_game_state(current_game_id)
+    return jsonify(game.game_instance_to_mongo_dict(game_instance))
 
 # FIXME: anything below this should be restricted to requests from a trusted Godot game server
 @app.post("/updateGame")
