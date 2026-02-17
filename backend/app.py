@@ -75,14 +75,14 @@ def leave_game():
 @app.post("/updateGame")
 def update_game_state():
     json_req = request.get_json()
-    if 'game_state' not in json:
+    if 'game_state' not in json_req:
         return "Bad request", 400
     try:
-        loaded = json.loads(json_req['game_state'])
+        loaded = json_req['game_state']
         game_state = GameInstance(**loaded)
     except json.JSONDecodeError:
         return "Invalid JSON", 400
     except TypeError:
         return "Invalid request", 400
-    game.update_game_state(game_state)
+    result = game.update_game_state(game_state)
     return "Game state updated successfully", 200
