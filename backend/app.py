@@ -99,4 +99,7 @@ def update_game_state():
     except TypeError:
         return "Invalid request", 400
     result = game.update_game_state(game_state)
-    return "Game state updated successfully", 200
+    if result:
+        return "Game state updated successfully", 200
+    else:
+        return "Failed to update game state", 500
