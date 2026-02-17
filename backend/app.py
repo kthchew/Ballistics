@@ -1,6 +1,7 @@
 import os
 import accounts
 import game
+import json
 
 from flask import Flask, session, request
 from game import GameInstance
@@ -54,28 +55,34 @@ def join_game():
         return "Bad request", 400
 
     game_id = json['game_id']
-    accounts.join_game(session['username'], game_id)
-    return f"User {session['username']} joined game {game_id}", 200
+    if accounts.join_game(session['username'], game_id):
+        return f"User {session['username']} joined game {game_id}", 200
+    else:
+        return "Failed to join game", 500
 
 
 @app.post("/leaveGame")
 def leave_game():
     if 'username' not in session:
         return "Unauthorized", 401
-    accounts.leave_game(session['username'])
-    return f"User {session['username']} left their current game", 200
+    if accounts.leave_game(session['username']):
+        return f"User {session['username']} left their current game", 200
+    else:
+        return "Failed to leave game", 500
 
 
 # FIXME: anything below this should be restricted to requests from a trusted Godot game server
 @app.post("/updateGame")
 def update_game_state():
-    json = request.get_json()
+    json_req = request.get_json()
     if 'game_state' not in json:
         return "Bad request", 400
     try:
-        loaded = json.loads(json['game_state'])
+        loaded = json.loads(json_req['game_state'])
         game_state = GameInstance(**loaded)
-    except TypeError, json.JSONDecodeError:
-        return "Bad request", 400
+    except json.JSONDecodeError:
+        return "Invalid JSON", 400
+    except TypeError:
+        return "Invalid request", 400
     game.update_game_state(game_state)
     return "Game state updated successfully", 200

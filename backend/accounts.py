@@ -10,18 +10,19 @@ class Account:
         self.password = password
         self.current_game_id = None
 
-def check_user_exists(username: str):
+def check_user_exists(username: str) -> bool:
     users_collection = database.db['users']
     user = users_collection.find_one({'username': username})
     return user is not None
 
-def register_user(username: str, password: str):
+def register_user(username: str, password: str) -> bool:
     if check_user_exists(username):
         raise ValueError("A user with that name already exists")
     users_collection = database.db['users']
     salt = secrets.token_urlsafe(16)
     hashed_password = hash(password, salt=salt)
-    users_collection.insert_one({'username': username, 'password': hashed_password, 'salt': salt})
+    result = users_collection.insert_one({'username': username, 'password': hashed_password, 'salt': salt})
+    return result.acknowledged
 
 def check_valid_login(username: str, password: str) -> bool:
     users_collection = database.db['users']
@@ -32,10 +33,15 @@ def check_valid_login(username: str, password: str) -> bool:
     salt = user['salt']
     return hash(password, salt=salt) == stored_hashed_password
 
-def join_game(username: str, game_id: str):
+def join_game(username: str, game_id: str) -> bool:
     users_collection = database.db['users']
-    users_collection.update_one({'username': username}, {'$set': {'current_game_id': game_id}})
+    games_collection = database.db['games']
+    if games_collection.find_one({'game_id': game_id}) is None:
+        return False
+    result = users_collection.update_one({'username': username}, {'$set': {'current_game_id': game_id}})
+    return result.modified_count > 0
 
-def leave_game(username: str):
+def leave_game(username: str) -> bool:
     users_collection = database.db['users']
-    users_collection.update_one({'username': username}, {'$set': {'current_game_id': None}})
+    result = users_collection.update_one({'username': username}, {'$set': {'current_game_id': None}})
+    return result.modified_count > 0
