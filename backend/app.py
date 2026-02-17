@@ -12,6 +12,8 @@ app.secret_key = os.environ['BALLISTIC_SERV_SECRET_KEY']
 @app.post("/register")
 def register():
     json = request.get_json()
+    if 'username' not in json or 'password' not in json:
+        return "Bad request", 400
     username = json['username']
     password = json['password']
     try:
@@ -25,6 +27,8 @@ def register():
 @app.post("/login")
 def login_with_password():
     json = request.get_json()
+    if 'username' not in json or 'password' not in json:
+        return "Bad request", 400
     username = json['username']
     password = json['password']
     if accounts.check_valid_login(username, password):
@@ -46,6 +50,9 @@ def join_game():
     if 'username' not in session:
         return "Unauthorized", 401
     json = request.get_json()
+    if 'game_id' not in json:
+        return "Bad request", 400
+
     game_id = json['game_id']
     accounts.join_game(session['username'], game_id)
     return f"User {session['username']} joined game {game_id}", 200
