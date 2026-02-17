@@ -1,4 +1,5 @@
 # pip install torch==2.8.0
+# tensorboard --logdir ./logs/sb3
 # C:/Users/maxim/Downloads/godot_rl/rl/Scripts/python.exe c:/Users/maxim/Downloads/godot_rl/stable_baselines3_example.py --timesteps=6_500_000 -speedup=15 --onnx_export_path=volleyball.onnx
 
 import argparse
@@ -45,16 +46,16 @@ parser.add_argument(
 parser.add_argument("--seed", type=int, default=0, help="seed of the experiment")
 parser.add_argument(
     "--resume_model_path",
-    default=None,
-    # default="single_agent.zip",
+    # default=None,
+    default="single_agent.zip",
     type=str,
     help="The path to a model file previously saved using --save_model_path or a checkpoint saved using "
     "--save_checkpoints_frequency. Use this to resume training or infer from a saved model.",
 )
 parser.add_argument(
     "--save_model_path",
-    # default=None,
-    default="single_agent.zip",
+    default=None,
+    # default="single_agent.zip",
     type=str,
     help="The path to use for saving the trained sb3 model after training is complete. Saved model can be used later "
     "to resume training. Extension will be set to .zip",
@@ -79,7 +80,7 @@ parser.add_argument(
 parser.add_argument(
     "--timesteps",
     # default=1_000_000,
-    default=1_000_000_000,
+    default=100_000_000_000,
     type=int,
     help="The number of environment steps to train for, default is 1_000_000. If resuming from a saved model, "
     "it will continue training for this amount of steps from the saved state without counting previously trained "
@@ -142,7 +143,7 @@ def close_env():
 
 
 def cleanup():
-    handle_onnx_export()
+    # handle_onnx_export()
     handle_model_save()
     close_env()
 
