@@ -18,11 +18,11 @@ var angular_speed_threshold: float = 0.25
 # physics defaults to 60 ticks per second
 var static_ticks_threshold = 60
 var cur_static_ticks = 0
-var player_ind: int = 1
+var player_ind: int = 0
 var scores: Array[int] = [0, 0]
 var balls_sunk: Array[int] = [0, 0]
 var game_state: GameState = GameState.AIMING
-var turn_num: int = -1
+var turn_num: int = 0
 var cue_ball_potted: bool = false
 var solids_player = -1
 
@@ -253,14 +253,11 @@ func start_new_turn() -> void:
 	if check_for_scratch():
 		print("Scratch registered")
 		game_state = GameState.PLACING
-		#reset_cue_ball()
-	# resetting cue ball creates movement, so we have to let the system change turns after it stops moving, 
-	# hence the else
 	else:
-		print("Starting new turn")
-		turn_num += 1
-		player_ind = 1 - player_ind
 		game_state = GameState.AIMING
+	print("Starting new turn")
+	turn_num += 1
+	player_ind = 1 - player_ind
 	cue_ball.first_hit_ball_num = -1
 		
 func _physics_process(delta: float) -> void:

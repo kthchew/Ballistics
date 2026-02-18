@@ -24,6 +24,7 @@ radius = 2.85
 height = 5.7
 
 [node name="CueBall" type="RigidBody3D" unique_id=1266988142]
+collision_mask = 3
 physics_material_override = ExtResource("1_7848c")
 contact_monitor = true
 max_contacts_reported = 3
