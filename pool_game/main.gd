@@ -29,15 +29,28 @@ var solids_player = -1
 const ball_scene = preload("res://ball.tscn")	
 
 func _ready() -> void:
-	game_state = GameState.AIMING
-	balls.append(cue_ball)
-	init_break_triangle(56, 0)
+	
+	start_game()
 	
 	aim_line.visible = false
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
+	
+func start_game() -> void:
+	cue_ball.reset()
+	game_state = GameState.AIMING
+	while balls.size() > 1:
+		print("freeing")
+		balls[1].queue_free()
+		balls.remove_at(1)
+	scores = [0, 0]
+	balls = []
+	balls.append(cue_ball)
+	init_break_triangle(56, 0)
+	aim_line.visible = false
+	cue_ball_potted = false
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN:
@@ -290,3 +303,7 @@ func fill_debug_label() -> void:
 
 func _process(delta: float) -> void:
 	fill_debug_label()
+
+func _on_button_pressed() -> void:
+	print("button pressed")
+	start_game()

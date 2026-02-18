@@ -16,6 +16,13 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var new_transform = state.transform
 		new_transform.origin = teleport_pos
 		state.transform = new_transform
+		
+func reset():
+	position = Vector3(-56.0, 2.85, 0)
+	linear_velocity = Vector3(0, 0, 0)
+	angular_velocity = Vector3(0, 0, 0)	
+	freeze = false
+	show()
 
 func _physics_process(delta):
 	if is_cue_ball() and linear_velocity.length() != 0 and last_vel.length() < 0.01:

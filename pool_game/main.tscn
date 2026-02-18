@@ -174,4 +174,14 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 
+[node name="Button" type="Button" parent="UI" unique_id=1937985300]
+offset_left = 739.0
+offset_top = 8.0
+offset_right = 892.0
+offset_bottom = 80.0
+text = "Reset Game
+"
+
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
+
+[connection signal="pressed" from="UI/Button" to="." method="_on_button_pressed"]
