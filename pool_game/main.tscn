@@ -6,8 +6,7 @@
 [ext_resource type="Script" uid="uid://djqal2dmt158r" path="res://aimer.gd" id="8_5vw27"]
 [ext_resource type="Script" uid="uid://30h4vbvl3432" path="res://aim_line.gd" id="8_kek77"]
 [ext_resource type="Script" uid="uid://6c5fyhqo7d12" path="res://line_2d.gd" id="9_4c57u"]
-[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://dome.tscn" id="9_kek77"]
-[ext_resource type="PackedScene" uid="uid://boqetj8b1khhq" path="res://table.tscn" id="10_4c57u"]
+[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
@@ -175,6 +174,4 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 
-[node name="Table" parent="." unique_id=1843591312 instance=ExtResource("10_4c57u")]
-
-[node name="Dome" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
+[node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]

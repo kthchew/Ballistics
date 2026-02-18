@@ -19,7 +19,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 func _physics_process(delta):
 	if is_cue_ball() and linear_velocity.length() != 0 and last_vel.length() < 0.01:
-		print("Cue ball velocity: " + str(linear_velocity))
+		#print("Cue ball velocity: " + str(linear_velocity))
+		pass
 	
 	last_vel = linear_velocity
 	var friction_accel := 2

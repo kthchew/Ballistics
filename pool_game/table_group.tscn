@@ -2,7 +2,16 @@
 
 [ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://wall.tres" id="1_q33ou"]
 [ext_resource type="PhysicsMaterial" uid="uid://cdapvl7elmtrh" path="res://absorbent_wall.tres" id="2_8iwpp"]
-[ext_resource type="PackedScene" uid="uid://boqetj8b1khhq" path="res://table.tscn" id="2_p1jgq"]
+[ext_resource type="PhysicsMaterial" uid="uid://da8ohqxk1g88s" path="res://table.tres" id="3_2ca2e"]
+[ext_resource type="PackedScene" uid="uid://cu4vrdboa7shh" path="res://pool_table8.glb" id="3_7x25y"]
+[ext_resource type="Script" uid="uid://drgap37og6e1t" path="res://hole.gd" id="4_2ca2e"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mlwoa"]
+size = Vector3(300, 50, 150)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_jnl82"]
+height = 20.0
+radius = 4.15
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5y63s"]
 size = Vector3(50, 300, 81)
@@ -19,7 +28,46 @@ size = Vector3(256, 300, 50)
 [sub_resource type="BoxShape3D" id="BoxShape3D_8iwpp"]
 size = Vector3(50, 300, 214.5)
 
-[node name="Dome2" type="Node3D" unique_id=1955985234]
+[node name="TableGroup" type="Node3D" unique_id=1955985234]
+
+[node name="Table" type="StaticBody3D" parent="." unique_id=205503832]
+collision_layer = 2
+collision_mask = 0
+physics_material_override = ExtResource("3_2ca2e")
+
+[node name="pool_table8" parent="Table" unique_id=1934817514 instance=ExtResource("3_7x25y")]
+transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, 0, 0)
+
+[node name="Floor" type="CollisionShape3D" parent="Table" unique_id=737817082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -25, 0)
+shape = SubResource("BoxShape3D_mlwoa")
+
+[node name="Holes" type="Area3D" parent="Table" unique_id=1164722396]
+script = ExtResource("4_2ca2e")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Table/Holes" unique_id=444051080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Table/Holes" unique_id=55915166]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="Table/Holes" unique_id=1258958387]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.8, 0, 50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="Table/Holes" unique_id=1513126791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.826, 0, 50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="CollisionShape3D5" type="CollisionShape3D" parent="Table/Holes" unique_id=1613034704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.826, 0, -50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="CollisionShape3D6" type="CollisionShape3D" parent="Table/Holes" unique_id=1048187652]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.826, 0, -50.75)
+shape = SubResource("CylinderShape3D_jnl82")
 
 [node name="BouncyWalls" type="StaticBody3D" parent="." unique_id=1562318490]
 physics_material_override = ExtResource("1_q33ou")
@@ -72,4 +120,5 @@ shape = SubResource("BoxShape3D_8iwpp")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -133.4, 0, 0)
 shape = SubResource("BoxShape3D_8iwpp")
 
-[node name="Table2" parent="." unique_id=1843591312 instance=ExtResource("2_p1jgq")]
+[connection signal="body_entered" from="Table/Holes" to="Table/Holes" method="_on_body_entered"]
+[connection signal="body_exited" from="Table/Holes" to="Table/Holes" method="_on_body_exited"]
