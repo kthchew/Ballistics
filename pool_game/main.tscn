@@ -10,7 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://ji01uox08yxg" path="res://Art/Billiard-Cue.png" id="9_dg77c"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
-[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
+[ext_resource type="Script" path="res://force_slider.gd" id="11_ycdy4"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
 font_size = 18

@@ -38,9 +38,22 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 
 func _on_aim_changed(touch_pos: Vector2):
-	if game_state != GameState.AIMING:
+	if game_state == GameState.MIDTURN:
 		return
-	var ball_screen_pos = $CameraPivot/Camera3D.unproject_position(cue_ball.global_position)
+		
+	if game_state == GameState.PLACING:
+		print("Shooting placing ray")
+		var ray_origin = camera.project_ray_origin(touch_pos)
+		var ray_normal = camera.project_ray_normal(touch_pos)
+		
+		var drop_plane = Plane(Vector3.UP, Vector3(0, 2.85, 0))
+		
+		# 3. Get intersection point
+		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
+		reset_cue_ball(intersection)
+		return
+		
+	var ball_screen_pos = camera.unproject_position(cue_ball.global_position)
 	var dir = ball_screen_pos - touch_pos
 
 	if dir.length() < 20:
@@ -49,6 +62,9 @@ func _on_aim_changed(touch_pos: Vector2):
 	if not has_aimed:
 		has_aimed = true
 		aim_line.visible = true
+		
+	aim_line.global_position = ball_screen_pos
+	aim_line.set_angle(dir.angle())
 
 	var dir_norm = dir.normalized()
 
@@ -59,7 +75,6 @@ func _on_aim_changed(touch_pos: Vector2):
 	var ball_radius_px = (edge_screen - center_screen).length()
 	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
 	aim_line.global_position = cue_pos
-
 	aim_line.set_angle(dir.angle())
 
 func _on_force_changed(value):
