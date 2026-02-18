@@ -189,7 +189,7 @@ func delete_fallen_balls() -> void:
 			ball.freeze = true
 			cue_ball_potted = true
 			cue_ball.hide()
-			ai_controller.reward -= 2
+			ai_controller.reward -= 1
 			continue
 		elif ball.ball_num > 8:
 			scores[1] += 1
