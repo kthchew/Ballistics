@@ -38,9 +38,8 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 
 func _on_aim_changed(touch_pos: Vector2):
-	if !playing:
+	if game_state != GameState.AIMING:
 		return
-
 	var ball_screen_pos = $CameraPivot/Camera3D.unproject_position(cue_ball.global_position)
 	var dir = ball_screen_pos - touch_pos
 

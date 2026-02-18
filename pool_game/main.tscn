@@ -5,32 +5,12 @@
 [ext_resource type="PackedScene" uid="uid://bvjsktncikt31" path="res://dome.tscn" id="3_lquwl"]
 [ext_resource type="PackedScene" uid="uid://bpaxx4tn7mr6j" path="res://table.tscn" id="4_1bvp3"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
-[ext_resource type="Script" uid="uid://djqal2dmt158r" path="res://aimer.gd" id="8_5vw27"]
-[ext_resource type="Script" uid="uid://30h4vbvl3432" path="res://aim_line.gd" id="8_kek77"]
+[ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
+[ext_resource type="Script" uid="uid://dcs1fawh58tg8" path="res://aim_line.gd" id="8_kek77"]
 [ext_resource type="Texture2D" uid="uid://ji01uox08yxg" path="res://Art/Billiard-Cue.png" id="9_dg77c"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_7dm0k"]
-margin = 0.0
-radius = 2.85
-
-[sub_resource type="Gradient" id="Gradient_h2yge"]
-offsets = PackedFloat32Array(0, 0.9932584)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_1bvp3"]
-gradient = SubResource("Gradient_h2yge")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h2yge"]
-albedo_color = Color(1, 0.9263333, 0.87, 1)
-albedo_texture = SubResource("GradientTexture2D_1bvp3")
-
-[sub_resource type="SphereMesh" id="SphereMesh_7dm0k"]
-lightmap_size_hint = Vector2i(33, 17)
-material = SubResource("StandardMaterial3D_h2yge")
-radius = 2.85
-height = 5.7
 
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
 font_size = 18
@@ -230,5 +210,3 @@ grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
-
-[connection signal="new_turn" from="." to="Control/ShootLine" method="_on_main_new_turn"]
