@@ -3,10 +3,10 @@
 [ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://wall.tres" id="1_q33ou"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5y63s"]
-size = Vector3(50, 300, 85)
+size = Vector3(50, 300, 81)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_j71k2"]
-size = Vector3(84.25, 300, 50)
+size = Vector3(82, 300, 50)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_l6n3u"]
 size = Vector3(300, 50, 150)
@@ -16,11 +16,11 @@ collision_mask = 0
 physics_material_override = ExtResource("1_q33ou")
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="." unique_id=1300671624]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -123.918, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -124.414955, 0, 0)
 shape = SubResource("BoxShape3D_5y63s")
 
 [node name="CollisionShape3D3" type="CollisionShape3D" parent="." unique_id=1104526351]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.674, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.320015, 0, 0)
 shape = SubResource("BoxShape3D_5y63s")
 
 [node name="CollisionShape3D4" type="CollisionShape3D" parent="." unique_id=397794200]
