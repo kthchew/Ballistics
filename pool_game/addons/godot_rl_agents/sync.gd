@@ -12,6 +12,7 @@ enum ControlModes { HUMAN, TRAINING, ONNX_INFERENCE }
 var onnx_models: Dictionary
 
 @onready var start_time = Time.get_ticks_msec()
+@onready var parent = get_parent()
 
 const MAJOR_VERSION := "0"
 const MINOR_VERSION := "7"
@@ -174,6 +175,12 @@ func _physics_process(_delta):
 	# pause tree, send obs, get actions, set actions, unpause tree
 
 	_demo_record_process()
+
+	for node in parent.get_children():
+		if ("cur_static_ticks" in node and "static_ticks_threshold" in node 
+		and node.cur_static_ticks < node.static_ticks_threshold):
+			return
+
 
 	if n_action_steps % action_repeat != 0:
 		n_action_steps += 1
