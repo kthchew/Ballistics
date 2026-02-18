@@ -42,7 +42,6 @@ func start_game() -> void:
 	cue_ball.reset()
 	game_state = GameState.AIMING
 	while balls.size() > 1:
-		print("freeing")
 		balls[1].queue_free()
 		balls.remove_at(1)
 	scores = [0, 0]
@@ -188,7 +187,7 @@ func check_all_not_moving() -> bool:
 	
 func hide_cue_ball(ball) -> void:
 	print("Hiding cue ball, pos = " + str(ball.global_position))
-	ball.global_position = Vector3(2000, 2000, 2000)
+	ball.teleport(Vector3(2000, 2000, 2000))
 	ball.linear_velocity = Vector3(0, 0, 0)
 	ball.angular_velocity = Vector3(0, 0, 0)
 	ball.rotation = Vector3(0, 0, 0)
@@ -265,6 +264,7 @@ func check_for_scratch():
 func start_new_turn() -> void:
 	if check_for_scratch():
 		print("Scratch registered")
+		hide_cue_ball(cue_ball)
 		game_state = GameState.PLACING
 	else:
 		game_state = GameState.AIMING

@@ -18,9 +18,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		state.transform = new_transform
 		
 func reset():
-	position = Vector3(-56.0, 2.85, 0)
+	teleport(Vector3(-56.0, 2.85, 0))
 	linear_velocity = Vector3(0, 0, 0)
-	angular_velocity = Vector3(0, 0, 0)	
+	angular_velocity = Vector3(0, 0, 0)
 	freeze = false
 	show()
 
