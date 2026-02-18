@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://bpnsf6ju2q7jc"]
 
 [ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://wall.tres" id="1_q33ou"]
+[ext_resource type="PhysicsMaterial" uid="uid://cdapvl7elmtrh" path="res://absorbent_wall.tres" id="2_8iwpp"]
+[ext_resource type="PackedScene" uid="uid://boqetj8b1khhq" path="res://table.tscn" id="2_p1jgq"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5y63s"]
 size = Vector3(50, 300, 81)
@@ -11,35 +13,63 @@ size = Vector3(82, 300, 50)
 [sub_resource type="BoxShape3D" id="BoxShape3D_l6n3u"]
 size = Vector3(300, 50, 150)
 
-[node name="Dome2" type="StaticBody3D" unique_id=80541633]
-collision_mask = 0
+[sub_resource type="BoxShape3D" id="BoxShape3D_p1jgq"]
+size = Vector3(256, 300, 50)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8iwpp"]
+size = Vector3(50, 300, 214.5)
+
+[node name="Dome2" type="Node3D" unique_id=1955985234]
+
+[node name="BouncyWalls" type="StaticBody3D" parent="." unique_id=1562318490]
 physics_material_override = ExtResource("1_q33ou")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="." unique_id=1300671624]
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="BouncyWalls" unique_id=1300671624]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -124.414955, 0, 0)
 shape = SubResource("BoxShape3D_5y63s")
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="." unique_id=1104526351]
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="BouncyWalls" unique_id=1104526351]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.320015, 0, 0)
 shape = SubResource("BoxShape3D_5y63s")
 
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="." unique_id=397794200]
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="BouncyWalls" unique_id=397794200]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -51.361, 0, -72.429)
 shape = SubResource("BoxShape3D_j71k2")
 
-[node name="CollisionShape3D5" type="CollisionShape3D" parent="." unique_id=100032906]
+[node name="CollisionShape3D5" type="CollisionShape3D" parent="BouncyWalls" unique_id=100032906]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -51.360798, 0, 72.41594)
 shape = SubResource("BoxShape3D_j71k2")
 
-[node name="CollisionShape3D6" type="CollisionShape3D" parent="." unique_id=1943262169]
+[node name="CollisionShape3D6" type="CollisionShape3D" parent="BouncyWalls" unique_id=1943262169]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.361, 0, -72.416)
 shape = SubResource("BoxShape3D_j71k2")
 
-[node name="CollisionShape3D7" type="CollisionShape3D" parent="." unique_id=2088083895]
+[node name="CollisionShape3D7" type="CollisionShape3D" parent="BouncyWalls" unique_id=2088083895]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.361, 0, 72.416)
 shape = SubResource("BoxShape3D_j71k2")
 
-[node name="Ceiling" type="CollisionShape3D" parent="." unique_id=715250992]
+[node name="Ceiling" type="CollisionShape3D" parent="BouncyWalls" unique_id=715250992]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 125, 0)
 visible = false
 shape = SubResource("BoxShape3D_l6n3u")
+
+[node name="AbsorbentWalls" type="StaticBody3D" parent="." unique_id=1723829790]
+physics_material_override = ExtResource("2_8iwpp")
+
+[node name="CollisionShape3D8" type="CollisionShape3D" parent="AbsorbentWalls" unique_id=1519470793]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -82.25)
+shape = SubResource("BoxShape3D_p1jgq")
+
+[node name="CollisionShape3D9" type="CollisionShape3D" parent="AbsorbentWalls" unique_id=1707402854]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 82.25)
+shape = SubResource("BoxShape3D_p1jgq")
+
+[node name="CollisionShape3D10" type="CollisionShape3D" parent="AbsorbentWalls" unique_id=1716742391]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 133.4, 0, 0)
+shape = SubResource("BoxShape3D_8iwpp")
+
+[node name="CollisionShape3D11" type="CollisionShape3D" parent="AbsorbentWalls" unique_id=523160879]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -133.4, 0, 0)
+shape = SubResource("BoxShape3D_8iwpp")
+
+[node name="Table2" parent="." unique_id=1843591312 instance=ExtResource("2_p1jgq")]
