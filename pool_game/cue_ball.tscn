@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dknwfe2hbtff"]
+
+[ext_resource type="PhysicsMaterial" uid="uid://chxig6vtldm8i" path="res://ball.tres" id="1_7848c"]
+[ext_resource type="Script" uid="uid://comor5ekwua50" path="res://ball.gd" id="2_vpj60"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_7dm0k"]
+margin = 0.0
+radius = 2.85
+
+[sub_resource type="Gradient" id="Gradient_h2yge"]
+offsets = PackedFloat32Array(0, 0.9932584)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_1bvp3"]
+gradient = SubResource("Gradient_h2yge")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h2yge"]
+albedo_color = Color(1, 0.9263333, 0.87, 1)
+albedo_texture = SubResource("GradientTexture2D_1bvp3")
+
+[sub_resource type="SphereMesh" id="SphereMesh_7dm0k"]
+lightmap_size_hint = Vector2i(33, 17)
+material = SubResource("StandardMaterial3D_h2yge")
+radius = 2.85
+height = 5.7
+
+[node name="CueBall" type="RigidBody3D" unique_id=1266988142]
+physics_material_override = ExtResource("1_7848c")
+contact_monitor = true
+max_contacts_reported = 3
+linear_damp_mode = 1
+angular_damp_mode = 1
+script = ExtResource("2_vpj60")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=551133177]
+shape = SubResource("SphereShape3D_7dm0k")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=244697052]
+mesh = SubResource("SphereMesh_7dm0k")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

@@ -1,16 +1,16 @@
 [gd_scene format=3 uid="uid://comeyp103ci14"]
 
 [ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
-[ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://cue_ball.tscn" id="2_kek77"]
+[ext_resource type="Script" uid="uid://comor5ekwua50" path="res://ball.gd" id="2_0xm2m"]
+[ext_resource type="PhysicsMaterial" uid="uid://chxig6vtldm8i" path="res://ball.tres" id="2_7mycd"]
+[ext_resource type="Script" uid="uid://bvigvjg3qqj3h" path="res://shoot_line.gd" id="3_h2yge"]
 [ext_resource type="PackedScene" uid="uid://bvjsktncikt31" path="res://dome.tscn" id="3_lquwl"]
 [ext_resource type="PackedScene" uid="uid://bpaxx4tn7mr6j" path="res://table.tscn" id="4_1bvp3"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://djqal2dmt158r" path="res://aimer.gd" id="8_5vw27"]
 [ext_resource type="Script" uid="uid://30h4vbvl3432" path="res://aim_line.gd" id="8_kek77"]
-[ext_resource type="Texture2D" uid="uid://ji01uox08yxg" path="res://Art/Billiard-Cue.png" id="9_dg77c"]
-[ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
+[ext_resource type="Script" uid="uid://6c5fyhqo7d12" path="res://line_2d.gd" id="9_4c57u"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
-[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_7dm0k"]
 margin = 0.0
@@ -34,21 +34,6 @@ height = 5.7
 
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
 font_size = 18
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
-texture = ExtResource("9_efxa6")
-texture_margin_left = 40.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg77c"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ycdy4"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w48qg"]
-bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 100
-corner_radius_top_right = 100
-corner_radius_bottom_right = 100
-corner_radius_bottom_left = 100
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_efxa6"]
 border_width_left = 4
@@ -83,11 +68,21 @@ corner_radius_bottom_left = 100
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
 
-[node name="CueBall" parent="." unique_id=1266988142 instance=ExtResource("2_kek77")]
+[node name="CueBall" type="RigidBody3D" parent="." unique_id=1587648222]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
+physics_material_override = ExtResource("2_7mycd")
+linear_damp = 0.5
+angular_damp = 0.5
+script = ExtResource("2_0xm2m")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CueBall" unique_id=1601161265]
+shape = SubResource("SphereShape3D_7dm0k")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CueBall" unique_id=1590091616]
+mesh = SubResource("SphereMesh_7dm0k")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
-transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.7071067, 0.7071067, 0, -0.7071067, 0.7071067, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
 transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.0658141e-14, 0, 1.0658141e-14, 1.0000001, 0, -3.6527392e-06, 118.564926)
@@ -107,7 +102,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="DebugLabel" type="Label" parent="Control" unique_id=287979515]
+[node name="ShootLine" type="Line2D" parent="Control" unique_id=365693871]
+points = PackedVector2Array(-18, 19, -23, 65)
+width = 5.0
+default_color = Color(0.45840502, 0.45840508, 0.45840502, 0.5294118)
+script = ExtResource("3_h2yge")
+
+[node name="TickLabel" type="Label" parent="Control" unique_id=287979515]
 layout_mode = 1
 offset_left = 17.0
 offset_top = 11.0
@@ -134,10 +135,9 @@ script = ExtResource("7_272bh")
 [node name="AimLine" type="Node2D" parent="UI" unique_id=369023224]
 script = ExtResource("8_kek77")
 
-[node name="CueSprite" type="Sprite2D" parent="UI/AimLine" unique_id=575266001]
-position = Vector2(0, -79)
-texture = ExtResource("9_dg77c")
-centered = false
+[node name="Line2D" type="Line2D" parent="UI/AimLine" unique_id=18664382]
+width = 5.0
+script = ExtResource("9_4c57u")
 
 [node name="ForceSlider" type="VSlider" parent="UI" unique_id=184144014]
 anchors_preset = -1
@@ -145,23 +145,10 @@ anchor_left = 1.0
 anchor_top = 0.2
 anchor_right = 1.0
 anchor_bottom = 0.8
-offset_left = -106.0
-offset_right = -46.0
+offset_left = -80.0
+offset_right = -20.0
 grow_horizontal = 0
 grow_vertical = 2
-theme_override_styles/slider = SubResource("StyleBoxTexture_dg77c")
-theme_override_styles/grabber_area = SubResource("StyleBoxEmpty_dg77c")
-theme_override_styles/grabber_area_highlight = SubResource("StyleBoxEmpty_ycdy4")
-script = ExtResource("11_ycdy4")
-
-[node name="GrabberVisual" type="Panel" parent="UI/ForceSlider" unique_id=291372859]
-layout_mode = 0
-offset_left = 11.0
-offset_top = 602.0
-offset_right = 51.0
-offset_bottom = 642.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_w48qg")
 
 [node name="Aimer" type="Control" parent="UI" unique_id=2133286130]
 layout_mode = 3
@@ -200,34 +187,28 @@ offset_left = -5.0
 offset_top = -5.0
 offset_right = 5.0
 offset_bottom = 5.0
-mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_dg77c")
 
 [node name="FireButton" type="Button" parent="UI" unique_id=961744578]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -100.0
-offset_right = -50.0
-offset_bottom = -50.0
-grow_horizontal = 0
-grow_vertical = 0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = 100.0
+offset_bottom = 100.0
 script = ExtResource("11_efxa6")
 
 [node name="Background" type="Panel" parent="UI/FireButton" unique_id=1662154618]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -50.0
-offset_top = -50.0
-grow_horizontal = 0
-grow_vertical = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -25.0
+offset_top = -25.0
+offset_right = 25.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 
