@@ -36,7 +36,6 @@ var scores: Array[int] = [0, 0]
 var balls_sunk: Array[int] = [0, 0]
 var game_state: GameState = GameState.AIMING
 var turn_num: int = 0
-var cue_ball_potted: bool = false
 var solids_player = -1
 var winner: int = -1
 
@@ -51,8 +50,7 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 	
 func start_game() -> void:
-	reset_cue_ball()
-	
+	cue_ball.reset(Vector3(-56.0, BALL_RADIUS, 0))
 	game_state = GameState.AIMING
 	
 	while balls.size() > 1:
@@ -78,15 +76,12 @@ func _on_aim_changed(touch_pos: Vector2):
 		return
 		
 	if game_state == GameState.PLACING:
-		print("Shooting placing ray")
 		var ray_origin = camera.project_ray_origin(touch_pos)
 		var ray_normal = camera.project_ray_normal(touch_pos)
-		
 		var drop_plane = Plane(Vector3.UP, Vector3(0, BALL_RADIUS, 0))
-		
-		# 3. Get intersection point
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		reset_cue_ball(intersection)
+		cue_ball.reset(intersection)
+		game_state = GameState.AIMING
 		return
 		
 	var ball_screen_pos: Vector2 = camera.unproject_position(cue_ball.global_position)
@@ -195,16 +190,6 @@ func check_all_not_moving() -> bool:
 			return false
 	return true
 	
-func hide_cue_ball() -> void:
-	print("Hiding cue ball, pos = " + str(cue_ball.global_position))
-	cue_ball.teleport(Vector3(2000, 2000, 2000))
-	cue_ball.linear_velocity = Vector3(0, 0, 0)
-	cue_ball.angular_velocity = Vector3(0, 0, 0)
-	cue_ball.rotation = Vector3(0, 0, 0)
-	cue_ball.freeze = true
-	cue_ball_potted = true
-	cue_ball.hide()
-	
 func process_fallen_balls() -> void:
 	var fallen_balls: Array[RigidBody3D] = find_fallen_balls()
 	for ball in fallen_balls:
@@ -226,7 +211,7 @@ func end_game(winner: int) -> void:
 	
 func process_fallen_ball(ball: RigidBody3D) -> void:
 	if ball.is_cue_ball():
-		hide_cue_ball()
+		cue_ball.pot()
 		return
 		
 	# 8 ball fell
@@ -256,16 +241,12 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 	balls.erase(ball)
 	ball.queue_free()
 	
-func reset_cue_ball(pos: Vector3 = Vector3(-56.0, BALL_RADIUS, 0)) -> void:
-	print("Resetting cue ball to pos: " + str(pos))
-	cue_ball_potted = false
-	cue_ball.reset(pos)
-	game_state = GameState.AIMING
-	
 # TODO: if 8 ball is the only ball left, it is allowed
 func check_for_first_hit_scratch() -> bool:
-	var first_hit_ball_num = cue_ball.first_hit_ball_num 
+	var first_hit_ball_num = cue_ball.first_hit_ball_num
 	if first_hit_ball_num == -1:
+		return false
+	if scores[player_ind] == 7 and first_hit_ball_num == 8:
 		return false
 	if solids_player == player_ind and not (1 <= first_hit_ball_num and first_hit_ball_num <= 7):
 		return true
@@ -274,12 +255,12 @@ func check_for_first_hit_scratch() -> bool:
 	return false
 	
 func check_for_scratch():
-	return cue_ball_potted or check_for_first_hit_scratch()
+	return cue_ball.potted or check_for_first_hit_scratch()
 
 func start_new_turn() -> void:
 	if check_for_scratch():
 		print("Scratch registered")
-		hide_cue_ball()
+		cue_ball.pot()
 		game_state = GameState.PLACING
 	else:
 		game_state = GameState.AIMING
@@ -328,16 +309,12 @@ func fill_info_label() -> void:
 		elif 1 - player_ind == solids_player:
 			info_label.text += "You are stripes\n"
 			
-	
 	if game_state == GameState.PLACING:
 		info_label.text += "Your opponent scratched, click to place the cue ball\n"
-
-			
 
 func _process(delta: float) -> void:
 	fill_debug_label()
 	fill_info_label()
 
-func _on_button_pressed() -> void:
-	print("button pressed")
+func _on_reset_button_pressed() -> void:
 	start_game()

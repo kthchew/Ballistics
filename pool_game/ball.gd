@@ -1,10 +1,10 @@
 extends RigidBody3D
 
-var last_vel: Vector3 = Vector3(0, 0, 0)
 var ball_num: int = 0
 var first_hit_ball_num: int = -1
 var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
+var potted: bool = false
 
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true
@@ -21,15 +21,22 @@ func reset(pos: Vector3):
 	teleport(pos)
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)
+	rotation = Vector3(0, 0, 0)
 	freeze = false
+	potted = false
 	first_hit_ball_num = -1
 	show()
 
+func pot():
+	teleport(Vector3(2000, 2000, 2000))
+	linear_velocity = Vector3(0, 0, 0)
+	angular_velocity = Vector3(0, 0, 0)
+	rotation = Vector3(0, 0, 0)
+	freeze = true
+	potted = true
+	hide()
+
 func _physics_process(delta):
-	#if is_cue_ball() and linear_velocity.length() != 0 and last_vel.length() < 0.01:
-		#print("Cue ball velocity: " + str(linear_velocity))
-	
-	last_vel = linear_velocity
 	var friction_accel := 2
 
 	linear_velocity = linear_velocity.move_toward(Vector3.ZERO, friction_accel * delta)
