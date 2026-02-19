@@ -19,7 +19,7 @@ func _input(event):
 '''
 
 func reset():
-	position = Vector3(-56.0, 2.85, 0)
+	position = Vector3(0, 2.85, 0)
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)	
 	freeze = false
@@ -46,6 +46,4 @@ func _physics_process(delta):
 
 func _on_body_entered(body: Node) -> void:
 	if body.name.contains("Ball"): 
-		ai_controller.reward += 0.05
-		if body.ball_num < 8:
-			ai_controller.reward += 0.2
+		ai_controller.reward += 1

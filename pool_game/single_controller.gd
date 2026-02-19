@@ -30,12 +30,14 @@ func get_obs() -> Dictionary:
 	balls.sort_custom(sort_balls_by_num)
 	var obs = []
 	for ball in balls: 
-		var pos = ball.global_position
+		var pos = ball.position
 		obs.append_array([
-			pos.x / 109, #-1->1 
-			clamp(((pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
-			(pos.z + 53) / (2 * 53) #0->1
+			pos.x,
+			pos.y,
+			pos.z
 		])
+	print("sending obs...")
+	print(obs)
 	return {"obs": obs}
 
 
@@ -46,16 +48,11 @@ func get_reward() -> float:
 func get_action_space() -> Dictionary:
 	return {
 		"angle-topdown": {"size": 1, "action_type": "continuous"},
-		"power": {"size": 1, "action_type": "continuous"},
-		"ball_pos": {"size": 2, "action_type": "continuous"}
 	}
 
 
 func set_action(action) -> void:
 	action_angle = clamp(action["angle-topdown"][0], -1, 1)
-	action_power = clamp(action["power"][0], 0, 1)
-	action_posx = clamp(action["ball_pos"][0], -1, 1)
-	action_posy = clamp(action["ball_pos"][1], -1, 1)
 	fire.emit()
 
 

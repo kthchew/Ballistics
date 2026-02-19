@@ -35,6 +35,7 @@ func _ready() -> void:
 	start_game()
 
 func start_game() -> void:
+	cue_ball.reset()
 	playing = true
 	while balls.size() > 1:
 		balls[1].queue_free()
@@ -42,7 +43,8 @@ func start_game() -> void:
 	scores = [0, 0]
 	balls = []
 	balls.append(cue_ball)
-	init_break_triangle(56, 0)
+	#init_break_triangle(56, 0)
+	place_ball()
 	aim_line.visible = false
 	cue_ball_potted = false
 
@@ -69,9 +71,10 @@ func _on_force_changed(value):
 func _on_fire_pressed():
 	#var strength = slider.value
 	#var angle = aim_line.angle
-	var strength = ai_controller.action_power * 100
-	ai_controller.reward += ai_controller.action_power / 10 / 2
+	var strength = 50
 	var angle = ai_controller.action_angle * PI
+	print("action_angle: " + str(ai_controller.action_angle))
+	print("angle: " + str(angle))
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
 	var force = dir * (strength * 5)
@@ -85,7 +88,7 @@ func _on_fire_pressed():
 
 	var face_radius = 0.5
 	#var joy = aimer.output
-	var joy = Vector2(ai_controller.action_posx, ai_controller.action_posy)
+	var joy = Vector2(0, 0)
 	var offset_3d = right * (joy.x * face_radius) + forward * (-joy.y * face_radius)
 
 	var local_offset = offset_3d
@@ -125,6 +128,17 @@ func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 	material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
 	
 	mesh.set_surface_override_material(0, material)
+	
+func place_ball():
+	var angle = 360 * randf()
+	var r = 30
+	var x = r * cos(angle)
+	var z = r * sin(angle)
+	var ball_node: Node = ball_scene.instantiate()
+	ball_node.position = Vector3(x, 2.85, z)
+	add_child(ball_node)
+	balls.append(ball_node)
+	ball_node.name = "Ball1"
 			
 func init_break_triangle(x_shift: float, z_shift: float):
 	var ball_ind: int = 0
@@ -189,28 +203,23 @@ func delete_fallen_balls() -> void:
 			ball.freeze = true
 			cue_ball_potted = true
 			cue_ball.hide()
-			ai_controller.reward -= 1
 			continue
 		elif ball.ball_num > 8:
 			scores[1] += 1
-			ai_controller.reward -= 1
 		elif ball.ball_num < 8:
 			scores[0] += 1
-			ai_controller.reward += 2
 		if ball.ball_num == 8:
 			if scores[player_ind] == 7:
 				scores[player_ind] += 1
-				ai_controller.reward += 10
 			else:
 				scores[player_ind] = -1000
-				ai_controller.reward -= 10
 			ai_controller.needs_reset = true
 			
 		ball.position = Vector3(0, 0, -10)
 		ball.linear_velocity = Vector3(0, 0, 0)
 		ball.angular_velocity = Vector3(0, 0, 0)	
 		ball.freeze = true
-		ball.hide()
+		#ball.hide()
 		#balls.erase(ball)
 		#ball.queue_free()
 
@@ -218,7 +227,6 @@ func delete_fallen_balls() -> void:
 func _physics_process(delta: float) -> void:
 	if (ai_controller.needs_reset):
 		ai_controller.reset()
-		cue_ball.reset()
 		start_game()
 		return
 	
@@ -241,7 +249,7 @@ func _physics_process(delta: float) -> void:
 			cue_ball_potted = false
 			cue_ball.freeze = false
 			cue_ball.show()
-			cue_ball.position = Vector3(-56.0, 2.85, 0)
+			cue_ball.position = Vector3(0, 2.85, 0)
 		else:
 			player_ind = 1 - player_ind
 			new_turn.emit()
