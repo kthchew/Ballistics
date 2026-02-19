@@ -128,6 +128,8 @@ func _on_fire_pressed():
 
 	cue_ball.apply_impulse(force, local_offset)
 	cue_ball.first_hit_ball_num = 0
+	
+	game_state = GameState.MIDTURN
 
 	has_aimed = false
 	aim_line.visible = false
@@ -287,7 +289,7 @@ func start_new_turn() -> void:
 	cue_ball.first_hit_ball_num = -1
 	
 func _physics_process(delta: float) -> void:
-	if game_state == GameState.ENDED or game_state == GameState.PLACING:
+	if game_state != GameState.MIDTURN:
 		return
 		
 	process_fallen_balls()
@@ -295,10 +297,9 @@ func _physics_process(delta: float) -> void:
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
-		game_state = GameState.MIDTURN
 		cur_static_ticks = 0
 	
-	if game_state == GameState.MIDTURN and cur_static_ticks == STATIC_TICKS_THRESHOLD:
+	if cur_static_ticks == STATIC_TICKS_THRESHOLD:
 		start_new_turn()
 	
 func fill_debug_label() -> void:
