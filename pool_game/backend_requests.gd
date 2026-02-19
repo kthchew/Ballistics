@@ -3,6 +3,7 @@ extends HTTPRequest
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	request_completed.connect(_on_request_completed)
 	pass # Replace with function body.
 
 
@@ -11,7 +12,9 @@ func _process(delta: float) -> void:
 	pass
 
 # TODO: use env var or config
-const BACKEND_URL = "http://127.0.0.1:5000"
+const BACKEND_URL: String = "http://127.0.0.1:5000"
+
+var cookies: Dictionary
 
 enum PlayerRole {STRIPES = 1, SOLIDS}
 enum GameType {EIGHT_BALL_MULTIPLAYER = 1, EIGHT_BALL_SINGLEPLAYER, CRAZY_EIGHT_BALL_MULTIPLAYER, CRAZY_EIGHT_BALL_SINGLEPLAYER}
@@ -24,20 +27,53 @@ class GameInstance:
 	var current_turn: int
 	var ball_positions: Dictionary # dict[int, tuple[float, float]]
 	var ball_rotations: Dictionary # dict[int, tuple[float, float]]
+	
+func _on_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	print("Request completed with result: " + str(result) + ", response code: " + str(response_code))
+	print("Headers: " + str(headers))
+	print("Body: " + str(body.get_string_from_utf8()))
+	
+# not sure if doing this is necessary but I want to avoid possible race conditions for multiple requests at the same time
+func _make_request(url: String, method: int, json_body: Dictionary = {}) -> Dictionary:
+	var req := HTTPRequest.new()
+	
+	add_child(req)
+	var body_text := JSON.stringify(json_body)
+	var headers := ["Content-Type: application/json"]
+	var err := req.request(url, headers, method, body_text)
+	if err != OK:
+		req.queue_free()
+		return {"error": "request_start_failed", "code": err}
+
+	var res = await req.request_completed
+	var result = res[0]
+	var response_code = res[1]
+	var resp_headers = res[2]
+	var body = res[3]
+	var body_text_resp := ""
+	if body != null:
+		body_text_resp = body.get_string_from_utf8()
+
+	req.queue_free()
+
+	if result != OK:
+		return {"error": "http_transport_error", "result": result, "response_code": response_code, "body": body_text_resp}
+
+	return {"result": body_text_resp, "response_code": response_code, "headers": resp_headers}
 
 func register(username: String, password: String) -> Dictionary:
-	var url = BACKEND_URL + "/register"
-	var body = {"username": username, "password": password}
-	var response = request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
-	#return JSON.parse(response.get_body_as_string()).result
-	return {}
+	var url: String = BACKEND_URL + "/register"
+	var body: Dictionary[Variant, Variant] = {"username": username, "password": password}
+	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
+	print(response)
+	return response
 	
 func login(username: String, password: String) -> Dictionary:
-	var url = BACKEND_URL + "/login"
-	var body = {"username": username, "password": password}
-	var response = request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
-	#return JSON.parse(response.get_body_as_string()).result
-	return {}
+	var url: String = BACKEND_URL + "/login"
+	var body: Dictionary[Variant, Variant] = {"username": username, "password": password}
+	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
+	print(response)
+	return response
 	
 #func join_game(token: String, game_id: String) -> Dictionary:
 	#var url = BACKEND_URL + "/joinGame"
