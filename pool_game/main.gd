@@ -99,7 +99,7 @@ func _on_fire_pressed():
 	aim_line.visible = false
 	aimer._reset_knob()
 		
-	
+	playing = false
 
 func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
@@ -234,7 +234,7 @@ func _physics_process(delta: float) -> void:
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
-		playing = false
+		#playing = false
 		cur_static_ticks = 0
 	
 	var label_txt = "Static Ticks: " + str(cur_static_ticks)
@@ -245,13 +245,15 @@ func _physics_process(delta: float) -> void:
 	tick_label.text = label_txt
 	
 	if !playing and cur_static_ticks == static_ticks_threshold:
-		if cue_ball_potted:
-			cue_ball_potted = false
-			cue_ball.freeze = false
-			cue_ball.show()
-			cue_ball.position = Vector3(0, 2.85, 0)
-		else:
-			player_ind = 1 - player_ind
-			new_turn.emit()
-			playing = true
+		start_game()
+		
+		#if cue_ball_potted:
+			#cue_ball_potted = false
+			#cue_ball.freeze = false
+			#cue_ball.show()
+			#cue_ball.position = Vector3(0, 2.85, 0)
+		#else:
+			#player_ind = 1 - player_ind
+			#new_turn.emit()
+			#playing = true
 	

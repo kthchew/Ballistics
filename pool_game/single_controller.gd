@@ -32,9 +32,9 @@ func get_obs() -> Dictionary:
 	for ball in balls: 
 		var pos = ball.position
 		obs.append_array([
-			pos.x,
-			pos.y,
-			pos.z
+			pos.x / 109, #-1->1 
+			clamp(((pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
+			(pos.z + 53) / (2 * 53) #0->1
 		])
 	print("sending obs...")
 	print(obs)
