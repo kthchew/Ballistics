@@ -28,14 +28,14 @@ class GameInstance:
 func register(username: String, password: String) -> Dictionary:
 	var url = BACKEND_URL + "/register"
 	var body = {"username": username, "password": password}
-	var response = request(url, [], HTTPClient.METHOD_POST, JSON.stringify(body))
+	var response = request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
 	#return JSON.parse(response.get_body_as_string()).result
 	return {}
 	
 func login(username: String, password: String) -> Dictionary:
 	var url = BACKEND_URL + "/login"
 	var body = {"username": username, "password": password}
-	var response = request(url, [], HTTPClient.METHOD_POST, JSON.stringify(body))
+	var response = request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
 	#return JSON.parse(response.get_body_as_string()).result
 	return {}
 	
