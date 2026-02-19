@@ -15,7 +15,6 @@ enum GameState {AIMING, MIDTURN, PLACING, ENDED}
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
-const BALL_RADIUS: float = 2.85
 const BALL_COLORS = [
 	[255, 215, 4], 
 	[0, 0, 254], 
@@ -40,6 +39,7 @@ var solids_player = -1
 var winner: int = -1
 
 const ball_scene = preload("res://ball.tscn")	
+const ball_script = preload("res://ball.gd")	
 
 func _ready() -> void:
 	
@@ -50,7 +50,7 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 	
 func start_game() -> void:
-	cue_ball.reset(Vector3(-56.0, BALL_RADIUS, 0))
+	cue_ball.reset(Vector3(-56.0, ball_script.BALL_RADIUS, 0))
 	game_state = GameState.AIMING
 	
 	while balls.size() > 1:
@@ -78,10 +78,11 @@ func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.PLACING:
 		var ray_origin = camera.project_ray_origin(touch_pos)
 		var ray_normal = camera.project_ray_normal(touch_pos)
-		var drop_plane = Plane(Vector3.UP, Vector3(0, BALL_RADIUS, 0))
+		var drop_plane = Plane(Vector3.UP, Vector3(0, ball_script.BALL_RADIUS, 0))
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
 		cue_ball.reset(intersection)
 		game_state = GameState.AIMING
+		has_aimed = false
 		return
 		
 	var ball_screen_pos: Vector2 = camera.unproject_position(cue_ball.global_position)
@@ -172,9 +173,9 @@ func init_break_triangle(x_shift: float, z_shift: float, spacing: float = 1.05):
 			var ball_num: int = ball_nums[ball_ind]
 			ball_node.ball_num = ball_num
 			ball_node.name = "Ball%s" % ball_num
-			var x: float = x_shift + spacing * i * BALL_RADIUS * sqrt(3)
-			var z: float = z_shift + (-i + 2 * j) * BALL_RADIUS * spacing
-			ball_node.position = Vector3(x, BALL_RADIUS, z)
+			var x: float = x_shift + spacing * i * ball_script.BALL_RADIUS * sqrt(3)
+			var z: float = z_shift + (-i + 2 * j) * ball_script.BALL_RADIUS * spacing
+			ball_node.position = Vector3(x, ball_script.BALL_RADIUS, z)
 			
 			color_ball(ball_node)
 			
@@ -210,10 +211,6 @@ func end_game(winner: int) -> void:
 		ball.freeze = true
 	
 func process_fallen_ball(ball: RigidBody3D) -> void:
-	if ball.is_cue_ball():
-		cue_ball.pot()
-		return
-		
 	# 8 ball fell
 	if ball.is_eight_ball():
 		if scores[player_ind] == 7:
@@ -222,7 +219,7 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 		else:
 			scores[player_ind] = -1000
 			end_game(1 - player_ind)
-	else:
+	elif not ball.is_cue_ball():
 		if ball.is_solid():
 			balls_sunk[0] += 1
 		elif ball.is_stripe():
@@ -238,8 +235,7 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 			scores[solids_player] = balls_sunk[0]
 			scores[1 - solids_player] = balls_sunk[1]
 	
-	balls.erase(ball)
-	ball.queue_free()
+	ball.pot()
 	
 # TODO: if 8 ball is the only ball left, it is allowed
 func check_for_first_hit_scratch() -> bool:

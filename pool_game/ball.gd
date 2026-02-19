@@ -1,5 +1,7 @@
 extends RigidBody3D
 
+const BALL_RADIUS = 2.85
+
 var ball_num: int = 0
 var first_hit_ball_num: int = -1
 var teleport_requested: bool = false
@@ -28,13 +30,13 @@ func reset(pos: Vector3):
 	show()
 
 func pot():
-	teleport(Vector3(2000, 2000, 2000))
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)
 	rotation = Vector3(0, 0, 0)
 	freeze = true
+	position = Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num)
 	potted = true
-	hide()
+	#hide()
 
 func _physics_process(delta):
 	var friction_accel := 2
