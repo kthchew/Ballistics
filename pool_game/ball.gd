@@ -17,11 +17,12 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		new_transform.origin = teleport_pos
 		state.transform = new_transform
 		
-func reset():
-	teleport(Vector3(-56.0, 2.85, 0))
+func reset(pos: Vector3):
+	teleport(pos)
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)
 	freeze = false
+	first_hit_ball_num = -1
 	show()
 
 func _physics_process(delta):

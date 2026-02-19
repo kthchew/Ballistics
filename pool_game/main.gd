@@ -9,14 +9,26 @@ extends Node3D
 @onready var aimer = $UI/Aimer
 @onready var camera = $CameraPivot/Camera3D
 
-enum GameState {AIMING, MIDTURN, PLACING}
+enum GameState {AIMING, MIDTURN, PLACING, ENDED}
+
+const STATIC_TICKS_THRESHOLD: int = 60
+const SPEED_THRESH: float = 0.25
+const ANGULAR_SPEED_THRESH: float = 0.25
+const BALL_RADIUS: float = 2.85
+const BALL_COLORS = [
+	[255, 215, 4], 
+	[0, 0, 254], 
+	[255, 0, 0], 
+	[128, 0, 129], 
+	[254, 165, 0], 
+	[35, 139, 35], 
+	[128, 0, 1],
+	[0, 0, 0],
+]
 
 var has_aimed := false
 var balls: Array[RigidBody3D] = []
-var speed_threshold: float = 0.25
-var angular_speed_threshold: float = 0.25
 # physics defaults to 60 ticks per second
-var static_ticks_threshold = 60
 var cur_static_ticks = 0
 var player_ind: int = 0
 var scores: Array[int] = [0, 0]
@@ -32,24 +44,32 @@ func _ready() -> void:
 	
 	start_game()
 	
-	aim_line.visible = false
-	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
 	
 func start_game() -> void:
-	cue_ball.reset()
+	reset_cue_ball()
+	
 	game_state = GameState.AIMING
+	
 	while balls.size() > 1:
+		remove_child(balls[1])
 		balls[1].queue_free()
-		balls.remove_at(1)
-	scores = [0, 0]
+		balls.remove_at(1)	
 	balls = []
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
+	
+	has_aimed = false
 	aim_line.visible = false
-	cue_ball_potted = false
+	
+	player_ind = 0
+	cur_static_ticks = 0
+	solids_player = -1
+	scores = [0, 0]
+	balls_sunk = [0, 0]
+	turn_num = 0
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN:
@@ -60,7 +80,7 @@ func _on_aim_changed(touch_pos: Vector2):
 		var ray_origin = camera.project_ray_origin(touch_pos)
 		var ray_normal = camera.project_ray_normal(touch_pos)
 		
-		var drop_plane = Plane(Vector3.UP, Vector3(0, 2.85, 0))
+		var drop_plane = Plane(Vector3.UP, Vector3(0, BALL_RADIUS, 0))
 		
 		# 3. Get intersection point
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
@@ -111,13 +131,15 @@ func _on_fire_pressed():
 	aim_line.visible = false
 	aimer._reset_knob()
 
-func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
+func color_ball(ball_node: RigidBody3D) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
 	var material: Material = StandardMaterial3D.new()
 	
 	ball_node.rotation = Vector3(0, 0, PI / 2)
 	
-	if ball_num > 8:
+	var color_num = ball_node.ball_num
+	
+	if color_num > 8:
 		var gradient: Gradient = Gradient.new()
 		gradient.remove_point(0)
 		gradient.remove_point(0)
@@ -131,47 +153,31 @@ func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 		gradient_texture.gradient = gradient
 		material.albedo_texture = gradient_texture
 	
-	var color_num = ball_num
 	if color_num > 8:
 		color_num -= 8
-	var color = colors[color_num - 1]
+	var color = BALL_COLORS[color_num - 1]
 	material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
 	
 	mesh.set_surface_override_material(0, material)
 			
-func init_break_triangle(x_shift: float, z_shift: float):
-	var ball_ind: int = 0
-	var ball_radius: float = 2.85
-	var spacing: float = 1.05
-	
-	var colors = [
-		[255, 215, 4], 
-		[0, 0, 254], 
-		[255, 0, 0], 
-		[128, 0, 129], 
-		[254, 165, 0], 
-		[35, 139, 35], 
-		[128, 0, 1],
-		[0, 0, 0],
-	]
-	
+func init_break_triangle(x_shift: float, z_shift: float, spacing: float = 1.05):
 	var ball_nums = range(1, 16)
 	ball_nums.erase(8)
 	ball_nums.shuffle()
 	ball_nums.insert(4, 8)
 	
+	var ball_ind: int = 0
 	for i in range(5):
 		for j in range(i + 1):
 			var ball_node: Node = ball_scene.instantiate()
 			var ball_num: int = ball_nums[ball_ind]
-			ball_node.name = "Ball%s" % ball_num
 			ball_node.ball_num = ball_num
-			var x: float = x_shift + spacing * i * ball_radius * sqrt(3)
-			var y: float = ball_radius
-			var z: float = z_shift + (-i + 2 * j) * ball_radius * spacing
-			ball_node.position = Vector3(x, y, z)
+			ball_node.name = "Ball%s" % ball_num
+			var x: float = x_shift + spacing * i * BALL_RADIUS * sqrt(3)
+			var z: float = z_shift + (-i + 2 * j) * BALL_RADIUS * spacing
+			ball_node.position = Vector3(x, BALL_RADIUS, z)
 			
-			color_ball(ball_node, ball_num, colors)
+			color_ball(ball_node)
 			
 			balls.append(ball_node)
 			add_child(ball_node)
@@ -180,18 +186,18 @@ func init_break_triangle(x_shift: float, z_shift: float):
 	
 func check_all_not_moving() -> bool:
 	for ball in balls:
-		if ball.get_linear_velocity().length() > speed_threshold \
-		or ball.get_angular_velocity().length() > angular_speed_threshold:
+		if ball.get_linear_velocity().length() > SPEED_THRESH \
+		or ball.get_angular_velocity().length() > ANGULAR_SPEED_THRESH:
 			return false
 	return true
 	
-func hide_cue_ball(ball) -> void:
-	print("Hiding cue ball, pos = " + str(ball.global_position))
-	ball.teleport(Vector3(2000, 2000, 2000))
-	ball.linear_velocity = Vector3(0, 0, 0)
-	ball.angular_velocity = Vector3(0, 0, 0)
-	ball.rotation = Vector3(0, 0, 0)
-	ball.freeze = true
+func hide_cue_ball() -> void:
+	print("Hiding cue ball, pos = " + str(cue_ball.global_position))
+	cue_ball.teleport(Vector3(2000, 2000, 2000))
+	cue_ball.linear_velocity = Vector3(0, 0, 0)
+	cue_ball.angular_velocity = Vector3(0, 0, 0)
+	cue_ball.rotation = Vector3(0, 0, 0)
+	cue_ball.freeze = true
 	cue_ball_potted = true
 	cue_ball.hide()
 	
@@ -206,19 +212,26 @@ func find_fallen_balls() -> Array[RigidBody3D]:
 		if ball.position.y < -10:
 			print(ball.name + " fell")
 			fallen_balls.append(ball)
-	return fallen_balls 
+	return fallen_balls
+	
+func end_game(winner: int) -> void:
+	game_state = GameState.ENDED
+	for ball in balls:
+		ball.freeze = true
 	
 func process_fallen_ball(ball: RigidBody3D) -> void:
 	if ball.is_cue_ball():
-		hide_cue_ball(ball)
+		hide_cue_ball()
 		return
 		
 	# 8 ball fell
 	if ball.is_eight_ball():
 		if scores[player_ind] == 7:
 			scores[player_ind] += 1
+			end_game(player_ind)
 		else:
 			scores[player_ind] = -1000
+			end_game(1 - player_ind)
 	else:
 		if ball.is_solid():
 			balls_sunk[0] += 1
@@ -238,13 +251,10 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 	balls.erase(ball)
 	ball.queue_free()
 	
-func reset_cue_ball(pos: Vector3) -> void:
+func reset_cue_ball(pos: Vector3 = Vector3(-56.0, BALL_RADIUS, 0)) -> void:
 	print("Resetting cue ball to pos: " + str(pos))
-	cue_ball.teleport(pos)
 	cue_ball_potted = false
-	cue_ball.freeze = false
-	cue_ball.show()
-	cue_ball.linear_velocity = Vector3(0, 0, 0)
+	cue_ball.reset(pos)
 	game_state = GameState.AIMING
 	
 # TODO: if 8 ball is the only ball left, it is allowed
@@ -264,7 +274,7 @@ func check_for_scratch():
 func start_new_turn() -> void:
 	if check_for_scratch():
 		print("Scratch registered")
-		hide_cue_ball(cue_ball)
+		hide_cue_ball()
 		game_state = GameState.PLACING
 	else:
 		game_state = GameState.AIMING
@@ -272,20 +282,20 @@ func start_new_turn() -> void:
 	turn_num += 1
 	player_ind = 1 - player_ind
 	cue_ball.first_hit_ball_num = -1
-		
-func _physics_process(delta: float) -> void:
-	process_fallen_balls()
 	
-	if game_state == GameState.PLACING:
+func _physics_process(delta: float) -> void:
+	if game_state == GameState.ENDED or game_state == GameState.PLACING:
 		return
 		
+	process_fallen_balls()
+	
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
 		game_state = GameState.MIDTURN
 		cur_static_ticks = 0
 	
-	if game_state == GameState.MIDTURN and cur_static_ticks == static_ticks_threshold:
+	if game_state == GameState.MIDTURN and cur_static_ticks == STATIC_TICKS_THRESHOLD:
 		start_new_turn()
 	
 func fill_debug_label() -> void:
