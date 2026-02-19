@@ -1,7 +1,7 @@
 extends Node3D
 
 
-@onready var debug_label: Label = $Control/DebugLabel
+@onready var debug_label: Label = $UI/DebugLabel
 @onready var cue_ball: RigidBody3D = $CueBall
 @onready var aim_line = $UI/AimLine
 @onready var slider = $UI/ForceSlider
@@ -301,8 +301,15 @@ func fill_debug_label() -> void:
 	label_txt += "\nFirst Hit: " + str(cue_ball.first_hit_ball_num)
 	debug_label.text = label_txt
 
+func fill_scratch_label() -> void:
+	if game_state == GameState.PLACING:
+		$UI/ScratchLabel.text = "Your opponent scratched, click to place the cue ball"
+	else:
+		$UI/ScratchLabel.text = ""
+
 func _process(delta: float) -> void:
 	fill_debug_label()
+	fill_scratch_label()
 
 func _on_button_pressed() -> void:
 	print("button pressed")
