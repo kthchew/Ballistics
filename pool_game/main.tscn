@@ -5,8 +5,11 @@
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
+[ext_resource type="ButtonGroup" uid="uid://7jrxg2xtws7e" path="res://acnt_scrn_login_register_btn_group.tres" id="9_dg77c"]
+[ext_resource type="Script" uid="uid://bvipluoafwnpi" path="res://account_screen.gd" id="9_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
+[ext_resource type="Script" uid="uid://btadexg7mlppa" path="res://backend_requests.gd" id="9_ycdy4"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
 [ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
@@ -211,6 +214,63 @@ grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
+
+[node name="AccountScreen" type="Control" parent="UI" unique_id=1782943630]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 1412.0
+offset_top = 9.0
+offset_right = 1923.0
+offset_bottom = 333.0
+script = ExtResource("9_efxa6")
+
+[node name="BackendRequests" type="HTTPRequest" parent="UI/AccountScreen" unique_id=1139727843]
+script = ExtResource("9_ycdy4")
+
+[node name="UsernameInput" type="TextEdit" parent="UI/AccountScreen" unique_id=1696664034]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 62.0
+offset_right = 373.0
+offset_bottom = 129.0
+placeholder_text = "Username"
+
+[node name="PasswordInput" type="TextEdit" parent="UI/AccountScreen" unique_id=1882563768]
+layout_mode = 0
+offset_left = 27.0
+offset_top = 175.0
+offset_right = 402.0
+offset_bottom = 233.0
+placeholder_text = "Password"
+
+[node name="ConfirmButton" type="Button" parent="UI/AccountScreen" unique_id=1532197143]
+layout_mode = 0
+offset_left = 172.0
+offset_top = 263.0
+offset_right = 243.0
+offset_bottom = 294.0
+text = "Confirm"
+
+[node name="LoginOptionButton" type="Button" parent="UI/AccountScreen" unique_id=1404286959]
+layout_mode = 0
+offset_left = 113.0
+offset_top = 16.0
+offset_right = 203.0
+offset_bottom = 50.0
+toggle_mode = true
+button_group = ExtResource("9_dg77c")
+text = "Login"
+
+[node name="RegisterOptionButton" type="Button" parent="UI/AccountScreen" unique_id=2138936934]
+layout_mode = 0
+offset_left = 202.0
+offset_top = 17.0
+offset_right = 314.0
+offset_bottom = 51.0
+toggle_mode = true
+button_group = ExtResource("9_dg77c")
+text = "Register
+"
 
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)

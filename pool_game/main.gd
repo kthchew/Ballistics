@@ -36,6 +36,8 @@ func _ready() -> void:
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
+	
+	#$UI/AccountScreen.hide()
 	$OverheadLight/Light.light_energy = 1000
 
 func _on_aim_changed(touch_pos: Vector2):
