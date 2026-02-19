@@ -176,7 +176,7 @@ offset_right = 164.0
 offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_h2yge")
 
-[node name="ScratchLabel" type="Label" parent="UI" unique_id=920015048]
+[node name="InfoLabel" type="Label" parent="UI" unique_id=920015048]
 offset_left = 855.0
 offset_top = 24.0
 offset_right = 1045.0

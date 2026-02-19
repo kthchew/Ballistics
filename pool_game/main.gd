@@ -2,6 +2,7 @@ extends Node3D
 
 
 @onready var debug_label: Label = $UI/DebugLabel
+@onready var info_label: Label = $UI/InfoLabel
 @onready var cue_ball: RigidBody3D = $CueBall
 @onready var aim_line = $UI/AimLine
 @onready var slider = $UI/ForceSlider
@@ -37,6 +38,7 @@ var game_state: GameState = GameState.AIMING
 var turn_num: int = 0
 var cue_ball_potted: bool = false
 var solids_player = -1
+var winner: int = -1
 
 const ball_scene = preload("res://ball.tscn")	
 
@@ -72,7 +74,7 @@ func start_game() -> void:
 	turn_num = 0
 
 func _on_aim_changed(touch_pos: Vector2):
-	if game_state == GameState.MIDTURN:
+	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
 		return
 		
 	if game_state == GameState.PLACING:
@@ -215,6 +217,7 @@ func find_fallen_balls() -> Array[RigidBody3D]:
 	return fallen_balls
 	
 func end_game(winner: int) -> void:
+	self.winner = winner
 	game_state = GameState.ENDED
 	for ball in balls:
 		ball.freeze = true
@@ -311,15 +314,28 @@ func fill_debug_label() -> void:
 	label_txt += "\nFirst Hit: " + str(cue_ball.first_hit_ball_num)
 	debug_label.text = label_txt
 
-func fill_scratch_label() -> void:
+func fill_info_label() -> void:
+	info_label.text = ""
+	
+	if game_state == GameState.ENDED:
+		info_label.text = "Player " + str(winner + 1) + " won the game! Click the 'Reset Game' button to play again"
+	
+	if game_state == GameState.PLACING or game_state == GameState.AIMING:
+		info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
+		if player_ind == solids_player:
+			info_label.text += "You are solids\n"
+		elif 1 - player_ind == solids_player:
+			info_label.text += "You are stripes\n"
+			
+	
 	if game_state == GameState.PLACING:
-		$UI/ScratchLabel.text = "Your opponent scratched, click to place the cue ball"
-	else:
-		$UI/ScratchLabel.text = ""
+		info_label.text += "Your opponent scratched, click to place the cue ball\n"
+
+			
 
 func _process(delta: float) -> void:
 	fill_debug_label()
-	fill_scratch_label()
+	fill_info_label()
 
 func _on_button_pressed() -> void:
 	print("button pressed")
