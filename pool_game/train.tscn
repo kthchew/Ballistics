@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://da63um2nk4gb1"]
 
 [ext_resource type="PackedScene" uid="uid://comeyp103ci14" path="res://main.tscn" id="1_bju55"]
-[ext_resource type="Script" uid="uid://dw43wplnt70pi" path="res://addons/godot_rl_agents/sync.gd" id="2_lomod"]
 
 [node name="Train" type="Node3D" unique_id=1442971388]
 
@@ -34,8 +33,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 360.95172, 0, -285.42865)
 [node name="Camera3D" type="Camera3D" parent="." unique_id=400205645]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -1.88, 500, -4.744)
 current = true
-
-[node name="Sync" type="Node" parent="." unique_id=2141449231]
-script = ExtResource("2_lomod")
-action_repeat = 1
-metadata/_custom_type_script = "uid://dw43wplnt70pi"

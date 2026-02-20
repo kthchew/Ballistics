@@ -73,6 +73,8 @@ func _on_fire_pressed():
 	#var angle = aim_line.angle
 	var strength = 50
 	var angle = ai_controller.action_angle * PI
+	if ai_controller.action_angle < 0:
+		ai_controller.reward += 1
 	print("action_angle: " + str(ai_controller.action_angle))
 	print("angle: " + str(angle))
 
@@ -130,7 +132,8 @@ func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 	mesh.set_surface_override_material(0, material)
 	
 func place_ball():
-	var angle = 360 * randf()
+	#var angle = 360 * randf()
+	var angle = 360
 	var r = 30
 	var x = r * cos(angle)
 	var z = r * sin(angle)
@@ -214,6 +217,7 @@ func delete_fallen_balls() -> void:
 			else:
 				scores[player_ind] = -1000
 			ai_controller.needs_reset = true
+			ai_controller.done = true
 			
 		ball.position = Vector3(0, 0, -10)
 		ball.linear_velocity = Vector3(0, 0, 0)

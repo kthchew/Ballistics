@@ -199,17 +199,18 @@ def linear_schedule(initial_value: float) -> Callable[[float], float]:
 
 if args.resume_model_path is None:
     learning_rate = 0.0003 if not args.linear_lr_schedule else linear_schedule(0.0003)
-    model: PPO = PPO(
-        "MultiInputPolicy",
-        env,
-        ent_coef=0.0001,
-        verbose=2,
-        b=32,
-        tensorboard_log=args.experiment_dir,
-        learning_rate=learning_rate,
-    )
+    # model: PPO = PPO(
+    #     "MultiInputPolicy",
+    #     env,
+    #     ent_coef=0.0001,
+    #     verbose=2,
+    #     b=32,
+    #     tensorboard_log=args.experiment_dir,
+    #     learning_rate=learning_rate,
+    # )
     # policy_kwargs = dict(log_std_init=log(1.0))
     # model: PPO = PPO("MultiInputPolicy", env, verbose=1, n_epochs=10, learning_rate=0.0003, clip_range=0.2, ent_coef=0.0085, n_steps=128, batch_size=128, tensorboard_log=args.experiment_dir)
+    model: PPO = PPO("MultiInputPolicy", env, verbose=1, tensorboard_log=args.experiment_dir)
 else:
     path_zip = pathlib.Path(args.resume_model_path)
     print("Loading model: " + os.path.abspath(path_zip))
