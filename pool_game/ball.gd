@@ -8,6 +8,9 @@ var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
 var potted: bool = false
 
+func _ready() -> void:
+	self.body_entered.connect(self._on_body_entered)
+
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true
 	teleport_pos = pos
@@ -32,7 +35,7 @@ func reset(pos: Vector3):
 func pot():
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)
-	rotation = Vector3(0, 0, 0)
+	rotation = Vector3(0, 0, PI / 2)
 	freeze = true
 	position = Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num)
 	potted = true

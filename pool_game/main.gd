@@ -3,7 +3,6 @@ extends Node3D
 
 @onready var debug_label: Label = $UI/DebugLabel
 @onready var info_label: Label = $UI/InfoLabel
-@onready var cue_ball: RigidBody3D = $CueBall
 @onready var aim_line = $UI/AimLine
 @onready var slider = $UI/ForceSlider
 @onready var fire_button = $UI/FireButton
@@ -11,7 +10,6 @@ extends Node3D
 @onready var camera = $CameraPivot/Camera3D
 
 enum GameState {AIMING, MIDTURN, PLACING, ENDED}
-
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
@@ -27,6 +25,7 @@ const BALL_COLORS = [
 ]
 
 var has_aimed := false
+var cue_ball: RigidBody3D = null
 var balls: Array[RigidBody3D] = []
 # physics defaults to 60 ticks per second
 var cur_static_ticks = 0
@@ -43,26 +42,38 @@ const ball_script = preload("res://ball.gd")
 
 func _ready() -> void:
 	
+	create_balls()
 	start_game()
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
 	
-func start_game() -> void:
-	cue_ball.reset(Vector3(-56.0, ball_script.BALL_RADIUS, 0))
-	game_state = GameState.AIMING
-	
-	while balls.size() > 1:
-		remove_child(balls[1])
-		balls[1].queue_free()
-		balls.remove_at(1)	
+func create_balls() -> void:
 	balls = []
-	balls.append(cue_ball)
-	init_break_triangle(56, 0)
+	ball_scene.instantiate()
+	for i in range(16):
+		var ball: RigidBody3D = ball_scene.instantiate()
+		add_child(ball)
+		ball.ball_num = i
+		ball.name = "Ball%s" % i
+		balls.append(ball)
+		if i == 0:
+			cue_ball = ball
+			cue_ball.body_entered.connect(cue_ball._on_body_entered)
+			cue_ball.contact_monitor = true
+			cue_ball.max_contacts_reported = 3
+		else:
+			color_ball(ball)
+	
+func start_game() -> void:
+	
+	cue_ball.reset(Vector3(-56.0, ball_script.BALL_RADIUS, 0))
+	place_rack(56, 0)
 	
 	has_aimed = false
 	aim_line.visible = false
+	game_state = GameState.AIMING
 	
 	player_ind = 0
 	cur_static_ticks = 0
@@ -70,6 +81,58 @@ func start_game() -> void:
 	scores = [0, 0]
 	balls_sunk = [0, 0]
 	turn_num = 0
+	
+func color_ball(ball_node: RigidBody3D) -> void:
+	var mesh = ball_node.get_node("MeshInstance3D")
+	var material: Material = StandardMaterial3D.new()
+	
+	var color_num = ball_node.ball_num
+	
+	if color_num > 8:
+		var gradient: Gradient = Gradient.new()
+		gradient.remove_point(0)
+		gradient.remove_point(0)
+		gradient.add_point(0.4, Color(1, 1, 1))
+		gradient.add_point(0.4, Color(0, 0, 0))
+		gradient.add_point(0.6, Color(0, 0, 0))
+		gradient.add_point(0.6, Color(1, 1, 1))
+		var gradient_texture: GradientTexture2D = GradientTexture2D.new()
+		gradient_texture.fill_from = Vector2(0.5, 0)
+		gradient_texture.fill_to = Vector2(0.5, 1)
+		gradient_texture.gradient = gradient
+		material.albedo_texture = gradient_texture
+	
+	if color_num > 8:
+		color_num -= 8
+	var color = BALL_COLORS[color_num - 1]
+	material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
+	
+	mesh.set_surface_override_material(0, material)
+			
+func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
+	balls.sort_custom(func(a, b): return a.ball_num < b.ball_num)
+	var ball_perm = range(16)
+	ball_perm.erase(0)
+	ball_perm.erase(8)
+	ball_perm.shuffle()
+	ball_perm.insert(0, 0)
+	ball_perm.insert(5, 8)
+	
+	var new_balls: Array[RigidBody3D] = []
+	for i in range(16):
+		new_balls.append(balls[ball_perm[i]])
+	balls = new_balls
+	
+	var ball_ind: int = 1
+	for i in range(5):
+		for j in range(i + 1):
+			var x: float = x_shift + spacing * i * ball_script.BALL_RADIUS * sqrt(3)
+			var z: float = z_shift + (-i + 2 * j) * ball_script.BALL_RADIUS * spacing
+			balls[ball_ind].reset(Vector3(x, ball_script.BALL_RADIUS, z))
+			balls[ball_ind].rotation = Vector3(0, 0, PI / 2)
+			
+			ball_ind += 1
+	
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
@@ -130,59 +193,6 @@ func _on_fire_pressed():
 	has_aimed = false
 	aim_line.visible = false
 	aimer._reset_knob()
-
-func color_ball(ball_node: RigidBody3D) -> void:
-	var mesh = ball_node.get_node("MeshInstance3D")
-	var material: Material = StandardMaterial3D.new()
-	
-	ball_node.rotation = Vector3(0, 0, PI / 2)
-	
-	var color_num = ball_node.ball_num
-	
-	if color_num > 8:
-		var gradient: Gradient = Gradient.new()
-		gradient.remove_point(0)
-		gradient.remove_point(0)
-		gradient.add_point(0.4, Color(1, 1, 1))
-		gradient.add_point(0.4, Color(0, 0, 0))
-		gradient.add_point(0.6, Color(0, 0, 0))
-		gradient.add_point(0.6, Color(1, 1, 1))
-		var gradient_texture: GradientTexture2D = GradientTexture2D.new()
-		gradient_texture.fill_from = Vector2(0.5, 0)
-		gradient_texture.fill_to = Vector2(0.5, 1)
-		gradient_texture.gradient = gradient
-		material.albedo_texture = gradient_texture
-	
-	if color_num > 8:
-		color_num -= 8
-	var color = BALL_COLORS[color_num - 1]
-	material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
-	
-	mesh.set_surface_override_material(0, material)
-			
-func init_break_triangle(x_shift: float, z_shift: float, spacing: float = 1.05):
-	var ball_nums = range(1, 16)
-	ball_nums.erase(8)
-	ball_nums.shuffle()
-	ball_nums.insert(4, 8)
-	
-	var ball_ind: int = 0
-	for i in range(5):
-		for j in range(i + 1):
-			var ball_node: Node = ball_scene.instantiate()
-			var ball_num: int = ball_nums[ball_ind]
-			ball_node.ball_num = ball_num
-			ball_node.name = "Ball%s" % ball_num
-			var x: float = x_shift + spacing * i * ball_script.BALL_RADIUS * sqrt(3)
-			var z: float = z_shift + (-i + 2 * j) * ball_script.BALL_RADIUS * spacing
-			ball_node.position = Vector3(x, ball_script.BALL_RADIUS, z)
-			
-			color_ball(ball_node)
-			
-			balls.append(ball_node)
-			add_child(ball_node)
-			
-			ball_ind += 1
 	
 func check_all_not_moving() -> bool:
 	for ball in balls:
