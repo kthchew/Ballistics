@@ -35,7 +35,9 @@ var balls_sunk: Array[int] = [0, 0]
 var game_state: GameState = GameState.AIMING
 var turn_num: int = 0
 var solids_player = -1
+var next_solids_player = -1
 var winner: int = -1
+var play_again: bool = false
 
 const ball_scene = preload("res://ball.tscn")	
 const ball_script = preload("res://ball.gd")	
@@ -78,9 +80,11 @@ func start_game() -> void:
 	player_ind = 0
 	cur_static_ticks = 0
 	solids_player = -1
+	next_solids_player = -1
 	scores = [0, 0]
 	balls_sunk = [0, 0]
 	turn_num = 0
+	play_again = false
 	
 func color_ball(ball_node: RigidBody3D) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
@@ -221,7 +225,6 @@ func end_game(winner: int) -> void:
 		ball.freeze = true
 	
 func process_fallen_ball(ball: RigidBody3D) -> void:
-	# 8 ball fell
 	if ball.is_eight_ball():
 		if scores[player_ind] == 7:
 			scores[player_ind] += 1
@@ -230,24 +233,29 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 			scores[player_ind] = -1000
 			end_game(1 - player_ind)
 	elif not ball.is_cue_ball():
+		if solids_player == -1:
+			play_again = true
 		if ball.is_solid():
 			balls_sunk[0] += 1
+			if solids_player == player_ind:
+				play_again = true
 		elif ball.is_stripe():
 			balls_sunk[1] += 1
+			if solids_player == 1 - player_ind:
+				play_again = true
 		
 		if turn_num > 0 and solids_player == -1:
 			if ball.is_solid():
-				solids_player = player_ind
+				next_solids_player = player_ind
 			elif ball.is_stripe():
-				solids_player = 1 - player_ind
+				next_solids_player = 1 - player_ind
 		
-		if solids_player != -1:
-			scores[solids_player] = balls_sunk[0]
-			scores[1 - solids_player] = balls_sunk[1]
+		if next_solids_player != -1:
+			scores[next_solids_player] = balls_sunk[0]
+			scores[1 - next_solids_player] = balls_sunk[1]
 	
 	ball.pot()
 	
-# TODO: if 8 ball is the only ball left, it is allowed
 func check_for_first_hit_scratch() -> bool:
 	var first_hit_ball_num = cue_ball.first_hit_ball_num
 	if first_hit_ball_num == -1:
@@ -268,12 +276,18 @@ func start_new_turn() -> void:
 		print("Scratch registered")
 		cue_ball.pot()
 		game_state = GameState.PLACING
+		player_ind = 1 - player_ind
 	else:
 		game_state = GameState.AIMING
+		if not play_again:
+			player_ind = 1 - player_ind
+	
 	print("Starting new turn")
-	turn_num += 1
-	player_ind = 1 - player_ind
 	cue_ball.first_hit_ball_num = -1
+	turn_num += 1
+	play_again = false
+	if next_solids_player != -1:
+		solids_player = next_solids_player
 	
 func _physics_process(delta: float) -> void:
 	if game_state != GameState.MIDTURN:
@@ -292,14 +306,16 @@ func _physics_process(delta: float) -> void:
 func fill_debug_label() -> void:
 	var label_txt = "Static Ticks: " + str(cur_static_ticks)
 	label_txt += "\nGame State: " + str(game_state)
-	label_txt += "\nTurn Num: " + str(turn_num)
 	label_txt += "\nCurrent Player Ind: " + str(player_ind)
+	label_txt += "\nTurn Num: " + str(turn_num)
 	label_txt += "\nPlayer 0 Score: " + str(scores[0])
 	label_txt += "\nPlayer 1 Score: " + str(scores[1])
-	label_txt += "\nSolids Player: " + str(solids_player)
 	label_txt += "\nSolids Sunk: " + str(balls_sunk[0])
 	label_txt += "\nStripes Sunk: " + str(balls_sunk[1])
+	label_txt += "\nSolids Player: " + str(solids_player)
+	label_txt += "\nNext Solids Player: " + str(next_solids_player)
 	label_txt += "\nFirst Hit: " + str(cue_ball.first_hit_ball_num)
+	label_txt += "\nPlay Again: " + str(play_again)
 	debug_label.text = label_txt
 
 func fill_info_label() -> void:
