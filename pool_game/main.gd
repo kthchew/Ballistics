@@ -137,6 +137,9 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			
 			ball_ind += 1
 	
+	balls[2].teleport(Vector3(0, 0, 35))
+	balls[1].teleport(Vector3(0, 0, 40))
+	
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
