@@ -14,7 +14,7 @@ func _process(delta: float) -> void:
 # TODO: use env var or config
 const BACKEND_URL: String = "http://127.0.0.1:5000"
 
-var cookies: Dictionary
+var session: String
 
 enum PlayerRole {STRIPES = 1, SOLIDS}
 enum GameType {EIGHT_BALL_MULTIPLAYER = 1, EIGHT_BALL_SINGLEPLAYER, CRAZY_EIGHT_BALL_MULTIPLAYER, CRAZY_EIGHT_BALL_SINGLEPLAYER}
@@ -22,7 +22,7 @@ enum GameType {EIGHT_BALL_MULTIPLAYER = 1, EIGHT_BALL_SINGLEPLAYER, CRAZY_EIGHT_
 class GameInstance:
 	var game_id: String
 	var player_roles: Dictionary # dict[ObjectId, PlayerRole]
-	var game_type: GameType
+	var game_type: GameType = GameType.EIGHT_BALL_MULTIPLAYER
 	var player_points: Dictionary # dict[ObjectId, int]
 	var current_turn: int
 	var ball_positions: Dictionary # dict[int, tuple[float, float]]
@@ -38,8 +38,10 @@ func _make_request(url: String, method: int, json_body: Dictionary = {}) -> Dict
 	var req := HTTPRequest.new()
 	
 	add_child(req)
-	var body_text := JSON.stringify(json_body)
+	var body_text := "" if json_body == {} else JSON.stringify(json_body)
 	var headers := ["Content-Type: application/json"]
+	if session != null and session != "":
+		headers.append("Cookie: session=" + session)
 	var err := req.request(url, headers, method, body_text)
 	if err != OK:
 		req.queue_free()
@@ -72,6 +74,22 @@ func login(username: String, password: String) -> Dictionary:
 	var url: String = BACKEND_URL + "/login"
 	var body: Dictionary[Variant, Variant] = {"username": username, "password": password}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
+	if "headers" in response and "response_code" in response and response["response_code"] == 200:
+		for header in response["headers"]:
+			if header.begins_with("Set-Cookie:"):
+				var cookie_value = header.substr("Set-Cookie: ".length()).strip_edges()
+				cookie_value = cookie_value.split("; ")
+				for part in cookie_value:
+					if part.begins_with("session="):
+						session = part.substr("session=".length()).strip_edges()
+						break
+	else:
+		print("Login failed with response code: " + str(response["response_code"]))
+	return response
+	
+func profile_test_endpoint() -> Dictionary:
+	var url: String = BACKEND_URL + "/profile"
+	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_GET, {})
 	print(response)
 	return response
 	

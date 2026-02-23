@@ -6,6 +6,7 @@ var login = false
 func _ready() -> void:
 	pass
 	$"ConfirmButton".pressed.connect(_on_confirm_pressed)
+	$"ProfileTestButton".pressed.connect(_on_profiletest_pressed)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -25,3 +26,6 @@ func _on_confirm_pressed() -> void:
 	elif register_selected:
 		print("Register selected")
 		$BackendRequests.register(username, password)
+		
+func _on_profiletest_pressed() -> void:
+	$BackendRequests.profile_test_endpoint()

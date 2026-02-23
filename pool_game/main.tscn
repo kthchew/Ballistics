@@ -272,6 +272,14 @@ button_group = ExtResource("9_dg77c")
 text = "Register
 "
 
+[node name="ProfileTestButton" type="Button" parent="UI/AccountScreen" unique_id=1038284918]
+layout_mode = 0
+offset_left = 243.0
+offset_top = 260.0
+offset_right = 441.0
+offset_bottom = 320.0
+text = "test button remove later"
+
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
