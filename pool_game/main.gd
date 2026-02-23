@@ -81,7 +81,6 @@ func create_balls() -> void:
 func start_game() -> void:
 	
 	cue_ball.reset(Vector3(-56.0, ball_script.BALL_RADIUS, 0))
-	place_rack(56, 0)
 	
 	has_aimed = false
 	aim_line.visible = false
@@ -99,6 +98,8 @@ func start_game() -> void:
 	
 	hole_buttons.hide()
 	
+	place_rack(56, 0)
+	
 func color_ball(ball_node: RigidBody3D) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
 	var material: Material = StandardMaterial3D.new()
@@ -110,7 +111,12 @@ func color_ball(ball_node: RigidBody3D) -> void:
 	material.albedo_texture = ball_texture
 	
 	mesh.set_surface_override_material(0, material)
-			
+
+func pot_all_solids():
+	for ball in balls:
+		if ball.is_solid():
+			process_fallen_ball(ball)
+
 func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 	balls.sort_custom(func(a, b): return a.ball_num < b.ball_num)
 	var ball_perm = range(16)
@@ -134,6 +140,8 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			balls[ball_ind].rotation = Vector3(PI/2, 0, PI)
 			
 			ball_ind += 1
+	
+	pot_all_solids()
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
@@ -241,7 +249,7 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 			end_game(player_ind)
 		else:
 			end_game(1 - player_ind)
-			
+	
 	elif not ball.is_cue_ball():
 		if solids_player == -1:
 			play_again = true
@@ -309,7 +317,7 @@ func start_round(scratched_prev: bool = false) -> void:
 		cue_ball.pot()
 		return
 	
-	if target_hole == -1 and scores[player_ind] >= 1:
+	if target_hole == -1 and scores[player_ind] >= BALLS_BEFORE_EIGHT:
 		game_state = GameState.PICKPOCKET
 		hole_buttons.show()
 		return
