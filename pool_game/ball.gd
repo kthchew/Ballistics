@@ -35,7 +35,7 @@ func reset(pos: Vector3):
 func pot():
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)
-	rotation = Vector3(0, 0, PI / 2)
+	rotation = Vector3(0, 0, 0)
 	freeze = true
 	# position set manually + teleport are both needed for some reason
 	position = Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num)

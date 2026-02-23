@@ -71,13 +71,12 @@ func create_balls() -> void:
 		ball.ball_num = i
 		ball.name = "Ball%s" % i
 		balls.append(ball)
+		color_ball(ball)
 		if i == 0:
 			cue_ball = ball
 			cue_ball.body_entered.connect(cue_ball._on_body_entered)
 			cue_ball.contact_monitor = true
 			cue_ball.max_contacts_reported = 3
-		else:
-			color_ball(ball)
 	
 func start_game() -> void:
 	
@@ -106,24 +105,9 @@ func color_ball(ball_node: RigidBody3D) -> void:
 	
 	var color_num = ball_node.ball_num
 	
-	if color_num > 8:
-		var gradient: Gradient = Gradient.new()
-		gradient.remove_point(0)
-		gradient.remove_point(0)
-		gradient.add_point(0.4, Color(1, 1, 1))
-		gradient.add_point(0.4, Color(0, 0, 0))
-		gradient.add_point(0.6, Color(0, 0, 0))
-		gradient.add_point(0.6, Color(1, 1, 1))
-		var gradient_texture: GradientTexture2D = GradientTexture2D.new()
-		gradient_texture.fill_from = Vector2(0.5, 0)
-		gradient_texture.fill_to = Vector2(0.5, 1)
-		gradient_texture.gradient = gradient
-		material.albedo_texture = gradient_texture
-	
-	if color_num > 8:
-		color_num -= 8
-	var color = BALL_COLORS[color_num - 1]
-	material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
+	var texture_path = "res://ball_textures/Ball" + str(ball_node.ball_num) + ".jpg"
+	var ball_texture = load(texture_path)
+	material.albedo_texture = ball_texture
 	
 	mesh.set_surface_override_material(0, material)
 			
@@ -147,12 +131,9 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			var x: float = x_shift + spacing * i * ball_script.BALL_RADIUS * sqrt(3)
 			var z: float = z_shift + (-i + 2 * j) * ball_script.BALL_RADIUS * spacing
 			balls[ball_ind].reset(Vector3(x, ball_script.BALL_RADIUS, z))
-			balls[ball_ind].rotation = Vector3(0, 0, PI / 2)
+			balls[ball_ind].rotation = Vector3(PI/2, 0, PI)
 			
 			ball_ind += 1
-	
-	for i in range(7, 16):
-		balls[i].pot()
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
