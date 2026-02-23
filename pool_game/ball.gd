@@ -37,9 +37,10 @@ func pot():
 	angular_velocity = Vector3(0, 0, 0)
 	rotation = Vector3(0, 0, PI / 2)
 	freeze = true
+	# position set manually + teleport are both needed for some reason
 	position = Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num)
+	teleport(Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num))
 	potted = true
-	#hide()
 
 func _physics_process(delta):
 	var friction_accel := 2

@@ -14,6 +14,8 @@ enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
+# sometimes we change the below constant for playtesting
+const BALLS_BEFORE_EIGHT: int = 7
 const BALL_COLORS = [
 	[255, 215, 4], 
 	[0, 0, 254], 
@@ -252,16 +254,14 @@ func calc_hole_ind_from_pos(pos: Vector3) -> int:
 		
 	
 func process_fallen_ball(ball: RigidBody3D) -> void:
-	if ball.is_cue_ball():
-		if target_hole != -1:
-			end_game(1 - player_ind)
-	elif ball.is_eight_ball():
+	if ball.is_eight_ball():
 		var hole_ind = calc_hole_ind_from_pos(ball.position)
-		if scores[player_ind] == 7 and target_hole == hole_ind:
+		if scores[player_ind] >= BALLS_BEFORE_EIGHT and target_hole == hole_ind:
 			end_game(player_ind)
 		else:
 			end_game(1 - player_ind)
-	else:
+			
+	elif not ball.is_cue_ball():
 		if solids_player == -1:
 			play_again = true
 		if ball.is_solid():
@@ -289,7 +289,7 @@ func check_for_first_hit_scratch() -> bool:
 	var first_hit_ball_num = cue_ball.first_hit_ball_num
 	if first_hit_ball_num == -1:
 		return false
-	if scores[player_ind] == 7 and first_hit_ball_num == 8:
+	if scores[player_ind] >= BALLS_BEFORE_EIGHT and first_hit_ball_num == 8:
 		return false
 	if solids_player == player_ind and not (1 <= first_hit_ball_num and first_hit_ball_num <= 7):
 		return true
@@ -321,6 +321,8 @@ func end_round() -> void:
 		
 func start_round(scratched_prev: bool = false) -> void:
 	if scratched_prev:
+		if balls[5].potted:
+			end_game(player_ind)
 		print("Scratch registered")
 		game_state = GameState.PLACING
 		cue_ball.pot()
@@ -370,7 +372,7 @@ func fill_info_label() -> void:
 	
 	if game_state != GameState.MIDTURN and game_state != GameState.ENDED:
 		info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
-		if scores[player_ind] < 7:
+		if scores[player_ind] < BALLS_BEFORE_EIGHT:
 			if player_ind == solids_player:
 				info_label.text += "You are solids\n"
 			elif 1 - player_ind == solids_player:
