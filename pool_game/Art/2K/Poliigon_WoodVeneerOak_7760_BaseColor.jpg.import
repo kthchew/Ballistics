@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ji01uox08yxg"
-path.s3tc="res://.godot/imported/Billiard-Cue.png-b6d40166b3acc480c4137bfe3546e45e.s3tc.ctex"
+uid="uid://ci5fbdgxigfld"
+path.s3tc="res://.godot/imported/Poliigon_WoodVeneerOak_7760_BaseColor.jpg-7a8bba6ece9eb9329f3127140fea777a.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://Art/Billiard-Cue.png"
-dest_files=["res://.godot/imported/Billiard-Cue.png-b6d40166b3acc480c4137bfe3546e45e.s3tc.ctex"]
+source_file="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg"
+dest_files=["res://.godot/imported/Poliigon_WoodVeneerOak_7760_BaseColor.jpg-7a8bba6ece9eb9329f3127140fea777a.s3tc.ctex"]
 
 [params]
 
