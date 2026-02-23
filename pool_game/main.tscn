@@ -227,7 +227,7 @@ script = ExtResource("9_efxa6")
 [node name="BackendRequests" type="HTTPRequest" parent="UI/AccountScreen" unique_id=1139727843]
 script = ExtResource("9_ycdy4")
 
-[node name="UsernameInput" type="TextEdit" parent="UI/AccountScreen" unique_id=1696664034]
+[node name="UsernameInput" type="LineEdit" parent="UI/AccountScreen" unique_id=1938078507]
 layout_mode = 0
 offset_left = 39.0
 offset_top = 62.0
@@ -235,7 +235,7 @@ offset_right = 373.0
 offset_bottom = 129.0
 placeholder_text = "Username"
 
-[node name="PasswordInput" type="TextEdit" parent="UI/AccountScreen" unique_id=1882563768]
+[node name="PasswordInput" type="LineEdit" parent="UI/AccountScreen" unique_id=210810088]
 layout_mode = 0
 offset_left = 27.0
 offset_top = 175.0
