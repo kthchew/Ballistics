@@ -16,16 +16,6 @@ const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
 const BALLS_BEFORE_EIGHT: int = 7
-const BALL_COLORS = [
-	[255, 215, 4], 
-	[0, 0, 254], 
-	[255, 0, 0], 
-	[128, 0, 129], 
-	[254, 165, 0], 
-	[35, 139, 35], 
-	[128, 0, 1],
-	[0, 0, 0],
-]
 
 var has_aimed := false
 var cue_ball: RigidBody3D = null
