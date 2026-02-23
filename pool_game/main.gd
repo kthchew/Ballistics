@@ -8,8 +8,9 @@ extends Node3D
 @onready var fire_button = $UI/FireButton
 @onready var aimer = $UI/Aimer
 @onready var camera = $CameraPivot/Camera3D
+@onready var hole_buttons = $UI/HoleButtons
 
-enum GameState {AIMING, MIDTURN, PLACING, ENDED}
+enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
@@ -38,6 +39,7 @@ var solids_player = -1
 var next_solids_player = -1
 var winner: int = -1
 var play_again: bool = false
+var target_hole: int = -1
 
 const ball_scene = preload("res://ball.tscn")	
 const ball_script = preload("res://ball.gd")	
@@ -50,6 +52,13 @@ func _ready() -> void:
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
+	
+	hole_buttons.hole_selected.connect(_on_hole_selected)
+	
+func _on_hole_selected(hole_ind: int) -> void:
+	target_hole = hole_ind
+	hole_buttons.hide()
+	start_round()
 	
 func create_balls() -> void:
 	balls = []
@@ -85,6 +94,9 @@ func start_game() -> void:
 	balls_sunk = [0, 0]
 	turn_num = 0
 	play_again = false
+	target_hole = -1
+	
+	hole_buttons.hide()
 	
 func color_ball(ball_node: RigidBody3D) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
@@ -137,9 +149,8 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			
 			ball_ind += 1
 	
-	balls[2].teleport(Vector3(0, 0, 35))
-	balls[1].teleport(Vector3(0, 0, 40))
-	
+	for i in range(7, 16):
+		balls[i].pot()
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
@@ -151,8 +162,7 @@ func _on_aim_changed(touch_pos: Vector2):
 		var drop_plane = Plane(Vector3.UP, Vector3(0, ball_script.BALL_RADIUS, 0))
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
 		cue_ball.reset(intersection)
-		game_state = GameState.AIMING
-		has_aimed = false
+		start_round()
 		return
 		
 	var ball_screen_pos: Vector2 = camera.unproject_position(cue_ball.global_position)
@@ -226,16 +236,32 @@ func end_game(winner: int) -> void:
 	game_state = GameState.ENDED
 	for ball in balls:
 		ball.freeze = true
+		
+func calc_hole_ind_from_pos(pos: Vector3) -> int:
+	var hole_ind = 0
+	
+	if pos.z > 0:
+		hole_ind += 3
+	
+	if pos.x > 50.91:
+		hole_ind += 2
+	elif pos.x > -50.91:
+		hole_ind += 1
+	
+	return hole_ind
+		
 	
 func process_fallen_ball(ball: RigidBody3D) -> void:
-	if ball.is_eight_ball():
-		if scores[player_ind] == 7:
-			scores[player_ind] += 1
+	if ball.is_cue_ball():
+		if target_hole != -1:
+			end_game(1 - player_ind)
+	elif ball.is_eight_ball():
+		var hole_ind = calc_hole_ind_from_pos(ball.position)
+		if scores[player_ind] == 7 and target_hole == hole_ind:
 			end_game(player_ind)
 		else:
-			scores[player_ind] = -1000
 			end_game(1 - player_ind)
-	elif not ball.is_cue_ball():
+	else:
 		if solids_player == -1:
 			play_again = true
 		if ball.is_solid():
@@ -274,23 +300,38 @@ func check_for_first_hit_scratch() -> bool:
 func check_for_scratch():
 	return cue_ball.potted or check_for_first_hit_scratch()
 
-func start_new_turn() -> void:
-	if check_for_scratch():
-		print("Scratch registered")
-		cue_ball.pot()
-		game_state = GameState.PLACING
-		player_ind = 1 - player_ind
-	else:
-		game_state = GameState.AIMING
-		if not play_again:
-			player_ind = 1 - player_ind
+func end_round() -> void:
 	
-	print("Starting new turn")
 	cue_ball.first_hit_ball_num = -1
-	turn_num += 1
-	play_again = false
+	target_hole = -1
 	if next_solids_player != -1:
 		solids_player = next_solids_player
+	
+	var scratched = check_for_scratch()
+	
+	if not scratched and play_again:
+		play_again = false
+		start_round()
+		return
+	
+	play_again = false
+	turn_num += 1
+	player_ind = 1 - player_ind
+	start_round(scratched)
+		
+func start_round(scratched_prev: bool = false) -> void:
+	if scratched_prev:
+		print("Scratch registered")
+		game_state = GameState.PLACING
+		cue_ball.pot()
+		return
+	
+	if target_hole == -1 and scores[player_ind] >= 1:
+		game_state = GameState.PICKPOCKET
+		hole_buttons.show()
+		return
+	
+	game_state = GameState.AIMING
 	
 func _physics_process(delta: float) -> void:
 	if game_state != GameState.MIDTURN:
@@ -304,7 +345,7 @@ func _physics_process(delta: float) -> void:
 		cur_static_ticks = 0
 	
 	if cur_static_ticks == STATIC_TICKS_THRESHOLD:
-		start_new_turn()
+		end_round()
 	
 func fill_debug_label() -> void:
 	var label_txt = "Static Ticks: " + str(cur_static_ticks)
@@ -327,12 +368,16 @@ func fill_info_label() -> void:
 	if game_state == GameState.ENDED:
 		info_label.text = "Player " + str(winner + 1) + " won the game! Click the 'Reset Game' button to play again"
 	
-	if game_state == GameState.PLACING or game_state == GameState.AIMING:
+	if game_state != GameState.MIDTURN and game_state != GameState.ENDED:
 		info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
-		if player_ind == solids_player:
-			info_label.text += "You are solids\n"
-		elif 1 - player_ind == solids_player:
-			info_label.text += "You are stripes\n"
+		if scores[player_ind] < 7:
+			if player_ind == solids_player:
+				info_label.text += "You are solids\n"
+			elif 1 - player_ind == solids_player:
+				info_label.text += "You are stripes\n"
+	
+	if game_state == GameState.PICKPOCKET:
+		info_label.text += "Pick your target pocket for the 8-ball\n"
 			
 	if game_state == GameState.PLACING:
 		info_label.text += "Your opponent scratched, click to place the cue ball\n"

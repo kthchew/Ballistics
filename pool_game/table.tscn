@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://boqetj8b1khhq"]
+[gd_scene format=3 uid="uid://bpaxx4tn7mr6j"]
 
 [ext_resource type="PhysicsMaterial" uid="uid://da8ohqxk1g88s" path="res://table.tres" id="1_5y63s"]
 [ext_resource type="PackedScene" uid="uid://cu4vrdboa7shh" path="res://pool_table8.glb" id="1_l6n3u"]
