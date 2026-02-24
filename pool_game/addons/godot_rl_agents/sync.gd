@@ -176,12 +176,12 @@ func _physics_process(_delta):
 
 	_demo_record_process()
 
-	#for node in parent.get_children():
-		#if ("cur_static_ticks" in node and "static_ticks_threshold" in node 
-		#and node.cur_static_ticks < node.static_ticks_threshold):
-			#return
-	if parent.cur_static_ticks < parent.static_ticks_threshold:
-		return	
+	for node in parent.get_children():
+		if ("cur_static_ticks" in node and "static_ticks_threshold" in node 
+		and node.cur_static_ticks < node.static_ticks_threshold):
+			return
+	#if parent.cur_static_ticks < parent.static_ticks_threshold:
+		#return	
 
 
 	if n_action_steps % action_repeat != 0:

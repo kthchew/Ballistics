@@ -45,6 +45,6 @@ func _physics_process(delta):
 
 
 func _on_body_entered(body: Node) -> void:
-	#if body.name.contains("Ball"): 
-		#ai_controller.reward += 1
+	if body.name.contains("Ball"): 
+		ai_controller.reward += 1
 	pass

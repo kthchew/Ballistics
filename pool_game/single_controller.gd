@@ -28,14 +28,15 @@ func sort_balls_by_num(a, b):
 func get_obs() -> Dictionary:
 	var balls = _player.balls
 	balls.sort_custom(sort_balls_by_num)
-	var obs = []
-	for ball in balls: 
-		var pos = ball.position
-		obs.append_array([
-			pos.x / 109, #-1->1 
-			clamp(((pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
-			(pos.z + 53) / (2 * 53) #0->1
-		])
+	var obs = [balls[1].position.x - balls[0].position.x, 
+			   balls[1].position.z - balls[0].position.z]
+	#for ball in balls: 
+		#var pos = ball.position
+		#obs.append_array([
+			#pos.x / 109, #-1->1 
+			#clamp(((pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
+			#(pos.z + 53) / (2 * 53) #0->1
+		#])
 	print("sending obs...")
 	print(obs)
 	return {"obs": obs}
@@ -54,56 +55,3 @@ func get_action_space() -> Dictionary:
 func set_action(action) -> void:
 	action_angle = clamp(action["angle-topdown"][0], -1, 1)
 	fire.emit()
-
-
-#-----------------------------------------------------------------------------#
-
-
-#-- Methods that sometimes need implementing using the "extend script" option in Godot --#
-# Only needed if you are recording expert demos with this AIController
-func get_action() -> Array:
-	assert(false, "the get_action method is not implemented in extended AIController but demo_recorder is used")
-	return []
-
-# -----------------------------------------------------------------------------#
-
-
-func _physics_process(delta):
-	n_steps += 1
-	if n_steps > reset_after:
-		needs_reset = true
-
-
-func get_obs_space():
-	# may need overriding if the obs space is complex
-	var obs = get_obs()
-	return {
-		"obs": {"size": [len(obs["obs"])], "space": "box"},
-	}
-
-
-func reset():
-	n_steps = 0
-	needs_reset = false
-
-
-func reset_if_done():
-	if done:
-		reset()
-
-
-func set_heuristic(h):
-	# sets the heuristic from "human" or "model" nothing to change here
-	heuristic = h
-
-
-func get_done():
-	return done
-
-
-func set_done_false():
-	done = false
-
-
-func zero_reward():
-	reward = 0.0
