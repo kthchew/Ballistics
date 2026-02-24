@@ -8,7 +8,8 @@ extends Node3D
 @onready var aimer = $UI/Aimer
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
-@onready var cue_stick = $CueStick
+@onready var aim_visuals = $UI/AimVisuals
+@onready var cue_stick = $UI/AimVisuals/CueStick
 
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
 const STATIC_TICKS_THRESHOLD: int = 60
@@ -41,7 +42,7 @@ func _ready() -> void:
 	create_balls()
 	start_game()
 	
-	cue_stick.visible = false
+	aim_visuals.visible = false
 	$OverheadLight/Light.light_energy = 1000
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
@@ -49,10 +50,139 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected)
 	
+func _on_aim_changed(touch_pos: Vector2):
+	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
+		return
+		
+	if game_state == GameState.PLACING:
+		var ray_origin = camera.project_ray_origin(touch_pos)
+		var ray_normal = camera.project_ray_normal(touch_pos)
+		var drop_plane = Plane(Vector3.UP, Vector3(0, ball_script.BALL_RADIUS, 0))
+		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
+		cue_ball.reset(intersection)
+		start_round()
+		return
+		
+	if not has_aimed:
+		has_aimed = true
+		
+
+	var ball_screen_pos = camera.unproject_position(cue_ball.global_position)
+	var dir = ball_screen_pos - touch_pos
+
+	if dir.length() < 20:
+		return
+
+	var angle = dir.angle()
+	var dir_norm = dir.normalized()
+	
+	cast_aim_ray(dir_norm)
+
+	var ball_center_3d = cue_ball.global_position
+	var ball_edge_3d = ball_center_3d + Vector3(5, 0, 0)
+	var center_screen = camera.unproject_position(ball_center_3d)
+	var edge_screen = camera.unproject_position(ball_edge_3d)
+	var ball_radius_px = (edge_screen - center_screen).length()
+	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
+	
+	cue_stick.update_position(cue_ball.global_position)
+	cue_stick.set_angle(angle)
+	aim_visuals.visible = true
+
+func _on_force_changed(value):
+	var normalized = value / $UI/ForceSlider.max_value
+	cue_stick.set_force_strength(normalized)
+	
+func _on_fire_pressed():
+	var strength = slider.value
+	var angle = cue_stick.angle
+
+	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
+	var force = dir * (strength * 5)
+
+	var up = Vector3.UP
+	if abs(dir.dot(up)) > 0.9:
+		up = Vector3.FORWARD
+
+	var right = dir.cross(up).normalized()
+	var forward = right.cross(dir).normalized()
+
+	var face_radius = 0.5
+	var joy = aimer.output
+	var offset_3d = right * (joy.x * face_radius) + forward * (-joy.y * face_radius)
+
+	cue_stick.striking = true
+
+	cue_ball.first_hit_ball_num = 0
+	game_state = GameState.MIDTURN
+	
+	var tween := create_tween()
+
+	var target_pos = cue_ball.global_position - cue_stick.aim_direction * ball_script.BALL_RADIUS
+
+	var distance = cue_stick.global_position.distance_to(target_pos)
+
+	var base_speed = 20.0
+	var scaled = pow(strength, 0.6)
+	var speed = base_speed * (0.4 + 0.6 * scaled)
+
+	var duration = distance / speed
+
+	tween.tween_property(cue_stick, "global_position", target_pos, duration)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_IN_OUT)
+
+	tween.tween_callback(func():
+		aim_visuals.visible = false
+		cue_stick.striking = false
+		cue_ball.apply_impulse(force, offset_3d)
+	)
+	print("STRENGTH:", strength)
+	if strength > 95.0:
+		shake_camera(.5, .1)
+		sway_light(7, 7)
+	has_aimed = false
+	slider.value = 0
+	cue_stick.set_force_strength(0.0)
+	aimer._reset_knob()
+	
 func _on_hole_selected(hole_ind: int) -> void:
 	target_hole = hole_ind
 	hole_buttons.hide()
 	start_round()
+	
+func _on_reset_button_pressed() -> void:
+	start_game()
+	
+func cast_aim_ray(aim_dir: Vector2) -> void:
+	var space_state = get_world_3d().direct_space_state
+	
+	var dir = Vector3(aim_dir.x, 0, aim_dir.y)
+	print("dir " + str(dir))
+	var origin = cue_ball.global_position + ball_script.BALL_RADIUS * dir.cross(Vector3.UP).normalized()
+	print("origin " + str(origin))
+	var end = origin + dir * 1000
+	var query = PhysicsRayQueryParameters3D.create(origin, end)
+
+	var result = space_state.intersect_ray(query)
+	print(result)
+	if "position" not in result:
+		return
+	var collision_pos = result["position"]
+	var collision_2d_pos = camera.unproject_position(collision_pos)
+	
+	$UI/AimVisuals/AimGuideMarker.position = collision_2d_pos
+	var aim_guide_line = $UI/AimVisuals/AimGuideLine
+	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
+	aim_guide_line.set_point_position(1, collision_2d_pos)
+	print(collision_2d_pos)
+	
+	var collider = result["collider"]
+	if collider.name.contains("Ball"):
+		var bounce_dir = collider.global_position - collision_pos
+		var bounce_dir_2d = Vector2(bounce_dir.x, bounce_dir.z)
+		aim_guide_line.set_point_position(2, collision_2d_pos + 30 * bounce_dir_2d)
+	
 	
 func create_balls() -> void:
 	balls = []
@@ -69,6 +199,22 @@ func create_balls() -> void:
 			cue_ball.body_entered.connect(cue_ball._on_body_entered)
 			cue_ball.contact_monitor = true
 			cue_ball.max_contacts_reported = 3
+	
+func color_ball(ball_node: RigidBody3D) -> void:
+	var texture_path = "res://ball_textures/Ball" + str(ball_node.ball_num) + ".jpg"
+	var ball_texture = load(texture_path)
+	
+	var material: Material = StandardMaterial3D.new()
+	material.albedo_texture = ball_texture
+	material.roughness = 0.3
+	
+	var mesh = ball_node.get_node("MeshInstance3D")
+	mesh.set_surface_override_material(0, material)
+	
+func pot_all_solids():
+	for ball in balls:
+		if ball.is_solid():
+			process_fallen_ball(ball)
 	
 func start_game() -> void:
 	
@@ -90,22 +236,6 @@ func start_game() -> void:
 	hole_buttons.hide()
 	
 	place_rack(56, 0)
-	
-func color_ball(ball_node: RigidBody3D) -> void:
-	var texture_path = "res://ball_textures/Ball" + str(ball_node.ball_num) + ".jpg"
-	var ball_texture = load(texture_path)
-	
-	var material: Material = StandardMaterial3D.new()
-	material.albedo_texture = ball_texture
-	material.roughness = 0.3
-	
-	var mesh = ball_node.get_node("MeshInstance3D")
-	mesh.set_surface_override_material(0, material)
-
-func pot_all_solids():
-	for ball in balls:
-		if ball.is_solid():
-			process_fallen_ball(ball)
 
 func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 	balls.sort_custom(func(a, b): return a.ball_num < b.ball_num)
@@ -130,46 +260,6 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			balls[ball_ind].rotation = Vector3(PI/2, 0, PI)
 			
 			ball_ind += 1
-	
-func _on_aim_changed(touch_pos: Vector2):
-	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
-		return
-		
-	if game_state == GameState.PLACING:
-		var ray_origin = camera.project_ray_origin(touch_pos)
-		var ray_normal = camera.project_ray_normal(touch_pos)
-		var drop_plane = Plane(Vector3.UP, Vector3(0, ball_script.BALL_RADIUS, 0))
-		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		cue_ball.reset(intersection)
-		start_round()
-		return
-		
-	if not has_aimed:
-		has_aimed = true
-
-	var ball_screen_pos = camera.unproject_position(cue_ball.global_position)
-	var dir = ball_screen_pos - touch_pos
-
-	if dir.length() < 20:
-		return
-
-	var angle = dir.angle()
-	var dir_norm = dir.normalized()
-
-	var ball_center_3d = cue_ball.global_position
-	var ball_edge_3d = ball_center_3d + Vector3(5, 0, 0)
-	var center_screen = $CameraPivot/Camera3D.unproject_position(ball_center_3d)
-	var edge_screen = $CameraPivot/Camera3D.unproject_position(ball_edge_3d)
-	var ball_radius_px = (edge_screen - center_screen).length()
-	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
-	
-	cue_stick.update_position(cue_ball.global_position)
-	cue_stick.set_angle(angle)
-	cue_stick.visible = true
-
-func _on_force_changed(value):
-	var normalized = value / $UI/ForceSlider.max_value
-	cue_stick.set_force_strength(normalized)
 	
 func shake_camera(intensity: float, duration: float) -> void:
 	print("Shake Camera")
@@ -214,59 +304,6 @@ func sway_light(amount: float, duration: float) -> void:
 	# return to original rotation
 	tween.tween_property(light, "rotation", original_rot, cycle_time * 0.5)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	
-func _on_fire_pressed():
-	var strength = slider.value
-	var angle = cue_stick.angle
-
-	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
-	var force = dir * (strength * 5)
-
-	var up = Vector3.UP
-	if abs(dir.dot(up)) > 0.9:
-		up = Vector3.FORWARD
-
-	var right = dir.cross(up).normalized()
-	var forward = right.cross(dir).normalized()
-
-	var face_radius = 0.5
-	var joy = aimer.output
-	var offset_3d = right * (joy.x * face_radius) + forward * (-joy.y * face_radius)
-
-	cue_stick.striking = true
-
-	cue_ball.first_hit_ball_num = 0
-	game_state = GameState.MIDTURN
-	
-	var tween := create_tween()
-
-	var target_pos = cue_ball.global_position - cue_stick.aim_direction * ball_script.BALL_RADIUS
-
-	var distance = cue_stick.global_position.distance_to(target_pos)
-
-	var base_speed = 20.0
-	var scaled = pow(strength, 0.6)
-	var speed = base_speed * (0.4 + 0.6 * scaled)
-
-	var duration = distance / speed
-
-	tween.tween_property(cue_stick, "global_position", target_pos, duration)\
-		.set_trans(Tween.TRANS_CUBIC)\
-		.set_ease(Tween.EASE_IN_OUT)
-
-	tween.tween_callback(func():
-		cue_stick.visible = false
-		cue_stick.striking = false
-		cue_ball.apply_impulse(force, offset_3d)
-	)
-	print("STRENGTH:", strength)
-	if strength > 95.0:
-		shake_camera(.5, .1)
-		sway_light(7, 7)
-	has_aimed = false
-	slider.value = 0
-	cue_stick.set_force_strength(0.0)
-	aimer._reset_knob()
 	
 func check_all_not_moving() -> bool:
 	for ball in balls:
@@ -390,21 +427,30 @@ func start_round(scratched_prev: bool = false) -> void:
 	
 	game_state = GameState.AIMING
 	
-func _physics_process(delta: float) -> void:
+func process_midturn():
 	if game_state != GameState.MIDTURN:
 		return
 	elif game_state == GameState.MIDTURN:
-		cue_stick.visible = false
+		aim_visuals.visible = false
 		
 	process_fallen_balls()
-	
+	process_movement()
+
+func process_movement():
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
 		cur_static_ticks = 0
-	
+		
 	if cur_static_ticks == STATIC_TICKS_THRESHOLD:
 		end_round()
+
+func _physics_process(delta: float) -> void:
+	process_midturn()
+		
+func _process(delta: float) -> void:
+	fill_debug_label()
+	fill_info_label()
 	
 func fill_debug_label() -> void:
 	var label_txt = "Static Ticks: " + str(cur_static_ticks)
@@ -440,10 +486,3 @@ func fill_info_label() -> void:
 			
 	if game_state == GameState.PLACING:
 		info_label.text += "Your opponent scratched, click to place the cue ball\n"
-
-func _process(delta: float) -> void:
-	fill_debug_label()
-	fill_info_label()
-
-func _on_reset_button_pressed() -> void:
-	start_game()
