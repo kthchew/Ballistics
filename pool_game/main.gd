@@ -92,15 +92,14 @@ func start_game() -> void:
 	place_rack(56, 0)
 	
 func color_ball(ball_node: RigidBody3D) -> void:
-	var mesh = ball_node.get_node("MeshInstance3D")
-	var material: Material = StandardMaterial3D.new()
-	
-	var color_num = ball_node.ball_num
-	
 	var texture_path = "res://ball_textures/Ball" + str(ball_node.ball_num) + ".jpg"
 	var ball_texture = load(texture_path)
-	material.albedo_texture = ball_texture
 	
+	var material: Material = StandardMaterial3D.new()
+	material.albedo_texture = ball_texture
+	material.roughness = 0.3
+	
+	var mesh = ball_node.get_node("MeshInstance3D")
 	mesh.set_surface_override_material(0, material)
 
 func pot_all_solids():
@@ -131,8 +130,6 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			balls[ball_ind].rotation = Vector3(PI/2, 0, PI)
 			
 			ball_ind += 1
-	
-	pot_all_solids()
 	
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
@@ -238,9 +235,7 @@ func _on_fire_pressed():
 
 	cue_stick.striking = true
 
-	cue_ball.apply_impulse(force, offset_3d)
 	cue_ball.first_hit_ball_num = 0
-	
 	game_state = GameState.MIDTURN
 	
 	var tween := create_tween()
