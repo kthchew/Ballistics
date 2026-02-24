@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://c0df825ddil42"]
+
+[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="1_fi5ht"]
+[ext_resource type="Texture2D" uid="uid://dna6npfjld27b" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_Roughness.jpg" id="2_nyrdc"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_36rdu"]
+depth_draw_mode = 1
+albedo_color = Color(0.9621025, 0.90834415, 0.82505625, 1)
+albedo_texture = ExtResource("1_fi5ht")
+roughness_texture = ExtResource("2_nyrdc")
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_fh84u"]
+material = SubResource("StandardMaterial3D_36rdu")
+bottom_radius = 0.75
+height = 41.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fi5ht"]
+depth_draw_mode = 1
+albedo_color = Color(0.57758003, 0.37995356, 0.19799837, 1)
+albedo_texture = ExtResource("1_fi5ht")
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_nyrdc"]
+material = SubResource("StandardMaterial3D_fi5ht")
+top_radius = 0.75
+bottom_radius = 1.0
+height = 41.0
+
+[node name="CueStick" type="Node3D" unique_id=1895437411]
+
+[node name="CueFront" type="MeshInstance3D" parent="." unique_id=224907905]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 3, 20.494213)
+mesh = SubResource("CylinderMesh_fh84u")
+
+[node name="CueBack" type="MeshInstance3D" parent="." unique_id=350936899]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 3, 60.494213)
+mesh = SubResource("CylinderMesh_nyrdc")

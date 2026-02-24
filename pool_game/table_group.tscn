@@ -28,6 +28,15 @@ size = Vector3(256, 300, 50)
 [sub_resource type="BoxShape3D" id="BoxShape3D_8iwpp"]
 size = Vector3(50, 300, 214.5)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_25ege"]
+albedo_color = Color(0.32156864, 0.16470589, 0.16470589, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_x7d4t"]
+material = SubResource("StandardMaterial3D_25ege")
+top_radius = 4.0
+bottom_radius = 3.0
+height = 60.0
+
 [node name="TableGroup" type="Node3D" unique_id=1955985234]
 
 [node name="Table" type="StaticBody3D" parent="." unique_id=205503832]
@@ -133,6 +142,22 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -133.4, 0, 0)
 shape = SubResource("BoxShape3D_8iwpp")
 
 [node name="Marker3D" type="Marker3D" parent="." unique_id=74192154]
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="." unique_id=1862163959]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, -35, -40)
+mesh = SubResource("CylinderMesh_x7d4t")
+
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="." unique_id=1688049382]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, -35, 40)
+mesh = SubResource("CylinderMesh_x7d4t")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=1953421550]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, -35, -40)
+mesh = SubResource("CylinderMesh_x7d4t")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1689655331]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, -35, 40)
+mesh = SubResource("CylinderMesh_x7d4t")
 
 [connection signal="body_entered" from="Table/Holes" to="Table/Holes" method="_on_body_entered"]
 [connection signal="body_exited" from="Table/Holes" to="Table/Holes" method="_on_body_exited"]

@@ -1,22 +1,26 @@
 extends Node2D
 
-@onready var line := $Line2D
+@onready var cue_sprite: Sprite2D = $CueSprite
 
-@export var min_length := 50.0
-@export var max_length := 120.0
+@export var min_length: float = 50.0
+@export var max_length: float = 120.0
+@export var max_pullback: float = 25.0
 
-var angle := 0.0
+var angle: float = 0.0
 
-func set_angle(a: float):
+func _ready() -> void:
+	var tex := cue_sprite.texture
+
+	cue_sprite.centered = false
+	cue_sprite.offset = Vector2(0, -6)
+
+	cue_sprite.scale = Vector2(1, 1)
+	cue_sprite.position = Vector2.ZERO
+
+func set_angle(a: float) -> void:
 	angle = a
-	rotation = angle
+	rotation = angle + PI
 
-# in real life, 30 mph break == 13.4112 m/s
-# max break velocity should be about 1350 m/s
-func set_force_strength(strength: float):
+func set_force_strength(strength: float) -> void:
 	strength = clamp(strength, 0.0, 1.0)
-	var length = lerp(min_length, max_length, strength)
-
-	var pts : PackedVector2Array = line.points
-	pts[1] = Vector2(length, 0)
-	line.points = pts
+	cue_sprite.position = Vector2(max_pullback * strength, 0)

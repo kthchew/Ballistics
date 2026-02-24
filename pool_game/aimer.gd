@@ -30,3 +30,6 @@ func _update_knob(local_pos: Vector2):
 
 func _reset_knob():
 	knob.position = (size * 0.5) - (knob.size * 0.5)
+	output = Vector2.ZERO
+	dragging = false
+	touch_index = -1

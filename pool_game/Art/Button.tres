@@ -1,0 +1,32 @@
+[gd_resource type="Theme" format=3 uid="uid://b160023562ie"]
+
+[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="1_2w5lt"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kdrop"]
+bg_color = Color(0.20392157, 0.28627452, 0.36862746, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2w5lt"]
+bg_color = Color(0.101960786, 0.14509805, 0.18431373, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_53mc0"]
+bg_color = Color(0.101960786, 0.14509805, 0.18431373, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k2c1c"]
+bg_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qcq4j"]
+bg_color = Color(0.101960786, 0.14509805, 0.18431373, 1)
+
+[resource]
+Button/colors/font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_hover_pressed_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+Button/colors/icon_hover_color = Color(0.20392157, 0.28627452, 0.36862746, 1)
+Button/colors/icon_hover_pressed_color = Color(0.101960786, 0.14509805, 0.18431373, 1)
+Button/colors/icon_normal_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
+Button/fonts/font = ExtResource("1_2w5lt")
+Button/styles/hover = SubResource("StyleBoxFlat_kdrop")
+Button/styles/hover_pressed = SubResource("StyleBoxFlat_2w5lt")
+Button/styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_53mc0")
+Button/styles/normal = SubResource("StyleBoxFlat_k2c1c")
+Button/styles/pressed = SubResource("StyleBoxFlat_qcq4j")
