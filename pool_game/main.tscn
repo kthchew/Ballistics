@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
 [ext_resource type="Script" path="res://force_slider.gd" id="11_ycdy4"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="12_dg77c"]
 [ext_resource type="Script" path="res://cue_stick.gd" id="12_ycdy4"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
@@ -88,7 +89,8 @@ transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
 transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.4210855e-14, 0, 1.4210855e-14, 1.0000001, 0, -3.5294624e-06, 115.74469)
-size = 130.0
+projection = 1
+size = 150.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
 environment = SubResource("Environment_4c57u")
@@ -269,5 +271,8 @@ shadow_bias = 0.075
 shadow_opacity = 0.7
 spot_range = 270.72592
 spot_angle = 72.564
+
+[node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
+shape = ExtResource("12_dg77c")
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
