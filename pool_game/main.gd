@@ -72,14 +72,21 @@ func _on_force_changed(value):
 func _on_fire_pressed():
 	hit_another_ball_this_turn = false
 	ai_controller.reward -= 0.05
-	#var strength = slider.value
-	#var angle = aim_line.angle
-	var strength = ai_controller.action_power * 100
-	#ai_controller.reward += ai_controller.action_power / 10 / 2
-	var angle = ai_controller.action_angle * PI
+	var strength: float
+	var angle: float
+	var joy: Vector2
+	if ai_controller.heuristic == 'human':
+		strength = slider.value
+		angle = aim_line.angle
+		joy = aimer.output
+	else:
+		strength = (ai_controller.action_power ** 2) * 100
+		#ai_controller.reward += ai_controller.action_power / 10 / 2
+		angle = ai_controller.action_angle * PI
+		joy = Vector2(ai_controller.action_posx, ai_controller.action_posy)
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
-	var force = dir * (strength * 5)
+	var force = dir * (strength * 3)
 
 	var up = Vector3.UP
 	if abs(dir.dot(up)) > 0.9:
@@ -89,8 +96,7 @@ func _on_fire_pressed():
 	var forward = right.cross(dir).normalized()
 
 	var face_radius = 0.5
-	#var joy = aimer.output
-	var joy = Vector2(ai_controller.action_posx, ai_controller.action_posy)
+	
 	var offset_3d = right * (joy.x * face_radius) + forward * (-joy.y * face_radius)
 
 	var local_offset = offset_3d
