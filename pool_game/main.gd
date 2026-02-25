@@ -22,6 +22,8 @@ var scores = [0, 0]
 var playing: bool = true
 var cue_ball_potted: bool = false
 
+var hit_another_ball_this_turn: bool = false
+
 const ball_scene = preload("res://ball.tscn")	
 
 func _ready() -> void:
@@ -38,6 +40,7 @@ func start_game() -> void:
 	playing = true
 	while balls.size() > 1:
 		balls[1].queue_free()
+		remove_child(balls[1])
 		balls.remove_at(1)
 	scores = [0, 0]
 	balls = []
@@ -67,10 +70,12 @@ func _on_force_changed(value):
 	$UI/AimLine.set_force_strength(normalized)
 
 func _on_fire_pressed():
+	hit_another_ball_this_turn = false
+	ai_controller.reward -= 0.05
 	#var strength = slider.value
 	#var angle = aim_line.angle
 	var strength = ai_controller.action_power * 100
-	ai_controller.reward += ai_controller.action_power / 10 / 2
+	#ai_controller.reward += ai_controller.action_power / 10 / 2
 	var angle = ai_controller.action_angle * PI
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
@@ -177,6 +182,8 @@ func delete_fallen_balls() -> void:
 	var balls_to_erase: Array[RigidBody3D] = []
 	for ball in balls:
 		if ball.position.y < -10:
+			#if !ball.name.begins_with("@Rigid"):
+				#print(balls)
 			print(ball.name + " fell")
 			balls_to_erase.append(ball)
 	
@@ -189,14 +196,16 @@ func delete_fallen_balls() -> void:
 			ball.freeze = true
 			cue_ball_potted = true
 			cue_ball.hide()
-			ai_controller.reward -= 1
+			ai_controller.reward -= 5
+			ai_controller.done = true
+			ai_controller.needs_reset = true
 			continue
 		elif ball.ball_num > 8:
 			scores[1] += 1
 			ai_controller.reward -= 1
 		elif ball.ball_num < 8:
 			scores[0] += 1
-			ai_controller.reward += 2
+			ai_controller.reward += 1
 		if ball.ball_num == 8:
 			if scores[player_ind] == 7:
 				scores[player_ind] += 1
@@ -204,6 +213,7 @@ func delete_fallen_balls() -> void:
 			else:
 				scores[player_ind] = -1000
 				ai_controller.reward -= 10
+			ai_controller.done = true
 			ai_controller.needs_reset = true
 			
 		ball.position = Vector3(0, 0, -10)
@@ -237,6 +247,8 @@ func _physics_process(delta: float) -> void:
 	tick_label.text = label_txt
 	
 	if !playing and cur_static_ticks == static_ticks_threshold:
+		if not hit_another_ball_this_turn:
+			ai_controller.reward -= 1
 		if cue_ball_potted:
 			cue_ball_potted = false
 			cue_ball.freeze = false

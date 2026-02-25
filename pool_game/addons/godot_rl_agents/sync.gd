@@ -180,6 +180,8 @@ func _physics_process(_delta):
 		if ("cur_static_ticks" in node and "static_ticks_threshold" in node 
 		and node.cur_static_ticks < node.static_ticks_threshold):
 			return
+	#if parent.cur_static_ticks < parent.static_ticks_threshold:
+		#return
 
 
 	if n_action_steps % action_repeat != 0:

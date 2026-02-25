@@ -14,6 +14,7 @@ func _process(delta: float) -> void:
 
 
 func _ready():
+	reset_after = 100000
 	add_to_group("AGENT")
 
 
@@ -30,7 +31,7 @@ func get_obs() -> Dictionary:
 	balls.sort_custom(sort_balls_by_num)
 	var obs = []
 	for ball in balls: 
-		var pos = ball.global_position
+		var pos = ball.position
 		obs.append_array([
 			pos.x / 109, #-1->1 
 			clamp(((pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
@@ -45,17 +46,21 @@ func get_reward() -> float:
 
 func get_action_space() -> Dictionary:
 	return {
-		"angle-topdown": {"size": 1, "action_type": "continuous"},
+		# [0]: sin, [1]: cos
+		"angle-topdown": {"size": 2, "action_type": "continuous"},
 		"power": {"size": 1, "action_type": "continuous"},
-		"ball_pos": {"size": 2, "action_type": "continuous"}
+		#"ball_pos": {"size": 2, "action_type": "continuous"}
 	}
 
 
 func set_action(action) -> void:
-	action_angle = clamp(action["angle-topdown"][0], -1, 1)
-	action_power = clamp(action["power"][0], 0, 1)
-	action_posx = clamp(action["ball_pos"][0], -1, 1)
-	action_posy = clamp(action["ball_pos"][1], -1, 1)
+	var ang_mag = sqrt(((action["angle-topdown"][0]) ** 2) + ((action["angle-topdown"][1]) ** 2) + 1e-8)
+	action_angle = atan2(action["angle-topdown"][0] / ang_mag, action["angle-topdown"][1] / ang_mag)
+	action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
+	#action_posx = clamp(action["ball_pos"][0], -1, 1)
+	#action_posy = clamp(action["ball_pos"][1], -1, 1)
+	action_posx = 0
+	action_posy = 0
 	fire.emit()
 
 
@@ -109,4 +114,6 @@ func set_done_false():
 
 
 func zero_reward():
+	#if reward != 0:
+		#print("reward zeroing (was " + str(reward) + ")")
 	reward = 0.0

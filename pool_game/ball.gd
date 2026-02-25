@@ -45,7 +45,8 @@ func _physics_process(delta):
 
 
 func _on_body_entered(body: Node) -> void:
-	if body.name.contains("Ball"): 
+	if body.name.contains("Ball"):
+		$"..".hit_another_ball_this_turn = true
 		ai_controller.reward += 0.05
 		if body.ball_num < 8:
-			ai_controller.reward += 0.2
+			ai_controller.reward += 0.5

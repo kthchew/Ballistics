@@ -60,4 +60,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -465.20886, 0, 298.84036)
 [node name="Sync" type="Node" parent="." unique_id=2141449231]
 script = ExtResource("2_lomod")
 action_repeat = 1
+speed_up = 128.0
 metadata/_custom_type_script = "uid://dw43wplnt70pi"
