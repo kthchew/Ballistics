@@ -6,7 +6,19 @@ var dragging := false
 
 func _gui_input(event):
 	if event is InputEventScreenTouch:
-		dragging = event.pressed
+		if event.pressed:
+			dragging = true
+			emit_signal("aim_changed", event.position)
+		else:
+			dragging = false
 
-	if dragging and event is InputEventScreenDrag:
-		emit_signal("aim_changed", event.position)
+	elif event is InputEventScreenDrag:
+		if dragging:
+			emit_signal("aim_changed", event.position)
+
+	elif event is InputEventMouseButton:
+		if event.pressed:
+			dragging = true
+			emit_signal("aim_changed", event.position)
+		else:
+			dragging = false

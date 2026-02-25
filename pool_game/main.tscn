@@ -1,18 +1,43 @@
 [gd_scene format=3 uid="uid://comeyp103ci14"]
 
 [ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
-[ext_resource type="PackedScene" uid="uid://g8lhx6p1l6bu" path="res://cue_ball.tscn" id="2_efxa6"]
-[ext_resource type="PackedScene" uid="uid://bvjsktncikt31" path="res://dome.tscn" id="3_lquwl"]
-[ext_resource type="PackedScene" uid="uid://bpaxx4tn7mr6j" path="res://table.tscn" id="4_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://cue_ball.tscn" id="2_kek77"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
-[ext_resource type="Script" uid="uid://djqal2dmt158r" path="res://aimer.gd" id="8_5vw27"]
-[ext_resource type="Script" uid="uid://30h4vbvl3432" path="res://aim_line.gd" id="8_kek77"]
-[ext_resource type="Script" uid="uid://6c5fyhqo7d12" path="res://line_2d.gd" id="9_4c57u"]
-[ext_resource type="Script" uid="uid://b8a4li8lvbc73" path="res://single_controller.gd" id="11_dg77c"]
+[ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
+[ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
+[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
+[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
+[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
+[ext_resource type="Script" path="res://force_slider.gd" id="11_ycdy4"]
+[ext_resource type="Script" uid="uid://b8a4li8lvbc73" path="res://single_controller.gd" id="12_dg77c"]
+[ext_resource type="Script" path="res://cue_stick.gd" id="12_ycdy4"]
+
+[sub_resource type="Environment" id="Environment_4c57u"]
+background_mode = 1
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.0
+ambient_light_energy = 0.0
+fog_enabled = true
+fog_light_energy = 0.01
 
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
 font_size = 18
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
+texture = ExtResource("9_efxa6")
+texture_margin_left = 40.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg77c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ycdy4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w48qg"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_efxa6"]
 border_width_left = 4
@@ -44,24 +69,28 @@ corner_radius_top_right = 100
 corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vivmo"]
+albedo_texture = ExtResource("11_w48qg")
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
+material = SubResource("StandardMaterial3D_vivmo")
+top_radius = 300.0
+
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
 
-[node name="CueBall" parent="." unique_id=199933078 instance=ExtResource("2_efxa6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 2.85, 0)
+[node name="CueBall" parent="." unique_id=1266988142 instance=ExtResource("2_kek77")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.475, 3, 0)
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
-transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.0658141e-14, 0, 1.0658141e-14, 1.0000001, 0, -3.6527392e-06, 118.564926)
-size = 50.0
+transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.4210855e-14, 0, 1.4210855e-14, 1.0000001, 0, -3.5294624e-06, 115.74469)
+size = 130.0
 
-[node name="Light" type="DirectionalLight3D" parent="." unique_id=1196470335]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 26.1799, 0)
-shadow_enabled = true
-
-[node name="Dome" parent="." unique_id=1266447434 instance=ExtResource("3_lquwl")]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
+environment = SubResource("Environment_4c57u")
 
 [node name="Control" type="Control" parent="." unique_id=386163020]
 layout_mode = 3
@@ -71,21 +100,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ShootLine" type="Line2D" parent="Control" unique_id=365693871]
-points = PackedVector2Array(-18, 19, -23, 65)
-width = 5.0
-default_color = Color(0.45840502, 0.45840508, 0.45840502, 0.5294118)
-
-[node name="TickLabel" type="Label" parent="Control" unique_id=287979515]
+[node name="DebugLabel" type="Label" parent="Control" unique_id=287979515]
 layout_mode = 1
 offset_left = 17.0
 offset_top = 11.0
 offset_right = 164.0
 offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_h2yge")
-
-[node name="Table" parent="." unique_id=333268487 instance=ExtResource("4_1bvp3")]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -0.10971069, -15.336487, -0.08026123)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1888597792]
 
@@ -100,23 +121,29 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("7_272bh")
 
-[node name="AimLine" type="Node2D" parent="UI" unique_id=369023224]
-script = ExtResource("8_kek77")
-
-[node name="Line2D" type="Line2D" parent="UI/AimLine" unique_id=18664382]
-width = 5.0
-script = ExtResource("9_4c57u")
-
 [node name="ForceSlider" type="VSlider" parent="UI" unique_id=184144014]
 anchors_preset = -1
 anchor_left = 1.0
 anchor_top = 0.2
 anchor_right = 1.0
 anchor_bottom = 0.8
-offset_left = -80.0
-offset_right = -20.0
+offset_left = -106.0
+offset_right = -46.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_override_styles/slider = SubResource("StyleBoxTexture_dg77c")
+theme_override_styles/grabber_area = SubResource("StyleBoxEmpty_dg77c")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxEmpty_ycdy4")
+script = ExtResource("11_ycdy4")
+
+[node name="GrabberVisual" type="Panel" parent="UI/ForceSlider" unique_id=291372859]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 602.0
+offset_right = 51.0
+offset_bottom = 642.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_w48qg")
 
 [node name="Aimer" type="Control" parent="UI" unique_id=2133286130]
 layout_mode = 3
@@ -186,8 +213,32 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 
-[node name="AIController3D" type="Node3D" parent="." unique_id=1766400646]
-script = ExtResource("11_dg77c")
-metadata/_custom_type_script = "uid://c3x2s2t3a8tf5"
+[node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
-[connection signal="new_turn" from="." to="Control/ShootLine" method="_on_main_new_turn"]
+[node name="CueStick" parent="." unique_id=1895437411 instance=ExtResource("11_dg77c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
+script = ExtResource("12_ycdy4")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1063051328]
+transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.122802734, -63.39213, 0.8214874)
+mesh = SubResource("CylinderMesh_4c57u")
+
+[node name="OverheadLight" type="Node3D" parent="." unique_id=2043813551]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 90.53031, 2.2737368e-13)
+
+[node name="Light" type="SpotLight3D" parent="OverheadLight" unique_id=1803592501]
+transform = Transform3D(0.036294907, -0.99934113, -4.3682583e-08, 0.99934113, 0.036294907, -4.212489e-08, 4.3682586e-08, -4.2124885e-08, 1, 0, 1.1592451e-06, -26.520363)
+light_energy = 0.0
+light_volumetric_fog_energy = 0.0
+light_size = 1.0
+light_specular = 0.35
+shadow_enabled = true
+shadow_bias = 0.075
+shadow_opacity = 0.7
+spot_range = 270.72592
+spot_angle = 72.564
+
+[node name="AIController3D" type="Node3D" parent="." unique_id=913085895]
+script = ExtResource("12_dg77c")
+metadata/_custom_type_script = "uid://c3x2s2t3a8tf5"
