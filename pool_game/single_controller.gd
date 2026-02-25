@@ -30,13 +30,33 @@ func get_obs() -> Dictionary:
 	var balls = _player.balls
 	balls.sort_custom(sort_balls_by_num)
 	var obs = []
-	for ball in balls: 
-		var pos = ball.position
-		obs.append_array([
-			pos.x / 109, #-1->1 
-			clamp(((pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
-			(pos.z + 53) / (2 * 53) #0->1
-		])
+	
+	var cue_ball = $"../CueBall"
+	var cue_pos = cue_ball.position
+	obs.append_array([
+		cue_pos.x / 109, #-1->1 
+		#clamp(((cue_pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
+		(cue_pos.z + 53) / (2 * 53) #0->1
+	])
+	for ball in balls.slice(1):
+		if ball.is_visible():
+			var distance = cue_ball.position.distance_to(ball.position)
+			var direction = cue_ball.position.direction_to(ball.position)
+			obs.append_array([
+				distance / sqrt(218 ** 2 + 106 ** 2),
+				direction.x,
+				direction.y,
+				direction.z
+			])
+		else:
+			obs.append_array([
+				-1.0,
+				-1.0,
+				-1.0,
+				-1.0
+			])
+		
+	#print(obs)
 	return {"obs": obs}
 
 
