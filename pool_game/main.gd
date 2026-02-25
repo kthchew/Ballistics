@@ -30,9 +30,6 @@ var solids_player = -1
 const ball_scene = preload("res://ball.tscn")	
 
 func _ready() -> void:
-	game_state = GameState.AIMING
-	balls.append(cue_ball)
-	init_break_triangle(56, 0)
 	cue_stick.visible = false
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
@@ -45,6 +42,7 @@ func _ready() -> void:
 	start_game()
 
 func start_game() -> void:
+	cur_static_ticks = 0
 	while balls.size() > 1:
 		balls[1].queue_free()
 		remove_child(balls[1])
@@ -55,7 +53,7 @@ func start_game() -> void:
 	init_break_triangle(56, 0)
 	cue_stick.visible = false
 	cue_ball_potted = false
-	
+	game_state = GameState.AIMING
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN:
@@ -101,7 +99,6 @@ func _on_force_changed(value):
 	cue_stick.set_force_strength(normalized)
 	
 func shake_camera(intensity: float, duration: float) -> void:
-	print("Shake Camera")
 	var cam := $CameraPivot/Camera3D
 	var original :Vector3 = cam.rotation_degrees
 
@@ -197,7 +194,7 @@ func _on_fire_pressed():
 		cue_stick.striking = false
 		cue_ball.apply_impulse(force, offset_3d)
 	)
-	print("STRENGTH:", strength)
+	#print("STRENGTH:", strength)
 	if strength > 95.0:
 		shake_camera(.5, .1)
 		sway_light(7, 7)
@@ -298,7 +295,7 @@ func process_fallen_balls() -> void:
 func find_fallen_balls() -> Array[RigidBody3D]:
 	var fallen_balls: Array[RigidBody3D] = []
 	for ball in balls:
-		if ball.position.y < -10:
+		if ball.position.y < -10 and ball.visible:
 			print(ball.name + " fell")
 			fallen_balls.append(ball)
 	return fallen_balls 
@@ -307,8 +304,9 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 	if ball.is_cue_ball():
 		hide_cue_ball(ball)
 		ai_controller.reward -= 5
-		ai_controller.done = true
-		ai_controller.needs_reset = true
+		if ai_controller.heuristic == 'model':
+			ai_controller.done = true
+			ai_controller.needs_reset = true
 		return
 		
 	# 8 ball fell
