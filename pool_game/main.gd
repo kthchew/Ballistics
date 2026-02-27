@@ -17,12 +17,12 @@ var balls: Array[RigidBody3D] = []
 var speed_threshold: float = 0.25
 var angular_speed_threshold: float = 0.25
 # physics defaults to 60 ticks per second
-var static_ticks_threshold = 60
+var static_ticks_threshold = 5
 var cur_static_ticks = 0
 var player_ind: int = 0
 var scores: Array[int] = [0, 0]
 var balls_sunk: Array[int] = [0, 0]
-var game_state: GameState = GameState.AIMING
+@export var game_state: GameState = GameState.AIMING
 var turn_num: int = 0
 var cue_ball_potted: bool = false
 var solids_player = -1
@@ -48,12 +48,14 @@ func start_game() -> void:
 		remove_child(balls[1])
 		balls.remove_at(1)
 	scores = [0, 0]
+	balls_sunk = [0, 0]
 	balls = []
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
 	cue_stick.visible = false
 	cue_ball_potted = false
 	game_state = GameState.AIMING
+	cue_ball.first_hit_ball_num = -1
 
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN:
@@ -153,7 +155,7 @@ func _on_fire_pressed():
 	else:
 		strength = (ai_controller.action_power ** 2) * 100
 		#ai_controller.reward += ai_controller.action_power / 10 / 2
-		angle = ai_controller.action_angle * PI
+		angle = ai_controller.action_angle
 		joy = Vector2(ai_controller.action_posx, ai_controller.action_posy)
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
@@ -278,7 +280,7 @@ func check_all_not_moving() -> bool:
 	return true
 	
 func hide_cue_ball(ball) -> void:
-	print("Hiding cue ball, pos = " + str(ball.global_position))
+	#print("Hiding cue ball, pos = " + str(ball.global_position))
 	ball.global_position = Vector3(2000, 2000, 2000)
 	ball.linear_velocity = Vector3(0, 0, 0)
 	ball.angular_velocity = Vector3(0, 0, 0)
@@ -303,20 +305,23 @@ func find_fallen_balls() -> Array[RigidBody3D]:
 func process_fallen_ball(ball: RigidBody3D) -> void:
 	if ball.is_cue_ball():
 		hide_cue_ball(ball)
-		ai_controller.reward -= 5
-		if ai_controller.heuristic == 'model':
-			ai_controller.done = true
-			ai_controller.needs_reset = true
+		ai_controller.reward -= 0.2
+		#if ai_controller.heuristic == 'model':
+			#ai_controller.done = true
+			#ai_controller.needs_reset = true
 		return
 		
 	# 8 ball fell
 	if ball.is_eight_ball():
-		if scores[player_ind] == 7:
-			scores[player_ind] += 1
+		# TODO: don't hardcode as solid
+		if balls_sunk[0] == 7:
 			ai_controller.reward += 10
 		else:
-			scores[player_ind] = -1000
 			ai_controller.reward -= 10
+		if scores[player_ind] == 7:
+			scores[player_ind] += 1
+		else:
+			scores[player_ind] = -1000
 		ai_controller.done = true
 		ai_controller.needs_reset = true
 	else:
@@ -362,12 +367,15 @@ func check_for_first_hit_scratch() -> bool:
 	return false
 	
 func check_for_scratch():
-	return cue_ball_potted or check_for_first_hit_scratch()
+	return cue_ball_potted #or check_for_first_hit_scratch()
 
 func start_new_turn() -> void:
 	if check_for_scratch():
 		print("Scratch registered")
 		game_state = GameState.PLACING
+		if ai_controller.heuristic == 'model':
+			reset_cue_ball(global_position + Vector3(-52, 3, 0))
+			game_state = GameState.AIMING
 	else:
 		game_state = GameState.AIMING
 	print("Starting new turn")
@@ -385,6 +393,8 @@ func _physics_process(delta: float) -> void:
 	process_fallen_balls()
 	
 	if game_state == GameState.PLACING:
+		ai_controller.needs_reset = true
+		ai_controller.done = true
 		return
 	elif game_state == GameState.MIDTURN:
 		cue_stick.visible = false
@@ -396,8 +406,8 @@ func _physics_process(delta: float) -> void:
 		cur_static_ticks = 0
 	
 	if game_state == GameState.MIDTURN and cur_static_ticks == static_ticks_threshold:
-		if cue_ball.first_hit_ball_num > 0:
-			ai_controller.reward -= 1
+		if cue_ball.first_hit_ball_num <= 0:
+			ai_controller.reward -= 0.2
 		start_new_turn()
 	
 func fill_debug_label() -> void:

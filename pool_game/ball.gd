@@ -6,6 +6,11 @@ var first_hit_ball_num: int = -1
 var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
 
+var dist_from_hole_when_last_stationary: float = 0.0
+
+func _ready() -> void:
+	dist_from_hole_when_last_stationary = distance_to_closest_hole()
+
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true
 	teleport_pos = pos
@@ -18,6 +23,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		state.transform = new_transform
 
 @onready var ai_controller = $"../AIController3D"
+@onready var holes = $"../TableGroup/Table/Holes"
 
 func reset():
 	position = Vector3(-56.0, 2.85, 0)
@@ -41,6 +47,22 @@ func _physics_process(delta):
 
 	if angular_velocity.length() < 0.1:
 		angular_velocity = Vector3.ZERO
+		
+	if linear_velocity == Vector3.ZERO and angular_velocity == Vector3.ZERO:
+		var current_dist = distance_to_closest_hole()
+		if current_dist != dist_from_hole_when_last_stationary and not is_cue_ball():
+			var relevant_dist_change = min(dist_from_hole_when_last_stationary, 30) - min(current_dist, 30)
+			if relevant_dist_change > 0.001:
+				if is_solid() or (is_eight_ball() and $"..".balls_sunk[0] == 7):
+					# give reward if within 30 units of a hole, more reward if getting closer, range [0, 1]
+					#print("giving " + str(relevant_dist_change / 30 / 2) + "reward")
+					ai_controller.reward += relevant_dist_change / 30
+				# give punishment if within 30 units of a hole, more punishment if getting closer, range [0, 0.25]
+				elif is_stripe():
+					#print("taking " + str(relevant_dist_change / 30 / 4) + "reward")
+					ai_controller.reward -= relevant_dist_change / 30 / 4
+					
+		dist_from_hole_when_last_stationary = current_dist
 
 func is_cue_ball():
 	return ball_num == 0	
@@ -53,6 +75,16 @@ func is_eight_ball():
 	
 func is_stripe():
 	return ball_num > 8
+	
+func distance_to_closest_hole():
+	if not visible:
+		return 0
+	var dist = 9999
+	for hole in holes.get_children():
+		var hole_dist = hole.global_position.distance_to(global_position)
+		if hole_dist < dist:
+			dist = hole_dist
+	return dist
 
 func _on_body_entered(body: Node) -> void:
 	#print("Collision with cue ball: " + body.name)
@@ -60,6 +92,6 @@ func _on_body_entered(body: Node) -> void:
 		first_hit_ball_num = body.ball_num
 	
 	if body.name.contains("Ball"):
-		ai_controller.reward += 0.05
+		ai_controller.reward += 0.01
 		if body.ball_num < 8:
-			ai_controller.reward += 0.5
+			ai_controller.reward += 0.02
