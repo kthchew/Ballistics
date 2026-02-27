@@ -169,7 +169,7 @@ func _initialize_demo_recording():
 		current_demo_trajectory[1] = []
 		agent_demo_record.heuristic = "demo_record"
 
-
+var candidate_ticks_in_a_row = 0
 func _physics_process(_delta):
 	# two modes, human control, agent control
 	# pause tree, send obs, get actions, set actions, unpause tree
@@ -177,22 +177,35 @@ func _physics_process(_delta):
 	_demo_record_process()
 
 	for node in parent.get_children():
-		if ("cur_static_ticks" in node and "static_ticks_threshold" in node 
-		and node.cur_static_ticks < node.static_ticks_threshold):
+		if ("game_state" in node and node.game_state == node.GameState.MIDTURN):
+			candidate_ticks_in_a_row = 0
 			return
+	#for node in parent.get_children():
+		#if ("cur_static_ticks" in node and "static_ticks_threshold" in node 
+		#and node.cur_static_ticks < node.static_ticks_threshold):
+			#return
 	#if parent.cur_static_ticks < parent.static_ticks_threshold:
 		#return
 
-
+	# seems like sometimes a delay causes multiple action steps to be sent at once before the last move was processed?
+	if candidate_ticks_in_a_row > 0 and candidate_ticks_in_a_row < 500:
+		candidate_ticks_in_a_row += 1
+		return
+	
 	if n_action_steps % action_repeat != 0:
 		n_action_steps += 1
 		return
 
 	n_action_steps += 1
-
+	
 	_training_process()
 	_inference_process()
 	_heuristic_process()
+	
+	if n_action_steps > 2:
+		candidate_ticks_in_a_row += 1
+	if candidate_ticks_in_a_row >= 500:
+		candidate_ticks_in_a_row = 1
 
 
 func _training_process():
