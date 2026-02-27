@@ -69,7 +69,7 @@ func get_action_space() -> Dictionary:
 		# [0]: sin, [1]: cos
 		"angle-topdown": {"size": 2, "action_type": "continuous"},
 		"power": {"size": 1, "action_type": "continuous"},
-		#"ball_pos": {"size": 2, "action_type": "continuous"}
+		"ball_pos": {"size": 2, "action_type": "continuous"}
 	}
 
 
@@ -77,10 +77,10 @@ func set_action(action) -> void:
 	var ang_mag = sqrt(((action["angle-topdown"][0]) ** 2) + ((action["angle-topdown"][1]) ** 2) + 1e-8)
 	action_angle = atan2(action["angle-topdown"][0] / ang_mag, action["angle-topdown"][1] / ang_mag)
 	action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
-	#action_posx = clamp(action["ball_pos"][0], -1, 1)
-	#action_posy = clamp(action["ball_pos"][1], -1, 1)
-	action_posx = 0
-	action_posy = 0
+	action_posx = clamp(action["ball_pos"][0], -1, 1)
+	action_posy = clamp(action["ball_pos"][1], -1, 1)
+	#action_posx = 0
+	#action_posy = 0
 	fire.emit()
 
 
