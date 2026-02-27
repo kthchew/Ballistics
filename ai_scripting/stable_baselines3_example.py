@@ -198,15 +198,16 @@ def linear_schedule(initial_value: float) -> Callable[[float], float]:
 
 
 if args.resume_model_path is None:
-    learning_rate = 0.0003 if not args.linear_lr_schedule else linear_schedule(0.0003)
+    learning_rate = 0.0001 if not args.linear_lr_schedule else linear_schedule(0.0001)
     model: PPO = PPO(
         "MultiInputPolicy",
         env,
         ent_coef=0.0001,
         verbose=2,
-        n_steps=32,
+        n_steps=1024,
         tensorboard_log=args.experiment_dir,
         learning_rate=learning_rate,
+        target_kl=0.02,
         policy_kwargs=dict(net_arch=dict(pi=[256,256], vf=[256,256,256]), log_std_init=-1.0),
     )
     # policy_kwargs = dict(log_std_init=log(1.0))
