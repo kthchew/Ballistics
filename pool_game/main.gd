@@ -70,7 +70,7 @@ func _on_aim_changed(touch_pos: Vector2):
 
 	var ball_screen_pos = camera.unproject_position(cue_ball.global_position)
 	var dir = ball_screen_pos - touch_pos
-	dir = Vector2(0, 30)
+	#dir = Vector2(30, 30)
 
 	if dir.length() < 20:
 		return
@@ -161,11 +161,13 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y)
 	
 	shape_cast.global_position = origin
-	shape_cast.target_position = origin + dir * 1000
+	shape_cast.target_position = dir * 500
+	shape_cast.collision_mask = 1 << 2
+	print("cue ball collision layer ", cue_ball.collision_layer)
 	print("origin = ", origin)
 	print("dir = ", dir)
 	print("target pos = ", shape_cast.target_position)
-	shape_cast.margin = -2.85
+	#shape_cast.margin = 0
 	
 	shape_cast.force_shapecast_update()
 	
@@ -176,8 +178,10 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 		print("collision normal = ", collision_normal)
 		var aim_guide_line = $UI/AimVisuals/AimGuideLine
 		var ghost_ball_pos = collision_point + collision_normal * ball_script.BALL_RADIUS
+		var collider = shape_cast.get_collider(0)
+		print("collider = ", collider)
 		aim_guide_line.set_point_position(0, camera.unproject_position(origin))
-		aim_guide_line.set_point_position(1, camera.unproject_position(collision_point))
+		aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
 		if shape_cast.get_collider(0).name.contains("Ball"):
 			aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos - 30 * collision_normal))
 		else:
@@ -198,7 +202,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 func create_balls() -> void:
 	balls = []
 	ball_scene.instantiate()
-	for i in range(1):
+	for i in range(16):
 		var ball: RigidBody3D = ball_scene.instantiate()
 		add_child(ball)
 		ball.ball_num = i
@@ -231,7 +235,7 @@ func pot_all_solids():
 	
 func start_game() -> void:
 	
-	cue_ball.reset(Vector3(-56.0, ball_script.BALL_RADIUS, 0))
+	cue_ball.reset(Vector3(-56, ball_script.BALL_RADIUS, 0))
 	
 	has_aimed = false
 	game_state = GameState.AIMING
@@ -248,7 +252,7 @@ func start_game() -> void:
 	
 	hole_buttons.hide()
 	
-	#place_rack(56, 0)
+	place_rack(56, 0)
 
 func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 	balls.sort_custom(func(a, b): return a.ball_num < b.ball_num)
