@@ -5,6 +5,9 @@ var action_power = 0.0
 var action_posx = 0.0
 var action_posy = 0.0
 
+var eight_ball_sunk = false
+var cue_ball_sink_count = 0
+
 signal fire
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -14,7 +17,7 @@ func _process(delta: float) -> void:
 
 
 func _ready():
-	reset_after = 100000
+	reset_after = 5
 	add_to_group("AGENT")
 
 
@@ -39,22 +42,13 @@ func get_obs() -> Dictionary:
 		(cue_pos.z + 53) / (2 * 53) #0->1
 	])
 	for ball in balls.slice(1):
-		if ball.is_visible():
-			var distance = cue_ball.position.distance_to(ball.position)
-			var direction = cue_ball.position.direction_to(ball.position)
-			obs.append_array([
-				distance / sqrt(218 ** 2 + 106 ** 2),
-				direction.x,
-				direction.y,
-				direction.z
-			])
-		else:
-			obs.append_array([
-				-1.0,
-				-1.0,
-				-1.0,
-				-1.0
-			])
+		var x_diff = ball.position.x - cue_ball.position.x
+		var z_diff = ball.position.z - cue_ball.position.z
+		obs.append_array([
+			1.0 if ball.is_visible() else 0.0,
+			x_diff / 218 if ball.is_visible() else 0.0,
+			z_diff / 106 if ball.is_visible() else 0.0
+		])
 		
 	#print(obs)
 	return {"obs": obs}
@@ -72,9 +66,18 @@ func get_action_space() -> Dictionary:
 		"ball_pos": {"size": 2, "action_type": "continuous"}
 	}
 
+func get_info() -> Dictionary:
+	if done: 
+		return {
+			"solids_sunk": $"..".balls_sunk[0],
+			"stripes_sunk": $"..".balls_sunk[1],
+			"eight_ball_sunk": eight_ball_sunk,
+			"cue_ball_sink_count": cue_ball_sink_count
+		}
+	return {}
 
 func set_action(action) -> void:
-	var ang_mag = sqrt(((action["angle-topdown"][0]) ** 2) + ((action["angle-topdown"][1]) ** 2) + 1e-8)
+	var ang_mag = sqrt((action["angle-topdown"][0] ** 2) + (action["angle-topdown"][1] ** 2) + 1e-8)
 	action_angle = atan2(action["angle-topdown"][0] / ang_mag, action["angle-topdown"][1] / ang_mag)
 	action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
 	action_posx = clamp(action["ball_pos"][0], -1, 1)
@@ -95,11 +98,15 @@ func get_action() -> Array:
 
 # -----------------------------------------------------------------------------#
 
-
-func _physics_process(delta):
+func increment_n_steps():
 	n_steps += 1
 	if n_steps > reset_after:
+		$"..".add_to_ewma(false)
+		done = true
 		needs_reset = true
+
+func _physics_process(delta):
+	pass
 
 
 func get_obs_space():
@@ -112,6 +119,8 @@ func get_obs_space():
 
 func reset():
 	n_steps = 0
+	cue_ball_sink_count = 0
+	eight_ball_sunk = false
 	needs_reset = false
 
 

@@ -11,6 +11,7 @@ from typing import Callable
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.vec_env.vec_monitor import VecMonitor
+from stable_baselines3.common.vec_env.vec_normalize import VecNormalize
 
 from godot_rl.core.utils import can_import
 from godot_rl.wrappers.onnx.stable_baselines_export import export_model_as_onnx
@@ -169,9 +170,10 @@ if args.env_path is None and args.viz:
     print("Info: Using --viz without --env_path set has no effect, in-editor training will always render.")
 
 env = StableBaselinesGodotEnv(
-    env_path=args.env_path, show_window=args.viz, seed=args.seed, n_parallel=args.n_parallel, speedup=args.speedup
+    env_path=args.env_path, show_window=args.viz, seed=args.seed, n_parallel=args.n_parallel, speedup=args.speedup, train="true"
 )
 env = VecMonitor(env)
+env = VecNormalize(env, norm_obs=False) # obs already normalized
 
 
 # LR schedule code snippet from:
@@ -198,16 +200,16 @@ def linear_schedule(initial_value: float) -> Callable[[float], float]:
 
 
 if args.resume_model_path is None:
-    learning_rate = 0.0001 if not args.linear_lr_schedule else linear_schedule(0.0001)
+    learning_rate = 0.0003 if not args.linear_lr_schedule else linear_schedule(0.0003)
     model: PPO = PPO(
         "MultiInputPolicy",
         env,
-        ent_coef=0.0001,
+        ent_coef=0.01,
         verbose=2,
-        n_steps=1024,
+        n_steps=128,
+        batch_size=1024,
         tensorboard_log=args.experiment_dir,
         learning_rate=learning_rate,
-        target_kl=0.02,
         policy_kwargs=dict(net_arch=dict(pi=[256,256], vf=[256,256,256]), log_std_init=-1.0),
     )
     # policy_kwargs = dict(log_std_init=log(1.0))

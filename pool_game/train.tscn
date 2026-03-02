@@ -12,15 +12,19 @@ environment = SubResource("Environment_lomod")
 
 [node name="Main" parent="." unique_id=1362962675 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 464.1447, 0, -298.80215)
+game_state = 0
 
 [node name="Main2" parent="." unique_id=1435388804 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154.8038, 0, -298.80215)
+game_state = 0
 
 [node name="Main3" parent="." unique_id=1395798854 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 464.1447, 0, -99.898285)
+game_state = 0
 
 [node name="Main4" parent="." unique_id=301327830 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154.8038, 0, -99.898285)
+game_state = 0
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=400205645]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -1.8804932, 490.32507, -4.7436523)
@@ -28,39 +32,51 @@ current = true
 
 [node name="Main5" parent="." unique_id=1514522698 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -155.86795, 0, -298.80215)
+game_state = 0
 
 [node name="Main6" parent="." unique_id=124439245 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -465.20886, 0, -298.80215)
+game_state = 0
 
 [node name="Main7" parent="." unique_id=1471691579 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -155.86795, 0, -99.898285)
+game_state = 0
 
 [node name="Main8" parent="." unique_id=1531003453 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -465.20886, 0, -99.898285)
+game_state = 0
 
 [node name="Main9" parent="." unique_id=1536339813 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 464.1447, 0, 99.93649)
+game_state = 0
 
 [node name="Main10" parent="." unique_id=513904628 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154.8038, 0, 99.93649)
+game_state = 0
 
 [node name="Main11" parent="." unique_id=1248107826 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 464.1447, 0, 298.84036)
+game_state = 0
 
 [node name="Main12" parent="." unique_id=549955450 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154.8038, 0, 298.84036)
+game_state = 0
 
 [node name="Main13" parent="." unique_id=1863634978 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -155.86795, 0, 99.93649)
+game_state = 0
 
 [node name="Main14" parent="." unique_id=1905660378 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -465.20886, 0, 99.93649)
+game_state = 0
 
 [node name="Main15" parent="." unique_id=1575438172 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -155.86795, 0, 298.84036)
+game_state = 0
 
 [node name="Main16" parent="." unique_id=1718636467 instance=ExtResource("1_bju55")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -465.20886, 0, 298.84036)
+game_state = 0
 
 [node name="Sync" type="Node" parent="." unique_id=2141449231]
 script = ExtResource("2_lomod")

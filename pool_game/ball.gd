@@ -6,10 +6,10 @@ var first_hit_ball_num: int = -1
 var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
 
-var dist_from_hole_when_last_stationary: float = 0.0
+var closest_dist_ever_to_hole: float = 1e308
 
 func _ready() -> void:
-	dist_from_hole_when_last_stationary = distance_to_closest_hole()
+	closest_dist_ever_to_hole = min(distance_to_closest_hole(), closest_dist_ever_to_hole)
 
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true
@@ -50,22 +50,22 @@ func _physics_process(delta):
 		
 	if linear_velocity == Vector3.ZERO and angular_velocity == Vector3.ZERO:
 		var current_dist = distance_to_closest_hole()
-		if current_dist != dist_from_hole_when_last_stationary and not is_cue_ball():
-			var relevant_dist_change = min(dist_from_hole_when_last_stationary, 30) - min(current_dist, 30)
+		if current_dist != closest_dist_ever_to_hole and not is_cue_ball():
+			var relevant_dist_change = min(closest_dist_ever_to_hole, 30) - min(current_dist, 30)
 			if relevant_dist_change > 0.001:
 				if is_solid() or (is_eight_ball() and $"..".balls_sunk[0] == 7):
-					# give reward if within 30 units of a hole, more reward if getting closer, range [0, 1]
+					# give reward if within 30 units of a hole, more reward if getting closer, range [0, 0.5]
 					#print("giving " + str(relevant_dist_change / 30 / 2) + "reward")
-					ai_controller.reward += relevant_dist_change / 30
-				# give punishment if within 30 units of a hole, more punishment if getting closer, range [0, 0.25]
+					ai_controller.reward += relevant_dist_change / 30 / 2
+				# give punishment if within 30 units of a hole, more punishment if getting closer, range [0, 0.5]
 				elif is_stripe():
 					#print("taking " + str(relevant_dist_change / 30 / 4) + "reward")
-					ai_controller.reward -= relevant_dist_change / 30 / 4
+					ai_controller.reward -= relevant_dist_change / 30 / 2
 					
-		dist_from_hole_when_last_stationary = current_dist
+		closest_dist_ever_to_hole = min(current_dist, closest_dist_ever_to_hole)
 
 func is_cue_ball():
-	return ball_num == 0	
+	return ball_num == 0
 
 func is_solid():
 	return 0 < ball_num and ball_num < 8
@@ -90,8 +90,6 @@ func _on_body_entered(body: Node) -> void:
 	#print("Collision with cue ball: " + body.name)
 	if first_hit_ball_num <= 0 and body.name.contains("Ball"):
 		first_hit_ball_num = body.ball_num
-	
-	if body.name.contains("Ball"):
-		ai_controller.reward += 0.01
-		if body.ball_num < 8:
-			ai_controller.reward += 0.02
+		ai_controller.reward -= 0.2
+		if body.ball_num < 8 or (body.ball_num == 8 and $"..".balls_sunk[0] == 7):
+			ai_controller.reward += 0.23

@@ -7,10 +7,10 @@
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="3_hcwhg"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="4_5p1lm"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="4_dlksc"]
-[ext_resource type="Script" uid="uid://642u25okqf25" path="res://random_pool_button.gd" id="5_1igrg"]
-[ext_resource type="Script" uid="uid://cye7qp68m5yg" path="res://random_crazy_pool_button.gd" id="6_5qkn8"]
+[ext_resource type="Script" path="res://random_pool_button.gd" id="5_1igrg"]
+[ext_resource type="Script" path="res://random_crazy_pool_button.gd" id="6_5qkn8"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="6_v0s1l"]
-[ext_resource type="Script" uid="uid://q787dwlweys4" path="res://random_knockout_button.gd" id="7_xucoo"]
+[ext_resource type="Script" path="res://random_knockout_button.gd" id="7_xucoo"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1

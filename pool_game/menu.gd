@@ -4,6 +4,9 @@ extends Node3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	if "--train" in OS.get_cmdline_user_args() or "--train=true" in OS.get_cmdline_args():
+		get_tree().change_scene_to_file("res://train.tscn")
+		return
 	randPoolButton.pressed.connect(_on_Rpool_pressed)
 
 func _on_Rpool_pressed():

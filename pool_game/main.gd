@@ -27,7 +27,11 @@ var turn_num: int = 0
 var cue_ball_potted: bool = false
 var solids_player = -1
 
-const ball_scene = preload("res://ball.tscn")	
+const ball_scene = preload("res://ball.tscn")
+
+var _ai_ewma_wins = 0.0
+var _ai_games_played_current_stage = 0
+var _ai_current_stage = 0
 
 func _ready() -> void:
 	cue_stick.visible = false
@@ -52,6 +56,14 @@ func start_game() -> void:
 	balls = []
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
+	if ai_controller.heuristic == 'model' and _ai_current_stage < 8:
+		shuffle_random_balls(_ai_current_stage, max(1, _ai_current_stage))
+		if _ai_ewma_wins > 0.75 and _ai_games_played_current_stage > 100:
+			_ai_current_stage += 1
+			_ai_ewma_wins = 0
+			_ai_games_played_current_stage = 0
+			ai_controller.reset_after = max(5, _ai_current_stage * 10)
+		
 	cue_stick.visible = false
 	cue_ball_potted = false
 	game_state = GameState.AIMING
@@ -213,12 +225,12 @@ func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 	
 	if ball_num > 8:
 		var gradient: Gradient = Gradient.new()
-		gradient.remove_point(0)
-		gradient.remove_point(0)
 		gradient.add_point(0.4, Color(1, 1, 1))
 		gradient.add_point(0.4, Color(0, 0, 0))
 		gradient.add_point(0.6, Color(0, 0, 0))
 		gradient.add_point(0.6, Color(1, 1, 1))
+		gradient.remove_point(0)
+		gradient.remove_point(0)
 		var gradient_texture: GradientTexture2D = GradientTexture2D.new()
 		gradient_texture.fill_from = Vector2(0.5, 0)
 		gradient_texture.fill_to = Vector2(0.5, 1)
@@ -232,6 +244,124 @@ func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
 	material.albedo_color = Color(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
 	
 	mesh.set_surface_override_material(0, material)
+	
+func add_to_ewma(won: bool):
+	var value = 1.0 if won else 0.0
+	var alpha = 0.04
+	_ai_ewma_wins = alpha * value + (1 - alpha) * _ai_ewma_wins
+	_ai_games_played_current_stage += 1
+
+func shuffle_random_balls(solid_count: int, stripe_count: int) -> void:
+	var sorted_balls = balls
+	sorted_balls.sort_custom(func(a,b): return a.ball_num < b.ball_num)
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	
+	var total_solids := 7
+	var total_stripes := 7
+	var ball_radius := 2.85
+	var min_spacing := 6.0
+	
+	# compute sunk counts and set state
+	balls_sunk[0] = total_solids - int(clamp(solid_count, 0, total_solids))
+	balls_sunk[1] = total_stripes - int(clamp(stripe_count, 0, total_stripes))
+	
+	# pick which solid and stripe indices remain on table
+	var solid_indices := []
+	for i in range(1, 1 + total_solids):
+		solid_indices.append(i) # balls[1..7]
+	
+	var stripe_indices := []
+	for i in range(9, 9 + total_stripes):
+		stripe_indices.append(i) # balls[9..15]
+	
+	solid_indices.shuffle()
+	stripe_indices.shuffle()
+	
+	var solids_remaining := solid_indices.slice(0, clamp(solid_count, 0, total_solids))
+	var stripes_remaining := stripe_indices.slice(0, clamp(stripe_count, 0, total_stripes))
+	
+	var _in_list: Callable = func (val, arr):
+		for e in arr:
+			if e == val:
+				return true
+		return false
+	
+	# mark balls as hidden or visible based on selection
+	for i in range(sorted_balls.size()):
+		var ball = sorted_balls[i]
+		if ball == null:
+			continue
+	
+		# solids 1..7
+		if i >= 1 and i <= 7:
+			if not _in_list.call(i, solids_remaining):
+				# sink this ball
+				ball.hide()
+				ball.collision_layer = 0
+				ball.collision_mask = 0
+				ball.set_freeze_enabled(true)
+	
+		# stripes 9..15
+		elif i >= 9 and i <= 15:
+			if not _in_list.call(i, stripes_remaining):
+				ball.hide()
+				ball.collision_layer = 0
+				ball.collision_mask = 0
+				ball.set_freeze_enabled(true)
+	
+	# Update scores and solids_player similar to runtime logic
+	if balls_sunk[0] > 0 or balls_sunk[1] > 0:
+		solids_player = 0
+	
+	if solids_player != -1:
+		scores[solids_player] = balls_sunk[0]
+		scores[1 - solids_player] = balls_sunk[1]
+	else:
+		scores = [balls_sunk[0], balls_sunk[1]]
+	
+	# Randomly position the visible balls on the table avoiding overlaps
+	var placed_positions := []
+	var x_min := -93.0
+	var x_max := 93.0
+	var z_min := -40.0
+	var z_max := 40.0
+	
+	for i in range(sorted_balls.size()):
+		var ball = sorted_balls[i]
+		if ball == null or not ball.visible:
+			continue
+		
+		var placed := false
+		var attempts := 0
+		var candidate := Vector3.ZERO
+		
+		while not placed and attempts < 200:
+			attempts += 1
+			var x := rng.randf_range(x_min, x_max)
+			var z := rng.randf_range(z_min, z_max)
+			candidate = Vector3(x, ball_radius, z)
+		
+			var ok := true
+			for p in placed_positions:
+				if p.distance_to(candidate) < min_spacing:
+					ok = false
+					break
+		
+			if ok:
+				placed = true
+				placed_positions.append(candidate)
+				break
+		
+		# if we failed to find spaced pos, accept last candidate (or center fallback)
+		if not placed:
+			if attempts == 0:
+				candidate = Vector3(0, ball_radius, 0)
+			placed_positions.append(candidate)
+		
+		# apply placement
+		ball.position = candidate
+
 			
 func init_break_triangle(x_shift: float, z_shift: float):
 	var ball_ind: int = 0
@@ -266,7 +396,6 @@ func init_break_triangle(x_shift: float, z_shift: float):
 			ball_node.position = Vector3(x, y, z)
 			
 			color_ball(ball_node, ball_num, colors)
-			
 			balls.append(ball_node)
 			add_child(ball_node)
 			
@@ -274,8 +403,8 @@ func init_break_triangle(x_shift: float, z_shift: float):
 	
 func check_all_not_moving() -> bool:
 	for ball in balls:
-		if ball.get_linear_velocity().length() > speed_threshold \
-		or ball.get_angular_velocity().length() > angular_speed_threshold:
+		if ball.is_visible() and (ball.get_linear_velocity().length() > speed_threshold \
+		or ball.get_angular_velocity().length() > angular_speed_threshold):
 			return false
 	return true
 	
@@ -306,6 +435,7 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 	if ball.is_cue_ball():
 		hide_cue_ball(ball)
 		ai_controller.reward -= 0.2
+		ai_controller.cue_ball_sink_count += 1
 		#if ai_controller.heuristic == 'model':
 			#ai_controller.done = true
 			#ai_controller.needs_reset = true
@@ -313,10 +443,13 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 		
 	# 8 ball fell
 	if ball.is_eight_ball():
+		ai_controller.eight_ball_sunk = true
 		# TODO: don't hardcode as solid
 		if balls_sunk[0] == 7:
+			add_to_ewma(true)
 			ai_controller.reward += 10
 		else:
+			add_to_ewma(false)
 			ai_controller.reward -= 10
 		if scores[player_ind] == 7:
 			scores[player_ind] += 1
@@ -345,6 +478,9 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 	#balls.erase(ball)
 	#ball.queue_free()
 	ball.hide()
+	ball.collision_layer = 0
+	ball.collision_mask = 0
+	ball.set_freeze_enabled(true)
 	
 func reset_cue_ball(pos: Vector3) -> void:
 	print("Resetting cue ball to pos: " + str(pos))
@@ -382,6 +518,7 @@ func start_new_turn() -> void:
 	turn_num += 1
 	player_ind = 1 - player_ind
 	cue_ball.first_hit_ball_num = -1
+	ai_controller.increment_n_steps()
 
 func _physics_process(delta: float) -> void:
 	if (ai_controller.needs_reset):
@@ -392,7 +529,7 @@ func _physics_process(delta: float) -> void:
 	
 	process_fallen_balls()
 	
-	if game_state == GameState.PLACING:
+	if game_state == GameState.PLACING and ai_controller.heuristic == 'model':
 		ai_controller.needs_reset = true
 		ai_controller.done = true
 		return
