@@ -63,6 +63,7 @@ grow_vertical = 2
 theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 64
 placeholder_text = "Password"
+secret = true
 
 [node name="CloseButton" type="Button" parent="." unique_id=644645874]
 layout_mode = 1
