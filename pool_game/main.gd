@@ -158,7 +158,7 @@ func _on_reset_button_pressed() -> void:
 	
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = cue_ball.global_position
-	var dir = Vector3(aim_dir.x, 0, aim_dir.y)
+	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
 	
 	shape_cast.global_position = origin
 	shape_cast.target_position = dir * 500
@@ -174,22 +174,38 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	if shape_cast.is_colliding():
 		var collision_point = shape_cast.get_collision_point(0)
 		print("collision point = ", collision_point)
-		var collision_normal = shape_cast.get_collision_normal(0)
+		var collision_normal = shape_cast.get_collision_normal(0).normalized()
 		print("collision normal = ", collision_normal)
 		var aim_guide_line = $UI/AimVisuals/AimGuideLine
+		var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
 		var ghost_ball_pos = collision_point + collision_normal * ball_script.BALL_RADIUS
 		var collider = shape_cast.get_collider(0)
 		print("collider = ", collider)
+		
+		$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
+		
 		aim_guide_line.set_point_position(0, camera.unproject_position(origin))
 		aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
+		
+		aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
+		
 		if shape_cast.get_collider(0).name.contains("Ball"):
-			aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos - 30 * collision_normal))
+			aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos - 10 * collision_normal))
 		else:
+			var projected = collision_normal.dot(-dir) * collision_normal
+			var sideways = projected + dir
+			var reflected_dir = (projected + sideways).normalized()
+			print("normal: ", collision_normal)
+			print("projected: ", projected)
+			print("dir: ", dir)
+			print("reflected: ", reflected_dir)
+			print("sideways: ", sideways)
+			print()
 			aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos))
+			aim_guide_line2.set_point_position(1, camera.unproject_position(ghost_ball_pos + 10 * reflected_dir))
 	#if !hit_info.is_empty():
 		#var collision_pos = hit_info["point"]
 		#var collision_2d_pos = camera.unproject_position(collision_pos)
-		#$UI/AimVisuals/AimGuideMarker.position = collision_2d_pos
 	#print(collision_2d_pos)
 	#
 	#var collider = result["collider"]
