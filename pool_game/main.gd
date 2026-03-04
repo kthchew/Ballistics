@@ -167,52 +167,45 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	print("origin = ", origin)
 	print("dir = ", dir)
 	print("target pos = ", shape_cast.target_position)
-	#shape_cast.margin = 0
+	shape_cast.margin = 0
 	
 	shape_cast.force_shapecast_update()
 	
-	if shape_cast.is_colliding():
-		var collision_point = shape_cast.get_collision_point(0)
-		print("collision point = ", collision_point)
-		var collision_normal = shape_cast.get_collision_normal(0).normalized()
-		print("collision normal = ", collision_normal)
-		var aim_guide_line = $UI/AimVisuals/AimGuideLine
-		var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
-		var ghost_ball_pos = collision_point + collision_normal * ball_script.BALL_RADIUS
-		var collider = shape_cast.get_collider(0)
-		print("collider = ", collider)
+	if not shape_cast.is_colliding():
+		return
+	
+	var collision_point = shape_cast.get_collision_point(0)
+	print("collision point = ", collision_point)
+	var collision_normal = shape_cast.get_collision_normal(0).normalized()
+	print("collision normal = ", collision_normal)
+	var aim_guide_line = $UI/AimVisuals/AimGuideLine
+	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
+	var ghost_ball_pos = collision_point + collision_normal * ball_script.BALL_RADIUS
+	var collider = shape_cast.get_collider(0)
+	print("collider = ", collider)
+	
+	$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
+	$UI/AimVisuals/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
+	
+	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
+	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
+	
+	aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
+	
+	var length = 50
+	var normal_comp = dir.project(collision_normal)
+	var surface_comp = dir - normal_comp
+	
+	print("normal comp", normal_comp)
+	print("surface comp", surface_comp)
+	
+	if shape_cast.get_collider(0).name.contains("Ball"):
+		aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos + length * surface_comp))
+		aim_guide_line2.set_point_position(1, camera.unproject_position(ghost_ball_pos + length * normal_comp))
 		
-		$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
-		
-		aim_guide_line.set_point_position(0, camera.unproject_position(origin))
-		aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
-		
-		aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
-		
-		if shape_cast.get_collider(0).name.contains("Ball"):
-			aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos - 10 * collision_normal))
-		else:
-			var projected = collision_normal.dot(-dir) * collision_normal
-			var sideways = projected + dir
-			var reflected_dir = (projected + sideways).normalized()
-			print("normal: ", collision_normal)
-			print("projected: ", projected)
-			print("dir: ", dir)
-			print("reflected: ", reflected_dir)
-			print("sideways: ", sideways)
-			print()
-			aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos))
-			aim_guide_line2.set_point_position(1, camera.unproject_position(ghost_ball_pos + 10 * reflected_dir))
-	#if !hit_info.is_empty():
-		#var collision_pos = hit_info["point"]
-		#var collision_2d_pos = camera.unproject_position(collision_pos)
-	#print(collision_2d_pos)
-	#
-	#var collider = result["collider"]
-	#if collider.name.contains("Ball"):
-		#var bounce_dir = collider.global_position - collision_pos
-		#var bounce_dir_2d = Vector2(bounce_dir.x, bounce_dir.z)
-		#aim_guide_line.set_point_position(2, collision_2d_pos + 30 * bounce_dir_2d)
+	else:
+		aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos + length * (surface_comp - normal_comp)))
+		aim_guide_line2.set_point_position(1, camera.unproject_position(ghost_ball_pos))
 	
 	
 func create_balls() -> void:
@@ -250,7 +243,6 @@ func pot_all_solids():
 			process_fallen_ball(ball)
 	
 func start_game() -> void:
-	
 	cue_ball.reset(Vector3(-56, ball_script.BALL_RADIUS, 0))
 	
 	has_aimed = false
@@ -376,7 +368,6 @@ func calc_hole_ind_from_pos(pos: Vector3) -> int:
 		hole_ind += 1
 	
 	return hole_ind
-		
 	
 func process_fallen_ball(ball: RigidBody3D) -> void:
 	if ball.is_eight_ball():

@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
+[ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://aim_guide_circle.gd" id="10_ycdy4"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
@@ -246,13 +247,17 @@ position = Vector2(-62, 31)
 polygon = PackedVector2Array(-5, -5, -5, 5, 5, 5, 5, -5)
 vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
+[node name="AimGuideCircle" type="Node2D" parent="UI/AimVisuals" unique_id=513049058]
+position = Vector2(13, 24)
+script = ExtResource("10_ycdy4")
+
 [node name="AimGuideLine" type="Line2D" parent="UI/AimVisuals" unique_id=430159681]
 points = PackedVector2Array(0, 0, 0, 0, 0, 0)
-width = 4.0
+width = 3.0
 
 [node name="AimGuideLine2" type="Line2D" parent="UI/AimVisuals" unique_id=1448096911]
 points = PackedVector2Array(0, 0, 0, 0)
-width = 4.0
+width = 3.0
 
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
