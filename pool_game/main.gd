@@ -357,12 +357,12 @@ func check_for_scratch():
 
 func end_round() -> void:
 	
-	cue_ball.first_hit_ball_num = -1
 	target_hole = -1
 	if next_solids_player != -1:
 		solids_player = next_solids_player
 	
 	var scratched = check_for_scratch()
+	cue_ball.first_hit_ball_num = -1
 	
 	if not scratched and play_again:
 		play_again = false
