@@ -41,16 +41,16 @@ func _ready() -> void:
 	create_balls()
 	start_game()
 	
-	cue_stick.visible = false
-	$OverheadLight/Light.light_energy = 1000
-	
+	cue_stick.visible = false	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected)
 	$OverheadLight/Light/AudioStreamPlayer3D.play()
+	
 	await get_tree().create_timer(0.5).timeout
 	$OverheadLight/Light.light_energy = 1000
+	$UI.visible = true
 	
 func _on_hole_selected(hole_ind: int) -> void:
 	target_hole = hole_ind
