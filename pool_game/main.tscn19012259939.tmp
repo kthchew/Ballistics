@@ -10,7 +10,6 @@
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
 [ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
-[ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="12_dg77c"]
 [ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
@@ -238,7 +237,3 @@ shadow_bias = 0.075
 shadow_opacity = 0.7
 spot_range = 270.72592
 spot_angle = 72.564
-
-[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=935783405]
-stream = ExtResource("12_dg77c")
-volume_db = 30.0

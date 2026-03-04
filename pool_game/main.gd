@@ -36,6 +36,8 @@ func _ready() -> void:
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
 	fire_button.pressed.connect(_on_fire_pressed)
+	$OverheadLight/Light/AudioStreamPlayer3D.play()
+	await get_tree().create_timer(0.5).timeout
 	$OverheadLight/Light.light_energy = 1000
 
 func _on_aim_changed(touch_pos: Vector2):
@@ -49,7 +51,6 @@ func _on_aim_changed(touch_pos: Vector2):
 		
 		var drop_plane = Plane(Vector3.UP, Vector3(0, 2.85, 0))
 		
-		# 3. Get intersection point
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
 		reset_cue_ball(intersection)
 		return
@@ -168,9 +169,15 @@ func _on_fire_pressed():
 		cue_ball.apply_impulse(force, offset_3d)
 	)
 	print("STRENGTH:", strength)
+	var t :float= clamp(strength / 0.5, 0.0, 1.0)
+	var volume_db :float= lerp(-25.0, 0.0, t)
+
+	$CueBall/CueCollide.volume_db = volume_db
+	$CueBall/CueCollide.pitch_scale = lerp(0.9, 1.1, t)
 	if strength > 95.0:
 		shake_camera(.5, .1)
 		sway_light(7, 7)
+	$CueBall/CueCollide.play(0.0)
 	has_aimed = false
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)
