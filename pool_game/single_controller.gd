@@ -17,7 +17,7 @@ func _process(delta: float) -> void:
 
 
 func _ready():
-	reset_after = 5
+	reset_after = 2
 	add_to_group("AGENT")
 
 

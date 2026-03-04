@@ -57,8 +57,9 @@ func start_game() -> void:
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
 	if ai_controller.heuristic == 'model' and _ai_current_stage < 8:
+		var required_win_rate = 0.7 if _ai_current_stage > 0 else 0.9
 		shuffle_random_balls(_ai_current_stage, max(1, _ai_current_stage))
-		if _ai_ewma_wins > 0.75 and _ai_games_played_current_stage > 100:
+		if _ai_ewma_wins > required_win_rate and _ai_games_played_current_stage > 100:
 			_ai_current_stage += 1
 			_ai_ewma_wins = 0
 			_ai_games_played_current_stage = 0
