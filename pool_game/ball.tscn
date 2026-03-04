@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://comor5ekwua50" path="res://ball.gd" id="1_x8fbi"]
 [ext_resource type="AudioStream" uid="uid://d4d5xwkfyjgea" path="res://Sounds/BallCollide.mp3" id="3_ktgx5"]
 [ext_resource type="AudioStream" uid="uid://cfk4cqd1xm3eo" path="res://Sounds/alex_jauk-billiard-hole-2-288420.mp3" id="4_hgol0"]
+[ext_resource type="AudioStream" uid="uid://np0f1uljd14" path="res://Sounds/CueCollide.mp3" id="4_n5601"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_7dm0k"]
 radius = 2.85
@@ -41,6 +42,11 @@ mesh = SubResource("SphereMesh_lquwl")
 
 [node name="BallCollide" type="AudioStreamPlayer3D" parent="." unique_id=571624104]
 stream = ExtResource("3_ktgx5")
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="CueCollide" type="AudioStreamPlayer3D" parent="." unique_id=1437416092]
+stream = ExtResource("4_n5601")
 unit_size = 100.0
 emission_angle_enabled = true
 

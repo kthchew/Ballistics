@@ -267,13 +267,15 @@ func _on_fire_pressed():
 	print("STRENGTH:", strength)
 	var t :float= clamp(strength / 0.5, 0.0, 1.0)
 	var volume_db :float= lerp(-25.0, 0.0, t)
+	cue_ball.CueCollide.volume_db = volume_db
+	cue_ball.CueCollide.pitch_scale = lerp(0.9, 1.1, t)
 
-	$CueBall/CueCollide.volume_db = volume_db
-	$CueBall/CueCollide.pitch_scale = lerp(0.9, 1.1, t)
 	if strength > 95.0:
-		shake_camera(.5, .1)
+		shake_camera(0.5, 0.1)
 		sway_light(7, 7)
-	$CueBall/CueCollide.play(0.0)
+
+	cue_ball.CueCollide.play()
+
 	has_aimed = false
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)

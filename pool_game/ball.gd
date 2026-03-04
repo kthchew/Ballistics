@@ -2,6 +2,7 @@ extends RigidBody3D
 
 @onready var BallCollide: AudioStreamPlayer3D = $BallCollide
 @onready var HoleSound: AudioStreamPlayer3D = $Hole
+@onready var CueCollide: AudioStreamPlayer3D = $CueCollide
 
 const BALL_RADIUS = 2.85
 
