@@ -135,7 +135,7 @@ func _on_fire_pressed():
 		.set_ease(Tween.EASE_IN_OUT)
 
 	tween.tween_callback(func():
-		#aim_visuals.visible = false
+		aim_visuals.visible = false
 		cue_stick.striking = false
 		cue_ball.apply_impulse(force, offset_3d)
 	)
@@ -192,7 +192,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	
 	aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
 	
-	var length = 50
+	var length = 20
 	var normal_comp = dir.project(collision_normal)
 	var surface_comp = dir - normal_comp
 	
@@ -202,7 +202,6 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	if shape_cast.get_collider(0).name.contains("Ball"):
 		aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos + length * surface_comp))
 		aim_guide_line2.set_point_position(1, camera.unproject_position(ghost_ball_pos + length * normal_comp))
-		
 	else:
 		aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos + length * (surface_comp - normal_comp)))
 		aim_guide_line2.set_point_position(1, camera.unproject_position(ghost_ball_pos))
@@ -454,8 +453,6 @@ func start_round(scratched_prev: bool = false) -> void:
 func process_midturn():
 	if game_state != GameState.MIDTURN:
 		return
-	#elif game_state == GameState.MIDTURN:
-		#aim_visuals.visible = false
 		
 	process_fallen_balls()
 	process_movement()
