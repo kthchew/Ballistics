@@ -3,13 +3,17 @@ extends RigidBody3D
 @onready var BallCollide: AudioStreamPlayer3D = $BallCollide
 @onready var HoleSound: AudioStreamPlayer3D = $Hole
 
+const BALL_RADIUS = 2.85
+
 var last_vel: Vector3 = Vector3(0, 0, 0)
 var ball_num: int = 0
 var first_hit_ball_num: int = -1
 var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
+var potted: bool = false
 
 func _ready() -> void:
+	self.body_entered.connect(self._on_body_entered)
 	HoleSound.max_db = 80.0
 	BallCollide.max_db = 80.0
 
@@ -26,12 +30,28 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var new_transform = state.transform
 		new_transform.origin = teleport_pos
 		state.transform = new_transform
+		
+func reset(pos: Vector3):
+	teleport(pos)
+	linear_velocity = Vector3(0, 0, 0)
+	angular_velocity = Vector3(0, 0, 0)
+	rotation = Vector3(0, 0, 0)
+	freeze = false
+	potted = false
+	first_hit_ball_num = -1
+	show()
+
+func pot():
+	linear_velocity = Vector3(0, 0, 0)
+	angular_velocity = Vector3(0, 0, 0)
+	rotation = Vector3(0, 0, 0)
+	freeze = true
+	# position set manually + teleport are both needed for some reason
+	position = Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num)
+	teleport(Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num))
+	potted = true
 
 func _physics_process(delta):
-	#if is_cue_ball() and linear_velocity.length() != 0 and last_vel.length() < 0.01:
-		#print("Cue ball velocity: " + str(linear_velocity))
-	
-	last_vel = linear_velocity
 	var friction_accel := 2
 
 	linear_velocity = linear_velocity.move_toward(Vector3.ZERO, friction_accel * delta)

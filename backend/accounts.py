@@ -1,11 +1,8 @@
-import os
 import secrets
+import database
 
-from pymongo import mongo_client
 from pyargon2 import hash
 
-uri = os.environ['BALLISTIC_SERV_DB_STRING']
-client = mongo_client.MongoClient(uri)
 
 class Account:
     def __init__(self, username: str, password: str):
@@ -13,27 +10,38 @@ class Account:
         self.password = password
         self.current_game_id = None
 
-def check_user_exists(username: str):
-    db = client['ballistic_serv']
-    users_collection = db['users']
+def check_user_exists(username: str) -> bool:
+    users_collection = database.db['users']
     user = users_collection.find_one({'username': username})
     return user is not None
 
-def register_user(username: str, password: str):
+def register_user(username: str, password: str) -> bool:
     if check_user_exists(username):
         raise ValueError("A user with that name already exists")
-    db = client['ballistic_serv']
-    users_collection = db['users']
+    users_collection = database.db['users']
     salt = secrets.token_urlsafe(16)
     hashed_password = hash(password, salt=salt)
-    users_collection.insert_one({'username': username, 'password': hashed_password, 'salt': salt})
+    result = users_collection.insert_one({'username': username, 'password': hashed_password, 'salt': salt})
+    return result.acknowledged
 
 def check_valid_login(username: str, password: str) -> bool:
-    db = client['ballistic_serv']
-    users_collection = db['users']
+    users_collection = database.db['users']
     user = users_collection.find_one({'username': username})
     if user is None:
         return False
     stored_hashed_password = user['password']
     salt = user['salt']
     return hash(password, salt=salt) == stored_hashed_password
+
+def join_game(username: str, game_id: str) -> bool:
+    users_collection = database.db['users']
+    games_collection = database.db['games']
+    if games_collection.find_one({'game_id': game_id}) is None:
+        return False
+    result = users_collection.update_one({'username': username}, {'$set': {'current_game_id': game_id}})
+    return result.modified_count > 0
+
+def leave_game(username: str) -> bool:
+    users_collection = database.db['users']
+    result = users_collection.update_one({'username': username}, {'$set': {'current_game_id': None}})
+    return result.modified_count > 0
