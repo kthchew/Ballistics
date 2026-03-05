@@ -422,7 +422,6 @@ func check_for_scratch():
 	return cue_ball.potted or first_hit_scratch
 
 func end_round() -> void:
-	
 	round_num += 1
 	
 	target_hole = -1
