@@ -10,7 +10,7 @@ extends Node3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var cue_stick = $CueStick
 
-enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
+enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, NOT_STARTED}
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
@@ -25,14 +25,14 @@ var cur_static_ticks = 0
 @export var player_ind: int = 0
 @export var scores: Array[int] = [0, 0]
 @export var balls_sunk: Array[int] = [0, 0]
-@export var game_state: GameState = GameState.AIMING
+@export var game_state: GameState = GameState.NOT_STARTED
 @export var turn_num: int = 0
 @export var solids_player = -1
 @export var next_solids_player = -1
 @export var winner: int = -1
 @export var play_again: bool = false
 @export var target_hole: int = -1
-var connected_peers = [-1, -1] # index is player index, value is peer id
+@export var connected_peers = [-1, -1] # index is player index, value is peer id
 
 const ball_scene = preload("res://ball.tscn")	
 const ball_script = preload("res://ball.gd")	
@@ -516,24 +516,34 @@ func fill_debug_label() -> void:
 	debug_label.text = label_txt
 
 func fill_info_label() -> void:
+	var is_your_turn = connected_peers[player_ind] == multiplayer.get_unique_id()
 	info_label.text = ""
+	
+	if game_state == GameState.NOT_STARTED:
+		info_label.text = "Currently waiting for enough players..."
 	
 	if game_state == GameState.ENDED:
 		info_label.text = "Player " + str(winner + 1) + " won the game! Click the 'Reset Game' button to play again"
 	
-	if game_state != GameState.MIDTURN and game_state != GameState.ENDED:
-		info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
-		if scores[player_ind] < BALLS_BEFORE_EIGHT:
-			if player_ind == solids_player:
+	if game_state != GameState.MIDTURN and game_state != GameState.ENDED and game_state != GameState.NOT_STARTED:
+		if multiplayer.is_server():
+			info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
+		elif is_your_turn:
+			info_label.text += "Your turn.\n"
+		else:
+			info_label.text += "Opponent's turn.\n"
+		if solids_player != -1 and scores[player_ind] < BALLS_BEFORE_EIGHT:
+			if connected_peers[solids_player] == multiplayer.get_unique_id():
 				info_label.text += "You are solids\n"
-			elif 1 - player_ind == solids_player:
+			else:
 				info_label.text += "You are stripes\n"
 	
-	if game_state == GameState.PICKPOCKET:
-		info_label.text += "Pick your target pocket for the 8-ball\n"
-			
-	if game_state == GameState.PLACING:
-		info_label.text += "Your opponent scratched, click to place the cue ball\n"
+	if is_your_turn:
+		if game_state == GameState.PICKPOCKET:
+			info_label.text += "Pick your target pocket for the 8-ball\n"
+				
+		if game_state == GameState.PLACING:
+			info_label.text += "Your opponent scratched, click to place the cue ball\n"
 
 func _process(delta: float) -> void:
 	fill_debug_label()

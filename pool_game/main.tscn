@@ -120,6 +120,9 @@ properties/11/replication_mode = 2
 properties/12/path = NodePath(".:target_hole")
 properties/12/spawn = true
 properties/12/replication_mode = 2
+properties/13/path = NodePath(".:connected_peers")
+properties/13/spawn = true
+properties/13/replication_mode = 2
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
