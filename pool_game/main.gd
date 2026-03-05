@@ -356,6 +356,38 @@ func check_all_not_moving() -> bool:
 			return false
 	return true
 	
+func process_fallen_ball(ball: RigidBody3D) -> void:
+	if ball.is_eight_ball():
+		var hole_ind = calc_hole_ind_from_pos(ball.position)
+		if scores[player_ind] >= BALLS_BEFORE_EIGHT and target_hole == hole_ind:
+			end_game(player_ind)
+		else:
+			end_game(1 - player_ind)
+	
+	elif not ball.is_cue_ball():
+		if solids_player == -1:
+			play_again = true
+		if ball.is_solid():
+			balls_sunk[0] += 1
+			if solids_player == player_ind:
+				play_again = true
+		elif ball.is_stripe():
+			balls_sunk[1] += 1
+			if solids_player == 1 - player_ind:
+				play_again = true
+		
+		if round_num > 0 and solids_player == -1:
+			if ball.is_solid():
+				next_solids_player = player_ind
+			elif ball.is_stripe():
+				next_solids_player = 1 - player_ind
+		
+		if next_solids_player != -1:
+			scores[next_solids_player] = balls_sunk[0]
+			scores[1 - next_solids_player] = balls_sunk[1]
+	
+	ball.pot()
+	
 func process_fallen_balls() -> void:
 	var fallen_balls: Array[RigidBody3D] = find_fallen_balls()
 	for ball in fallen_balls:
@@ -400,38 +432,6 @@ func check_is_ball_valid(ball_num: int) -> bool:
 		return 1 <= ball_num and ball_num <= 7
 	else:
 		return 9 <= ball_num and ball_num <= 15
-	
-func process_fallen_ball(ball: RigidBody3D) -> void:
-	if ball.is_eight_ball():
-		var hole_ind = calc_hole_ind_from_pos(ball.position)
-		if scores[player_ind] >= BALLS_BEFORE_EIGHT and target_hole == hole_ind:
-			end_game(player_ind)
-		else:
-			end_game(1 - player_ind)
-	
-	elif not ball.is_cue_ball():
-		if solids_player == -1:
-			play_again = true
-		if ball.is_solid():
-			balls_sunk[0] += 1
-			if solids_player == player_ind:
-				play_again = true
-		elif ball.is_stripe():
-			balls_sunk[1] += 1
-			if solids_player == 1 - player_ind:
-				play_again = true
-		
-		if round_num > 0 and solids_player == -1:
-			if ball.is_solid():
-				next_solids_player = player_ind
-			elif ball.is_stripe():
-				next_solids_player = 1 - player_ind
-		
-		if next_solids_player != -1:
-			scores[next_solids_player] = balls_sunk[0]
-			scores[1 - next_solids_player] = balls_sunk[1]
-	
-	ball.pot()
 	
 func check_for_scratch():
 	return cue_ball.potted or first_hit_scratch
