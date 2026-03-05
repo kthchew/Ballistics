@@ -40,8 +40,9 @@ func pot():
 	rotation = Vector3(PI / 2, 0, PI)
 	freeze = true
 	# position set manually + teleport are both needed for some reason
-	position = Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num)
-	teleport(Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num))
+	var pos = Vector3(-42 + 2 * BALL_RADIUS * ball_num, 0, 68)
+	position = pos
+	teleport(pos)
 	potted = true
 
 func _physics_process(delta):
