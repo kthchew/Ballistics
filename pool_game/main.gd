@@ -56,6 +56,7 @@ func _ready() -> void:
 	hole_buttons.hole_selected.connect(_on_hole_selected)
 	
 func _on_aim_changed(touch_pos: Vector2):
+	print("aim changed ", game_state)
 	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
 		return
 		
@@ -67,16 +68,17 @@ func _on_aim_changed(touch_pos: Vector2):
 		cue_ball.reset(intersection)
 		start_round()
 		return
-		
-	if not has_aimed:
-		has_aimed = true
 
 	var ball_screen_pos = camera.unproject_position(cue_ball.global_position)
 	var dir = ball_screen_pos - touch_pos
-	#dir = Vector2(30, 30)
-
-	if dir.length() < 20:
+	
+	print(dir.length())
+	
+	if dir.length() < 20 or cue_ball.potted:
 		return
+		
+	print("actually aimed")
+	has_aimed = true
 
 	var angle = dir.angle()
 	var dir_norm = dir.normalized()
@@ -100,8 +102,9 @@ func _on_force_changed(value):
 	cue_stick.set_force_strength(normalized)
 	
 func _on_fire_pressed():
-	if not has_aimed:
+	if game_state != GameState.AIMING or not has_aimed:
 		return
+		
 	var strength = slider.value
 	var angle = cue_stick.angle
 
@@ -147,9 +150,11 @@ func _on_fire_pressed():
 		cue_ball.apply_impulse(force, offset_3d)
 	)
 	print("STRENGTH:", strength)
+	
 	if strength > 95.0:
 		shake_camera(.5, .1)
 		sway_light(7, 7)
+	
 	has_aimed = false
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)
@@ -255,6 +260,10 @@ func start_game() -> void:
 	aim_visuals.visible = false
 	cue_stick.visible = false
 	has_aimed = false
+	slider.value = 0
+	cue_stick.set_force_strength(0.0)
+	aimer._reset_knob()
+	
 	game_state = GameState.AIMING
 	
 	player_ind = 0
