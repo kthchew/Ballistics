@@ -221,6 +221,8 @@ func sway_light(amount: float, duration: float) -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	
 func _on_fire_pressed():
+	if not(has_aimed):
+		return
 	var strength = slider.value
 	var angle = cue_stick.angle
 
