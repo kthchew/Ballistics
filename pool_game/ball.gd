@@ -1,5 +1,7 @@
 extends RigidBody3D
 
+signal first_hit_ball_changed
+
 const BALL_RADIUS = 2.85
 
 var ball_num: int = 0
@@ -70,4 +72,5 @@ func _on_body_entered(body: Node) -> void:
 	print("Collision with cue ball: " + body.name)
 	if first_hit_ball_num <= 0 and body.name.contains("Ball"):
 		first_hit_ball_num = body.ball_num
+		first_hit_ball_changed.emit()
 	

@@ -35,6 +35,7 @@ var next_solids_player = -1
 var winner: int = -1
 var play_again: bool = false
 var target_hole: int = -1
+var first_hit_scratch: bool = false
 
 const ball_scene = preload("res://ball.tscn")
 const ball_script = preload("res://ball.gd")
@@ -43,6 +44,7 @@ const ball_shape = preload("res://ball_shape.tres")
 func _ready() -> void:
 	
 	create_balls()
+	cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
 	start_game()
 	
 	aim_visuals.visible = false
@@ -54,7 +56,7 @@ func _ready() -> void:
 	hole_buttons.hole_selected.connect(_on_hole_selected)
 	
 func _on_aim_changed(touch_pos: Vector2):
-	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
+	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
 		return
 		
 	if game_state == GameState.PLACING:
@@ -157,18 +159,17 @@ func _on_hole_selected(hole_ind: int) -> void:
 func _on_reset_button_pressed() -> void:
 	start_game()
 	
+func _on_first_hit_ball_changed() -> void:
+	first_hit_scratch = not check_is_ball_valid(cue_ball.first_hit_ball_num)
+	
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = cue_ball.global_position
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
 	
 	shape_cast.global_position = origin
-	shape_cast.target_position = dir * 500
+	shape_cast.max_results = 1
+	shape_cast.target_position = 500 * dir
 	shape_cast.collision_mask = 1 << 2
-	print("cue ball collision layer ", cue_ball.collision_layer)
-	print("origin = ", origin)
-	print("dir = ", dir)
-	print("target pos = ", shape_cast.target_position)
-	shape_cast.margin = 0
 	
 	shape_cast.force_shapecast_update()
 	
@@ -176,12 +177,9 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 		return
 	
 	var collider = shape_cast.get_collider(0)
-	print("collider = ", collider)
 		
 	var collision_point = shape_cast.get_collision_point(0)
-	print("collision point = ", collision_point)
 	var collision_normal = shape_cast.get_collision_normal(0).normalized()
-	print("collision normal = ", collision_normal)
 	var aim_guide_line = $UI/AimVisuals/AimGuideLine
 	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
 	
@@ -198,9 +196,6 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	var length = 20
 	var normal_comp = dir.project(collision_normal)
 	var surface_comp = dir - normal_comp
-	
-	print("normal comp", normal_comp)
-	print("surface comp", surface_comp)
 	
 	var cue_ball_endpoint = ghost_ball_pos
 	var object_ball_endpoint = ghost_ball_pos
@@ -384,7 +379,7 @@ func check_is_ball_valid(ball_num: int) -> bool:
 		return false
 	if solids_player == -1:
 		return true
-	if scores[player_ind] == BALLS_BEFORE_EIGHT:
+	if scores[player_ind] >= BALLS_BEFORE_EIGHT:
 		return ball_num == 8
 	if player_ind == solids_player:
 		return 1 <= ball_num and ball_num <= 7
@@ -423,11 +418,8 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 	
 	ball.pot()
 	
-func check_for_first_hit_scratch() -> bool:
-	return not check_is_ball_valid(cue_ball.first_hit_ball_num)
-	
 func check_for_scratch():
-	return cue_ball.potted or check_for_first_hit_scratch()
+	return cue_ball.potted or first_hit_scratch
 
 func end_round() -> void:
 	
@@ -438,6 +430,7 @@ func end_round() -> void:
 		solids_player = next_solids_player
 	
 	var scratched = check_for_scratch()
+	first_hit_scratch = false
 	cue_ball.first_hit_ball_num = -1
 	
 	if not scratched and play_again:
@@ -452,6 +445,7 @@ func end_round() -> void:
 		
 func start_round(scratched_prev: bool = false) -> void:
 	if scratched_prev:
+		# 8 ball potted
 		if balls[5].potted:
 			end_game(player_ind)
 		print("Scratch registered")
@@ -502,6 +496,7 @@ func fill_debug_label() -> void:
 	label_txt += "\nSolids Player: " + str(solids_player)
 	label_txt += "\nNext Solids Player: " + str(next_solids_player)
 	label_txt += "\nFirst Hit: " + str(cue_ball.first_hit_ball_num)
+	label_txt += "\nFirst Hit Scratch: " + str(first_hit_scratch)
 	label_txt += "\nPlay Again: " + str(play_again)
 	debug_label.text = label_txt
 
