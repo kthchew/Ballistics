@@ -17,7 +17,7 @@ const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
-const BALLS_BEFORE_EIGHT: int = 1
+const BALLS_BEFORE_EIGHT: int = 7
 
 var has_aimed := false
 var cue_ball: RigidBody3D = null
@@ -93,12 +93,15 @@ func _on_aim_changed(touch_pos: Vector2):
 	cue_stick.update_position(cue_ball.global_position)
 	cue_stick.set_angle(angle)
 	aim_visuals.visible = true
+	cue_stick.visible = true
 
 func _on_force_changed(value):
 	var normalized = value / $UI/ForceSlider.max_value
 	cue_stick.set_force_strength(normalized)
 	
 func _on_fire_pressed():
+	if not has_aimed:
+		return
 	var strength = slider.value
 	var angle = cue_stick.angle
 
@@ -139,6 +142,7 @@ func _on_fire_pressed():
 
 	tween.tween_callback(func():
 		aim_visuals.visible = false
+		cue_stick.visible = false
 		cue_stick.striking = false
 		cue_ball.apply_impulse(force, offset_3d)
 	)
@@ -248,6 +252,8 @@ func pot_all_solids():
 func start_game() -> void:
 	cue_ball.reset(Vector3(-56, ball_script.BALL_RADIUS, 0))
 	
+	aim_visuals.visible = false
+	cue_stick.visible = false
 	has_aimed = false
 	game_state = GameState.AIMING
 	
@@ -286,7 +292,7 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			var x: float = x_shift + spacing * i * ball_script.BALL_RADIUS * sqrt(3)
 			var z: float = z_shift + (-i + 2 * j) * ball_script.BALL_RADIUS * spacing
 			balls[ball_ind].reset(Vector3(x, ball_script.BALL_RADIUS, z))
-			balls[ball_ind].rotation = Vector3(PI/2, 0, PI)
+			balls[ball_ind].rotation = Vector3(PI / 2, 0, PI)
 			
 			ball_ind += 1
 	
