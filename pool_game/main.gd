@@ -17,7 +17,7 @@ const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
-const BALLS_BEFORE_EIGHT: int = 7
+const BALLS_BEFORE_EIGHT: int = 1
 
 var has_aimed := false
 var cue_ball: RigidBody3D = null
@@ -29,6 +29,7 @@ var scores: Array[int] = [0, 0]
 var balls_sunk: Array[int] = [0, 0]
 var game_state: GameState = GameState.AIMING
 var turn_num: int = 0
+var round_num: int = 0
 var solids_player = -1
 var next_solids_player = -1
 var winner: int = -1
@@ -174,15 +175,17 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	if not shape_cast.is_colliding():
 		return
 	
+	var collider = shape_cast.get_collider(0)
+	print("collider = ", collider)
+		
 	var collision_point = shape_cast.get_collision_point(0)
 	print("collision point = ", collision_point)
 	var collision_normal = shape_cast.get_collision_normal(0).normalized()
 	print("collision normal = ", collision_normal)
 	var aim_guide_line = $UI/AimVisuals/AimGuideLine
 	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
+	
 	var ghost_ball_pos = collision_point + collision_normal * ball_script.BALL_RADIUS
-	var collider = shape_cast.get_collider(0)
-	print("collider = ", collider)
 	
 	$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
 	$UI/AimVisuals/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
@@ -199,12 +202,18 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	print("normal comp", normal_comp)
 	print("surface comp", surface_comp)
 	
-	if shape_cast.get_collider(0).name.contains("Ball"):
-		aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos + length * surface_comp))
-		aim_guide_line2.set_point_position(1, camera.unproject_position(ghost_ball_pos + length * normal_comp))
-	else:
-		aim_guide_line.set_point_position(2, camera.unproject_position(ghost_ball_pos + length * (surface_comp - normal_comp)))
-		aim_guide_line2.set_point_position(1, camera.unproject_position(ghost_ball_pos))
+	var cue_ball_endpoint = ghost_ball_pos
+	var object_ball_endpoint = ghost_ball_pos
+	var hitting_ball = collider.name.contains("Ball")
+	
+	if hitting_ball and check_is_ball_valid(collider.ball_num):
+		cue_ball_endpoint = ghost_ball_pos + length * surface_comp
+		object_ball_endpoint = ghost_ball_pos + length * normal_comp
+	elif not hitting_ball:
+		cue_ball_endpoint = ghost_ball_pos + length * (surface_comp - normal_comp)
+		
+	aim_guide_line.set_point_position(2, camera.unproject_position(cue_ball_endpoint))
+	aim_guide_line2.set_point_position(1, camera.unproject_position(object_ball_endpoint))
 	
 	
 func create_balls() -> void:
@@ -254,6 +263,7 @@ func start_game() -> void:
 	scores = [0, 0]
 	balls_sunk = [0, 0]
 	turn_num = 0
+	round_num = 0
 	play_again = false
 	target_hole = -1
 	
@@ -368,6 +378,19 @@ func calc_hole_ind_from_pos(pos: Vector3) -> int:
 	
 	return hole_ind
 	
+# valid meaning allowed to hit the ball first and it's not a scratch
+func check_is_ball_valid(ball_num: int) -> bool:
+	if ball_num == 0:
+		return false
+	if solids_player == -1:
+		return true
+	if scores[player_ind] == BALLS_BEFORE_EIGHT:
+		return ball_num == 8
+	if player_ind == solids_player:
+		return 1 <= ball_num and ball_num <= 7
+	else:
+		return 9 <= ball_num and ball_num <= 15
+	
 func process_fallen_ball(ball: RigidBody3D) -> void:
 	if ball.is_eight_ball():
 		var hole_ind = calc_hole_ind_from_pos(ball.position)
@@ -388,7 +411,7 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 			if solids_player == 1 - player_ind:
 				play_again = true
 		
-		if turn_num > 0 and solids_player == -1:
+		if round_num > 0 and solids_player == -1:
 			if ball.is_solid():
 				next_solids_player = player_ind
 			elif ball.is_stripe():
@@ -401,28 +424,21 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 	ball.pot()
 	
 func check_for_first_hit_scratch() -> bool:
-	var first_hit_ball_num = cue_ball.first_hit_ball_num
-	if first_hit_ball_num == -1:
-		return false
-	if scores[player_ind] >= BALLS_BEFORE_EIGHT and first_hit_ball_num == 8:
-		return false
-	if solids_player == player_ind and not (1 <= first_hit_ball_num and first_hit_ball_num <= 7):
-		return true
-	if solids_player == 1 - player_ind and not (9 <= first_hit_ball_num and first_hit_ball_num <= 15):
-		return true
-	return false
+	return not check_is_ball_valid(cue_ball.first_hit_ball_num)
 	
 func check_for_scratch():
 	return cue_ball.potted or check_for_first_hit_scratch()
 
 func end_round() -> void:
 	
-	cue_ball.first_hit_ball_num = -1
+	round_num += 1
+	
 	target_hole = -1
 	if next_solids_player != -1:
 		solids_player = next_solids_player
 	
 	var scratched = check_for_scratch()
+	cue_ball.first_hit_ball_num = -1
 	
 	if not scratched and play_again:
 		play_again = false
@@ -478,6 +494,7 @@ func fill_debug_label() -> void:
 	label_txt += "\nGame State: " + str(game_state)
 	label_txt += "\nCurrent Player Ind: " + str(player_ind)
 	label_txt += "\nTurn Num: " + str(turn_num)
+	label_txt += "\nRound Num: " + str(round_num)
 	label_txt += "\nPlayer 0 Score: " + str(scores[0])
 	label_txt += "\nPlayer 1 Score: " + str(scores[1])
 	label_txt += "\nSolids Sunk: " + str(balls_sunk[0])
