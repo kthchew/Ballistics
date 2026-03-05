@@ -47,7 +47,7 @@ func _ready() -> void:
 	cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
 	start_game()
 	
-	aim_visuals.visible = false
+	aim_visuals.hide()
 	$OverheadLight/Light.light_energy = 1000
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
@@ -56,7 +56,6 @@ func _ready() -> void:
 	hole_buttons.hole_selected.connect(_on_hole_selected)
 	
 func _on_aim_changed(touch_pos: Vector2):
-	print("aim changed ", game_state)
 	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
 		return
 		
@@ -72,12 +71,9 @@ func _on_aim_changed(touch_pos: Vector2):
 	var ball_screen_pos = camera.unproject_position(cue_ball.global_position)
 	var dir = ball_screen_pos - touch_pos
 	
-	print(dir.length())
-	
-	if dir.length() < 20 or cue_ball.potted:
+	if dir.length() < 20 or cue_ball.position.z > 60:
 		return
 		
-	print("actually aimed")
 	has_aimed = true
 
 	var angle = dir.angle()
@@ -94,8 +90,8 @@ func _on_aim_changed(touch_pos: Vector2):
 	
 	cue_stick.update_position(cue_ball.global_position)
 	cue_stick.set_angle(angle)
-	aim_visuals.visible = true
-	cue_stick.visible = true
+	aim_visuals.show()
+	cue_stick.show()
 
 func _on_force_changed(value):
 	var normalized = value / $UI/ForceSlider.max_value
@@ -144,8 +140,8 @@ func _on_fire_pressed():
 		.set_ease(Tween.EASE_IN_OUT)
 
 	tween.tween_callback(func():
-		aim_visuals.visible = false
-		cue_stick.visible = false
+		aim_visuals.hide()
+		cue_stick.hide()
 		cue_stick.striking = false
 		cue_ball.apply_impulse(force, offset_3d)
 	)
@@ -257,8 +253,8 @@ func pot_all_solids():
 func start_game() -> void:
 	cue_ball.reset(Vector3(-56, ball_script.BALL_RADIUS, 0))
 	
-	aim_visuals.visible = false
-	cue_stick.visible = false
+	aim_visuals.hide()
+	cue_stick.hide()
 	has_aimed = false
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)
