@@ -287,7 +287,7 @@ func _on_fire_pressed():
 	
 @rpc("any_peer", "reliable")
 func fire_cue():
-	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.AIMING:
 		return
 	var strength = cue_stick.strength * 100
 	var angle = cue_stick.angle
