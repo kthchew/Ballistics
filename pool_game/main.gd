@@ -47,7 +47,7 @@ func _ready() -> void:
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed.rpc)
 	slider.value_changed.connect(_on_force_changed.rpc)
-	fire_button.pressed.connect(_on_fire_pressed.rpc)
+	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected)
 	
 	var args := OS.get_cmdline_args()
@@ -279,9 +279,14 @@ func sway_light(amount: float, duration: float) -> void:
 	# return to original rotation
 	tween.tween_property(light, "rotation", original_rot, cycle_time * 0.5)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		
+func _on_fire_pressed():
+	# need to set the strength in case it was changed by other player's turn
+	_on_force_changed.rpc_id(1, slider.value)
+	fire_cue.rpc_id(1)
 	
 @rpc("any_peer", "reliable")
-func _on_fire_pressed():
+func fire_cue():
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
 	var strength = cue_stick.strength * 100
