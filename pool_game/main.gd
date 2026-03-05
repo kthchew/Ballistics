@@ -48,7 +48,7 @@ func _ready() -> void:
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed.rpc)
 	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
-	hole_buttons.hole_selected.connect(_on_hole_selected)
+	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
 	
 	var args := OS.get_cmdline_args()
 	for a in args:
@@ -59,10 +59,17 @@ func _ready() -> void:
 			start_client(host, 7777)
 		else:
 			start_client("127.0.0.1", 7777)
-	
+
+@rpc
+func change_hole_button_visibility(is_visible: bool) -> void:
+	hole_buttons.visible = is_visible
+
+@rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PICKPOCKET:
+		return
 	target_hole = hole_ind
-	hole_buttons.hide()
+	change_hole_button_visibility.rpc_id(multiplayer.get_remote_sender_id(), false)
 	start_round()
 	
 func create_balls() -> void:
@@ -478,7 +485,7 @@ func start_round(scratched_prev: bool = false) -> void:
 	
 	if target_hole == -1 and scores[player_ind] >= BALLS_BEFORE_EIGHT:
 		game_state = GameState.PICKPOCKET
-		hole_buttons.show()
+		change_hole_button_visibility.rpc_id(connected_peers[player_ind], true)
 		return
 	
 	game_state = GameState.AIMING
