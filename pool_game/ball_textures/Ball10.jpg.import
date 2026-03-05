@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ct1uo6vc4jd55"
 path.s3tc="res://.godot/imported/Ball10.jpg-53797b71b3941966c6ef11d330bf8a0c.s3tc.ctex"
+path.etc2="res://.godot/imported/Ball10.jpg-53797b71b3941966c6ef11d330bf8a0c.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://ball_textures/Ball10.jpg"
-dest_files=["res://.godot/imported/Ball10.jpg-53797b71b3941966c6ef11d330bf8a0c.s3tc.ctex"]
+dest_files=["res://.godot/imported/Ball10.jpg-53797b71b3941966c6ef11d330bf8a0c.s3tc.ctex", "res://.godot/imported/Ball10.jpg-53797b71b3941966c6ef11d330bf8a0c.etc2.ctex"]
 
 [params]
 
