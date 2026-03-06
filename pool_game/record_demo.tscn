@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://odrhgw5g4eut"]
+
+[ext_resource type="PackedScene" uid="uid://comeyp103ci14" path="res://main.tscn" id="1_u2wbx"]
+[ext_resource type="Script" uid="uid://dw43wplnt70pi" path="res://addons/godot_rl_agents/sync.gd" id="2_8738m"]
+
+[sub_resource type="Environment" id="Environment_lomod"]
+
+[node name="Train" type="Node3D" unique_id=1442971388]
+
+[node name="BrightEnvironment" type="WorldEnvironment" parent="." unique_id=1114356296]
+environment = SubResource("Environment_lomod")
+
+[node name="Main" parent="." unique_id=1362962675 instance=ExtResource("1_u2wbx")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 464.1447, 0, -298.80215)
+
+[node name="Sync" type="Node" parent="." unique_id=2141449231]
+script = ExtResource("2_8738m")
+action_repeat = 1
+speed_up = 128.0
+metadata/_custom_type_script = "uid://dw43wplnt70pi"

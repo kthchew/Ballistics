@@ -57,6 +57,7 @@ func _ready():
 	_initialize()
 	await get_tree().create_timer(1.0).timeout
 	get_tree().set_pause(false)
+	add_to_group("SYNC")
 
 
 func _initialize():
@@ -173,10 +174,15 @@ var candidate_ticks_in_a_row = 0
 func _physics_process(_delta):
 	# two modes, human control, agent control
 	# pause tree, send obs, get actions, set actions, unpause tree
+	
+	if Input.is_action_just_pressed("RemoveLastDemoEpisode"):
+		_demo_record_process()
 
-	_demo_record_process()
-
-	for node in parent.get_children():
+	var games = [parent]
+	if "game_state" not in games[0]:
+		games = parent.get_children()
+		
+	for node in games:
 		if ("game_state" in node and node.game_state == node.GameState.MIDTURN):
 			candidate_ticks_in_a_row = 0
 			return
@@ -198,6 +204,7 @@ func _physics_process(_delta):
 
 	n_action_steps += 1
 	
+	#_demo_record_process()
 	_training_process()
 	_inference_process()
 	_heuristic_process()
@@ -264,9 +271,10 @@ func _demo_record_process():
 		print("[Sync script][Demo recorder] Removing last recorded episode.")
 		demo_trajectories.remove_at(demo_trajectories.size() - 1)
 		print("Remaining episode count: %d" % demo_trajectories.size())
-
-	if n_action_steps % agent_demo_record.action_repeat != 0:
 		return
+
+	#if n_action_steps % agent_demo_record.action_repeat != 0:
+		#return
 
 	var obs_dict: Dictionary = agent_demo_record.get_obs()
 
@@ -585,10 +593,11 @@ func clamp_array(arr: Array, min: float, max: float):
 
 ## Save recorded export demos on window exit (Close game window instead of "Stop" button in Godot Editor)
 func _notification(what):
-	if demo_trajectories.size() == 0 or expert_demo_save_path.is_empty():
-		return
 
-	if what == NOTIFICATION_PREDELETE:
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if demo_trajectories.size() == 0 or expert_demo_save_path.is_empty():
+			return
+		
 		var json_string = JSON.stringify(demo_trajectories, "", false)
 		var file = FileAccess.open(expert_demo_save_path, FileAccess.WRITE)
 

@@ -24,6 +24,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 @onready var ai_controller = $"../AIController3D"
 @onready var holes = $"../TableGroup/Table/Holes"
+#@onready var ai_controller = $AIController3D
+#@onready var holes = $TableGroup/Table/Holes
 
 func reset():
 	position = Vector3(-56.0, 2.85, 0)

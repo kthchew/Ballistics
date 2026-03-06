@@ -1,5 +1,9 @@
 extends AIController3D
 
+@onready var slider = $"../UI/ForceSlider"
+@onready var aimer = $"../UI/Aimer"
+@onready var cue_stick = $"../CueStick"
+
 var action_angle = 0.0
 var action_power = 0.0
 var action_posx = 0.0
@@ -76,15 +80,19 @@ func get_info() -> Dictionary:
 		}
 	return {}
 
-func set_action(action) -> void:
-	var ang_mag = sqrt((action["angle-topdown"][0] ** 2) + (action["angle-topdown"][1] ** 2) + 1e-8)
-	action_angle = atan2(action["angle-topdown"][0] / ang_mag, action["angle-topdown"][1] / ang_mag)
-	action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
-	action_posx = clamp(action["ball_pos"][0], -1, 1)
-	action_posy = clamp(action["ball_pos"][1], -1, 1)
-	#action_posx = 0
-	#action_posy = 0
-	fire.emit()
+func set_action(action=null) -> void:
+	if (action):
+		var ang_mag = sqrt((action["angle-topdown"][0] ** 2) + (action["angle-topdown"][1] ** 2) + 1e-8)
+		action_angle = atan2(action["angle-topdown"][0] / ang_mag, action["angle-topdown"][1] / ang_mag)
+		action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
+		action_posx = clamp(action["ball_pos"][0], -1, 1)
+		action_posy = clamp(action["ball_pos"][1], -1, 1)
+	else:
+		action_angle = cue_stick.angle
+		action_power = (slider.value / 100) ** .5
+		action_posx = aimer.output[0]
+		action_posy = aimer.output[1]
+	#fire.emit()
 
 
 #-----------------------------------------------------------------------------#
@@ -93,8 +101,7 @@ func set_action(action) -> void:
 #-- Methods that sometimes need implementing using the "extend script" option in Godot --#
 # Only needed if you are recording expert demos with this AIController
 func get_action() -> Array:
-	assert(false, "the get_action method is not implemented in extended AIController but demo_recorder is used")
-	return []
+	return [action_angle, action_power, action_posx, action_posy]
 
 # -----------------------------------------------------------------------------#
 
@@ -122,27 +129,3 @@ func reset():
 	cue_ball_sink_count = 0
 	eight_ball_sunk = false
 	needs_reset = false
-
-
-func reset_if_done():
-	if done:
-		reset()
-
-
-func set_heuristic(h):
-	# sets the heuristic from "human" or "model" nothing to change here
-	heuristic = h
-
-
-func get_done():
-	return done
-
-
-func set_done_false():
-	done = false
-
-
-func zero_reward():
-	#if reward != 0:
-		#print("reward zeroing (was " + str(reward) + ")")
-	reward = 0.0

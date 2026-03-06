@@ -9,9 +9,9 @@
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
-[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
+[ext_resource type="Script" path="res://force_slider.gd" id="11_ycdy4"]
 [ext_resource type="Script" uid="uid://b8a4li8lvbc73" path="res://single_controller.gd" id="12_dg77c"]
-[ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
+[ext_resource type="Script" path="res://cue_stick.gd" id="12_ycdy4"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -75,6 +75,11 @@ albedo_texture = ExtResource("11_w48qg")
 [sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
 material = SubResource("StandardMaterial3D_vivmo")
 top_radius = 300.0
+
+[sub_resource type="InputEventKey" id="InputEventKey_ycdy4"]
+device = -1
+keycode = 80
+unicode = 112
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
@@ -241,4 +246,8 @@ spot_angle = 72.564
 
 [node name="AIController3D" type="Node3D" parent="." unique_id=913085895]
 script = ExtResource("12_dg77c")
+control_mode = 4
+expert_demo_save_path = "demos/demo.json"
+remove_last_episode_key = SubResource("InputEventKey_ycdy4")
+action_repeat = 1
 metadata/_custom_type_script = "uid://c3x2s2t3a8tf5"

@@ -56,14 +56,16 @@ func start_game() -> void:
 	balls = []
 	balls.append(cue_ball)
 	init_break_triangle(56, 0)
-	if ai_controller.heuristic == 'model' and _ai_current_stage < 8:
-		var required_win_rate = 0.7 if _ai_current_stage > 0 else 0.9
-		shuffle_random_balls(_ai_current_stage, max(1, _ai_current_stage))
-		if _ai_ewma_wins > required_win_rate and _ai_games_played_current_stage > 100:
-			_ai_current_stage += 1
-			_ai_ewma_wins = 0
-			_ai_games_played_current_stage = 0
-			ai_controller.reset_after = max(5, _ai_current_stage * 10)
+	#if ai_controller.heuristic == 'model' and _ai_current_stage < 8:
+		#var required_win_rate = 0.7 if _ai_current_stage > 0 else 0.9
+		#shuffle_random_balls(_ai_current_stage, max(1, _ai_current_stage))
+		#if _ai_ewma_wins > required_win_rate and _ai_games_played_current_stage > 100:
+			#_ai_current_stage += 1
+			#_ai_ewma_wins = 0
+			#_ai_games_played_current_stage = 0
+			#ai_controller.reset_after = max(5, _ai_current_stage * 10)
+			
+	shuffle_random_balls(0, 0)
 		
 	cue_stick.visible = false
 	cue_ball_potted = false
@@ -157,6 +159,9 @@ func sway_light(amount: float, duration: float) -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	
 func _on_fire_pressed():
+	var sync = get_tree().get_nodes_in_group("SYNC")
+	sync[0]._demo_record_process()
+	
 	ai_controller.reward -= 0.05
 	var strength: float
 	var angle: float
@@ -510,7 +515,7 @@ func start_new_turn() -> void:
 	if check_for_scratch():
 		print("Scratch registered")
 		game_state = GameState.PLACING
-		if ai_controller.heuristic == 'model':
+		if ai_controller.heuristic == 'model' or ai_controller.heuristic == "demo_record":
 			reset_cue_ball(global_position + Vector3(-52, 3, 0))
 			game_state = GameState.AIMING
 	else:
@@ -523,6 +528,9 @@ func start_new_turn() -> void:
 
 func _physics_process(delta: float) -> void:
 	if (ai_controller.needs_reset):
+		var sync = get_tree().get_nodes_in_group("SYNC")
+		sync[0]._demo_record_process()
+		
 		ai_controller.reset()
 		cue_ball.reset()
 		start_game()
