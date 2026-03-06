@@ -1,5 +1,7 @@
 extends RigidBody3D
 
+signal first_hit_ball_changed
+
 const BALL_RADIUS = 2.85
 
 var ball_num: int = 0
@@ -35,11 +37,12 @@ func reset(pos: Vector3):
 func pot():
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)
-	rotation = Vector3(0, 0, 0)
+	rotation = Vector3(PI / 2, 0, PI)
 	freeze = true
 	# position set manually + teleport are both needed for some reason
-	position = Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num)
-	teleport(Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num))
+	var pos = Vector3(-42 + 2 * BALL_RADIUS * ball_num, 0, 68)
+	position = pos
+	teleport(pos)
 	potted = true
 
 func _physics_process(delta):
@@ -70,4 +73,5 @@ func _on_body_entered(body: Node) -> void:
 	print("Collision with cue ball: " + body.name)
 	if first_hit_ball_num <= 0 and body.name.contains("Ball"):
 		first_hit_ball_num = body.ball_num
+		first_hit_ball_changed.emit()
 	
