@@ -11,6 +11,7 @@ extends Node3D
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var shape_cast = $ShapeCast3D
 @onready var ball_manager = $BallManager
+@onready var classical_ai = $ClassicalAI
 
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
 const STATIC_TICKS_THRESHOLD: int = 60
@@ -313,6 +314,8 @@ func start_game() -> void:
 	
 	ball_manager.start_game()
 	
+	start_round()
+	
 func end_game(winner: int) -> void:
 	self.winner = winner
 	game_state = GameState.ENDED
@@ -333,6 +336,8 @@ func start_round(scratched_prev: bool = false) -> void:
 		return
 	
 	game_state = GameState.AIMING
+	if player_ind == 0:
+		classical_ai.find_shots(ball_manager.cue_ball, ball_manager.balls)
 	
 func end_round() -> void:
 	round_num += 1

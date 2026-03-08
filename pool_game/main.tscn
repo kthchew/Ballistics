@@ -14,6 +14,7 @@
 [ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="12_dg77c"]
 [ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="14_w48qg"]
+[ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://classical_ai.gd" id="15_vivmo"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -263,7 +264,7 @@ width = 3.0
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1063051328]
+[node name="Floor" type="MeshInstance3D" parent="." unique_id=1063051328]
 transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.2828827, -63.39213, 0.6614113)
 mesh = SubResource("CylinderMesh_4c57u")
 
@@ -284,8 +285,12 @@ spot_angle = 72.564
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
 shape = ExtResource("12_dg77c")
+collision_mask = 0
 
 [node name="BallManager" type="Node" parent="." unique_id=1345349029]
 script = ExtResource("14_w48qg")
+
+[node name="ClassicalAI" type="Node" parent="." unique_id=588989861]
+script = ExtResource("15_vivmo")
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
