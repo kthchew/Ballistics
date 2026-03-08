@@ -13,15 +13,20 @@ func _ready():
 	
 
 func find_shots(cue_ball: Ball, obj_balls: Array[Ball]):
+	var candidates = []
 	for obj_ball in obj_balls:
 		if obj_ball == cue_ball:
 			continue
 		for hole_loc in hole_locs:
-			await get_tree().create_timer(1.0).timeout
-			if find_shot(cue_ball, obj_ball, hole_loc):
-				return
+			find_shot(cue_ball, obj_ball, hole_loc)
+			
 
 func find_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3) -> bool:
+	var hole_path_clear = shapecast_to_hole(obj_ball, hole_loc)
+	var cue_ball_path_clear = shapecast_to_cue_ball(cue_ball, obj_ball)
+	return hole_path_clear and cue_ball_path_clear
+	
+func shapecast_to_hole(obj_ball: Ball, hole_loc: Vector3):
 	var origin = obj_ball.global_position
 	shape_cast.global_position = origin
 	shape_cast.max_results = 1
@@ -30,14 +35,33 @@ func find_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3) -> bool:
 	shape_cast.exclude_parent = true
 	
 	shape_cast.force_shapecast_update()
-	print("finding shot: ", obj_ball.ball_num, " ", hole_loc)
 	var safe_frac = shape_cast.get_closest_collision_safe_fraction()
-	print("safe frac ", safe_frac)
-	if safe_frac > 0.95:
-		var force = Vector3(hole_loc - origin)
-		force.y = 0
-		obj_ball.apply_central_force(100 * force)
-		print("applying force", force)
-		return true
+	print("shapecast to hole: ", obj_ball.ball_num, " ", hole_loc, " safe frac", safe_frac)
+	return safe_frac > 0.99
+		#var force = Vector3(hole_loc - origin)
+		#force.y = 0
+		#obj_ball.apply_central_force(100 * force)
+		#print("applying force ", force)
+		#return true
 	return false
+	
+func shapecast_to_cue_ball(cue_ball: Ball, obj_ball: Ball) -> bool:
+	var origin = obj_ball.global_position
+	shape_cast.global_position = origin
+	shape_cast.max_results = 1
+	shape_cast.target_position = cue_ball.global_position - origin
+	shape_cast.collision_mask = 1 << 2
+	shape_cast.exclude_parent = true
+	
+	shape_cast.force_shapecast_update()
+	var safe_frac = shape_cast.get_closest_collision_safe_fraction()
+	print("shape casting to cue ball: ", obj_ball.ball_num, " safe frac ", safe_frac)
+	return safe_frac > 0.99
+		#var force = Vector3(hole_loc - origin)
+		#force.y = 0
+		#obj_ball.apply_central_force(100 * force)
+		#print("applying force", force)
+		#return true
+	#return false
+	
 	
