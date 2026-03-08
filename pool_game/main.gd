@@ -244,31 +244,6 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	aim_guide_line.set_point_position(2, camera.unproject_position(cue_ball_endpoint))
 	aim_guide_line2.set_point_position(1, camera.unproject_position(object_ball_endpoint))
 	
-func start_game() -> void:
-	
-	aim_visuals.hide()
-	cue_stick.hide()
-	has_aimed = false
-	slider.value = 0
-	cue_stick.set_force_strength(0.0)
-	aimer._reset_knob()
-	
-	game_state = GameState.AIMING
-	
-	player_ind = 0
-	cur_static_ticks = 0
-	solids_player = -1
-	next_solids_player = -1
-	scores = [0, 0]
-	turn_num = 0
-	round_num = 0
-	play_again = false
-	target_hole = -1
-	
-	hole_buttons.hide()
-	
-	ball_manager.start_game()
-	
 func shake_camera(intensity: float, duration: float) -> void:
 	print("Shake Camera")
 	var cam := $CameraPivot/Camera3D
@@ -312,12 +287,53 @@ func sway_light(amount: float, duration: float) -> void:
 	# return to original rotation
 	tween.tween_property(light, "rotation", original_rot, cycle_time * 0.5)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		
+func start_game() -> void:
+	
+	aim_visuals.hide()
+	cue_stick.hide()
+	has_aimed = false
+	slider.value = 0
+	cue_stick.set_force_strength(0.0)
+	aimer._reset_knob()
+	
+	game_state = GameState.AIMING
+	
+	player_ind = 0
+	cur_static_ticks = 0
+	solids_player = -1
+	next_solids_player = -1
+	scores = [0, 0]
+	turn_num = 0
+	round_num = 0
+	play_again = false
+	target_hole = -1
+	
+	hole_buttons.hide()
+	
+	ball_manager.start_game()
 	
 func end_game(winner: int) -> void:
 	self.winner = winner
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
-
+		
+func start_round(scratched_prev: bool = false) -> void:
+	if scratched_prev:
+		if ball_manager.check_eight_ball_potted():
+			end_game(player_ind)
+		print("Scratch registered")
+		game_state = GameState.PLACING
+		ball_manager.cue_ball.pot()
+		return
+	
+	if target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
+		game_state = GameState.PICKPOCKET
+		hole_buttons.show()
+		return
+	
+	game_state = GameState.AIMING
+	
 func end_round() -> void:
 	round_num += 1
 	
@@ -337,22 +353,6 @@ func end_round() -> void:
 	turn_num += 1
 	player_ind = 1 - player_ind
 	start_round(scratched)
-		
-func start_round(scratched_prev: bool = false) -> void:
-	if scratched_prev:
-		if ball_manager.check_eight_ball_potted():
-			end_game(player_ind)
-		print("Scratch registered")
-		game_state = GameState.PLACING
-		ball_manager.cue_ball.pot()
-		return
-	
-	if target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
-		game_state = GameState.PICKPOCKET
-		hole_buttons.show()
-		return
-	
-	game_state = GameState.AIMING
 	
 func process_midturn():
 	ball_manager.process_fallen_balls()
