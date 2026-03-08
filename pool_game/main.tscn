@@ -6,13 +6,14 @@
 [ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
-[ext_resource type="Script" path="res://aim_guide_circle.gd" id="10_ycdy4"]
+[ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://aim_guide_circle.gd" id="10_ycdy4"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
 [ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
 [ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="12_dg77c"]
 [ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
+[ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="14_w48qg"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -283,5 +284,8 @@ spot_angle = 72.564
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
 shape = ExtResource("12_dg77c")
+
+[node name="BallManager" type="Node" parent="." unique_id=1345349029]
+script = ExtResource("14_w48qg")
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]

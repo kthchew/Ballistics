@@ -1,8 +1,6 @@
-extends RigidBody3D
+class_name Ball extends RigidBody3D
 
 signal first_hit_ball_changed
-
-const BALL_RADIUS = 2.85
 
 var ball_num: int = 0
 var first_hit_ball_num: int = -1
@@ -40,7 +38,7 @@ func pot():
 	rotation = Vector3(PI / 2, 0, PI)
 	freeze = true
 	# position set manually + teleport are both needed for some reason
-	var pos = Vector3(-42 + 2 * BALL_RADIUS * ball_num, 0, 68)
+	var pos = Vector3(-42 + 2 * Constants.BALL_RADIUS * ball_num, 0, 68)
 	position = pos
 	teleport(pos)
 	potted = true
