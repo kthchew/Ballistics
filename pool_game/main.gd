@@ -43,6 +43,7 @@ func _ready() -> void:
 	hole_buttons.hole_selected.connect(_on_hole_selected)
 	ball_manager.cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
 	ball_manager.ball_sunk.connect(_on_ball_sunk)
+	classical_ai.ai_aimed.connect(_on_ai_aimed)
 	
 	start_game()
 	
@@ -62,10 +63,20 @@ func _on_aim_changed(touch_pos: Vector2):
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
 	var ball_screen_pos = camera.unproject_position(ball_center_3d)
 	var dir = ball_screen_pos - touch_pos
-	
 	if dir.length() < 20 or ball_manager.check_cue_ball_potted_by_pos():
 		return
-		
+	aim(dir)
+	
+func _on_ai_aimed(dir: Vector2):
+	aim(dir)
+	slider.value = 50
+	_on_force_changed(slider.value)
+	await get_tree().create_timer(1.0).timeout
+	_on_fire_pressed()
+	
+func aim(dir: Vector2):
+	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
+	var ball_screen_pos = camera.unproject_position(ball_center_3d)
 	has_aimed = true
 
 	var angle = dir.angle()
@@ -79,10 +90,10 @@ func _on_aim_changed(touch_pos: Vector2):
 	var ball_radius_px = (edge_screen - center_screen).length()
 	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
 	
-	cue_stick.update_position(ball_center_3d)
-	cue_stick.set_angle(angle)
 	aim_visuals.show()
 	cue_stick.show()
+	cue_stick.update_position(ball_center_3d)
+	cue_stick.set_angle(angle)
 
 func _on_force_changed(value):
 	var normalized = value / $UI/ForceSlider.max_value
@@ -136,7 +147,7 @@ func _on_fire_pressed():
 		.set_ease(Tween.EASE_IN_OUT)
 
 	tween.tween_callback(func():
-		aim_visuals.hide()
+		#aim_visuals.hide()
 		cue_stick.hide()
 		cue_stick.striking = false
 		ball_manager.hit_cue_ball(force, offset_3d)
@@ -219,6 +230,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
 	
 	var ghost_ball_pos = collision_point + collision_normal * Constants.BALL_RADIUS
+	print("aim guide line ghost pos ", ghost_ball_pos)
 	
 	$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
 	$UI/AimVisuals/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
@@ -228,7 +240,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	
 	aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
 	
-	var length = 20
+	var length = 500
 	var normal_comp = dir.project(collision_normal)
 	var surface_comp = dir - normal_comp
 	
@@ -336,8 +348,8 @@ func start_round(scratched_prev: bool = false) -> void:
 		return
 	
 	game_state = GameState.AIMING
-	if player_ind == 0:
-		classical_ai.find_shots(ball_manager.cue_ball, ball_manager.balls)
+	#if player_ind == 0:
+	classical_ai.find_shots(ball_manager.cue_ball, ball_manager.balls)
 	
 func end_round() -> void:
 	round_num += 1

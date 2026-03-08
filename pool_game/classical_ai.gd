@@ -1,10 +1,20 @@
 extends Node
 
+signal ai_aimed(dir: Vector2)
+
 @onready var shape_cast = $/root/Main/ShapeCast3D
 
 var hole_locs: Array[Vector3]
+var ghost_circle: Node2D
+
+func _on_dynamic_circle_draw():
+	ghost_circle.draw_circle(Vector2(0, 0), 10.0, Color.TOMATO)
 
 func _ready():
+	ghost_circle = Node2D.new()
+	ghost_circle.draw.connect(_on_dynamic_circle_draw)
+	add_child(ghost_circle)
+	
 	hole_locs = []
 	for i in range(6):
 		var path_str = "/root/Main/TableGroup/Table/Holes/Hole" + str(i + 1) + "/HoleMarker"
@@ -25,18 +35,45 @@ func calc_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3):
 	return strength * dir
 
 func find_shots(cue_ball: Ball, obj_balls: Array[Ball]):
+	await get_tree().create_timer(1.0).timeout
 	var candidates = []
 	for obj_ball in obj_balls:
-		if obj_ball == cue_ball:
+		if obj_ball.potted or obj_ball == cue_ball:
 			continue
-		for hole_loc in hole_locs:
-			if find_shot(cue_ball, obj_ball, hole_loc):
+		for i in range(6):
+			var hole_loc = hole_locs[i]
+			if await find_shot(cue_ball, obj_ball, hole_loc):
 				var force = calc_shot(cue_ball, obj_ball, hole_loc)
+				var ghost_ball_pos = calc_ghost_ball_pos(cue_ball, obj_ball, hole_loc)
+				print("ai ghost pos ", ghost_ball_pos)
+				
+				ghost_circle.position = $/root/Main/CameraPivot/Camera3D.unproject_position(ghost_ball_pos)
+				ghost_circle.queue_redraw()
+				
+				var mesh = obj_ball.get_node("MeshInstance3D")
+				var highlight_material = StandardMaterial3D.new()
+				highlight_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				highlight_material.albedo_color = Color(1.0, 1.0, 0.0, 0.3) # Transparent yellow
+				highlight_material.emission_enabled = true
+				highlight_material.emission = Color(1.0, 0.0, 0.0)
+				highlight_material.emission_energy_multiplier = 2.0
+				
+				mesh.material_overlay = highlight_material
+				
+				ai_aimed.emit(Vector2(-force.x, -force.z))
+				print("choosing shot: ball num=", obj_ball.ball_num, " hole loc=", hole_loc)
 				return
+				
+	print("AI didn't find any shots")
+	var force = calc_shot(cue_ball, obj_balls[1], hole_locs[0])
+	var ghost_ball_pos = calc_ghost_ball_pos(cue_ball, obj_balls[1], hole_locs[0])
+	ai_aimed.emit(Vector2(-force.x, -force.z))
 
 func find_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3) -> bool:
 	var hole_path_clear = shapecast_to_hole(obj_ball, hole_loc)
+	#await get_tree().create_timer(1.0).timeout
 	var cue_ball_path_clear = shapecast_to_cue_ball(cue_ball, obj_ball, hole_loc)
+	#await get_tree().create_timer(1.0).timeout
 	return hole_path_clear and cue_ball_path_clear
 	
 func shapecast_to_hole(obj_ball: Ball, hole_loc: Vector3):
@@ -45,20 +82,19 @@ func shapecast_to_hole(obj_ball: Ball, hole_loc: Vector3):
 	shape_cast.max_results = 1
 	shape_cast.target_position = hole_loc - origin
 	shape_cast.collision_mask = 1 << 2
-	shape_cast.exclude_parent = true	
 	shape_cast.force_shapecast_update()
 	
 	var safe_frac = shape_cast.get_closest_collision_safe_fraction()
-	print("shapecast to hole: ", obj_ball.ball_num, " ", hole_loc, " safe frac", safe_frac)
+	print("shapecast to hole: ", obj_ball.ball_num, " ", hole_loc, " safe frac ", safe_frac)
 	return safe_frac > 0.99
 	
 func shapecast_to_cue_ball(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3) -> bool:
-	var origin = calc_ghost_ball_pos(cue_ball, obj_ball, hole_loc)
+	var origin = cue_ball.global_position
+	var ghost_ball_pos = calc_ghost_ball_pos(cue_ball, obj_ball, hole_loc)
 	shape_cast.global_position = origin
 	shape_cast.max_results = 1
-	shape_cast.target_position = cue_ball.global_position - origin
+	shape_cast.target_position = ghost_ball_pos - origin
 	shape_cast.collision_mask = 1 << 2
-	shape_cast.exclude_parent = true
 	shape_cast.force_shapecast_update()
 	
 	var safe_frac = shape_cast.get_closest_collision_safe_fraction()

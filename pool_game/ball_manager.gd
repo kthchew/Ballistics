@@ -20,6 +20,7 @@ func start_game():
 	balls_sunk = [0, 0]
 	cue_ball.reset(Vector3(-56, Constants.BALL_RADIUS, 0))
 	place_rack(56, 0)
+	#pot_all_solids()
 	
 func end_round():
 	first_hit_scratch = false
@@ -104,6 +105,11 @@ func color_ball(ball_node: RigidBody3D) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
 	mesh.set_surface_override_material(0, material)
 	
+func remove_material_overlay():
+	for ball in balls:
+		var mesh = ball.get_node("MeshInstance3D")
+		mesh.material_overlay = null
+	
 func check_all_not_moving() -> bool:
 	for ball in balls:
 		if ball.get_linear_velocity().length() > SPEED_THRESH \
@@ -113,7 +119,7 @@ func check_all_not_moving() -> bool:
 	
 func pot_all_solids():
 	for ball in balls:
-		if ball.is_solid():
+		if ball.ball_num != 0 and ball.ball_num != 8:
 			process_fallen_ball(ball)
 	
 func find_fallen_balls() -> Array[RigidBody3D]:
