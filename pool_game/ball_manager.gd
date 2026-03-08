@@ -20,11 +20,11 @@ func start_game():
 	balls_sunk = [0, 0]
 	cue_ball.reset(Vector3(-56, Constants.BALL_RADIUS, 0))
 	place_rack(56, 0)
-	#pot_all_solids()
 	
 func end_round():
 	first_hit_scratch = false
 	cue_ball.first_hit_ball_num = -1
+	remove_material_overlays()
 	
 func get_cue_ball_global_pos():
 	return cue_ball.global_position
@@ -105,7 +105,7 @@ func color_ball(ball_node: RigidBody3D) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
 	mesh.set_surface_override_material(0, material)
 	
-func remove_material_overlay():
+func remove_material_overlays():
 	for ball in balls:
 		var mesh = ball.get_node("MeshInstance3D")
 		mesh.material_overlay = null

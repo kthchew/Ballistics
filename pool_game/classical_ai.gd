@@ -6,14 +6,21 @@ signal ai_aimed(dir: Vector2)
 
 var hole_locs: Array[Vector3]
 var ghost_circle: Node2D
+var hole_circle: Node2D
 
-func _on_dynamic_circle_draw():
+func _on_ghost_circle_draw():
 	ghost_circle.draw_circle(Vector2(0, 0), 10.0, Color.TOMATO)
+	
+func _on_hole_circle_draw():
+	hole_circle.draw_circle(Vector2(0, 0), 10.0, Color.BLUE_VIOLET)
 
 func _ready():
 	ghost_circle = Node2D.new()
-	ghost_circle.draw.connect(_on_dynamic_circle_draw)
+	ghost_circle.draw.connect(_on_ghost_circle_draw)
 	add_child(ghost_circle)
+	hole_circle = Node2D.new()
+	hole_circle.draw.connect(_on_hole_circle_draw)
+	add_child(hole_circle)
 	
 	hole_locs = []
 	for i in range(6):
@@ -33,6 +40,30 @@ func calc_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3):
 	var dir = (cue_ball.global_position - ghost_ball_pos).normalized()
 	var strength = 100
 	return strength * dir
+	
+func shoot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3):
+	var force = calc_shot(cue_ball, obj_ball, hole_loc)
+	var ghost_ball_pos = calc_ghost_ball_pos(cue_ball, obj_ball, hole_loc)
+	print("ai ghost pos ", ghost_ball_pos)
+	
+	var camera = $/root/Main/CameraPivot/Camera3D
+	ghost_circle.position = camera.unproject_position(ghost_ball_pos)
+	ghost_circle.queue_redraw()
+	hole_circle.position = camera.unproject_position(hole_loc)
+	hole_circle.queue_redraw()
+	
+	var mesh = obj_ball.get_node("MeshInstance3D")
+	var highlight_material = StandardMaterial3D.new()
+	highlight_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	highlight_material.albedo_color = Color(1.0, 1.0, 0.0, 0.3) # Transparent yellow
+	highlight_material.emission_enabled = true
+	highlight_material.emission = Color(1.0, 0.0, 0.0)
+	highlight_material.emission_energy_multiplier = 2.0
+	
+	mesh.material_overlay = highlight_material
+	
+	ai_aimed.emit(Vector2(-force.x, -force.z))
+	return
 
 func find_shots(cue_ball: Ball, obj_balls: Array[Ball]):
 	await get_tree().create_timer(1.0).timeout
@@ -43,31 +74,12 @@ func find_shots(cue_ball: Ball, obj_balls: Array[Ball]):
 		for i in range(6):
 			var hole_loc = hole_locs[i]
 			if await find_shot(cue_ball, obj_ball, hole_loc):
-				var force = calc_shot(cue_ball, obj_ball, hole_loc)
-				var ghost_ball_pos = calc_ghost_ball_pos(cue_ball, obj_ball, hole_loc)
-				print("ai ghost pos ", ghost_ball_pos)
-				
-				ghost_circle.position = $/root/Main/CameraPivot/Camera3D.unproject_position(ghost_ball_pos)
-				ghost_circle.queue_redraw()
-				
-				var mesh = obj_ball.get_node("MeshInstance3D")
-				var highlight_material = StandardMaterial3D.new()
-				highlight_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-				highlight_material.albedo_color = Color(1.0, 1.0, 0.0, 0.3) # Transparent yellow
-				highlight_material.emission_enabled = true
-				highlight_material.emission = Color(1.0, 0.0, 0.0)
-				highlight_material.emission_energy_multiplier = 2.0
-				
-				mesh.material_overlay = highlight_material
-				
-				ai_aimed.emit(Vector2(-force.x, -force.z))
 				print("choosing shot: ball num=", obj_ball.ball_num, " hole loc=", hole_loc)
+				shoot(cue_ball, obj_ball, hole_loc)
 				return
 				
 	print("AI didn't find any shots")
-	var force = calc_shot(cue_ball, obj_balls[1], hole_locs[0])
-	var ghost_ball_pos = calc_ghost_ball_pos(cue_ball, obj_balls[1], hole_locs[0])
-	ai_aimed.emit(Vector2(-force.x, -force.z))
+	shoot(cue_ball, obj_balls[1], hole_locs[0])
 
 func find_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3) -> bool:
 	var hole_path_clear = shapecast_to_hole(obj_ball, hole_loc)
