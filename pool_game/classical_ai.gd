@@ -7,12 +7,16 @@ signal ai_aimed(dir: Vector2)
 var hole_locs: Array[Vector3]
 var ghost_circle: Node2D
 var hole_circle: Node2D
+var found_shot: bool = true
 
 func _on_ghost_circle_draw():
 	ghost_circle.draw_circle(Vector2(0, 0), 10.0, Color.TOMATO)
 	
 func _on_hole_circle_draw():
-	hole_circle.draw_circle(Vector2(0, 0), 10.0, Color.BLUE_VIOLET)
+	var color = Color.GREEN
+	if not found_shot:
+		color = Color.RED
+	hole_circle.draw_circle(Vector2(0, 0), 10.0, color)
 
 func _ready():
 	ghost_circle = Node2D.new()
@@ -23,10 +27,19 @@ func _ready():
 	add_child(hole_circle)
 	
 	hole_locs = []
-	for i in range(6):
-		var path_str = "/root/Main/TableGroup/Table/Holes/Hole" + str(i + 1) + "/HoleMarker"
+	
+	var hole_rad = 3
+	var dx = [-1, 1, 0, 0]
+	var dz = [0, 0, -1, 1]
+	for hole_ind in range(6):
+		var path_str = "/root/Main/TableGroup/Table/Holes/Hole" + str(hole_ind + 1) + "/HoleMarker"
 		var hole_marker = get_node(path_str)
-		hole_locs.append(hole_marker.global_position)
+		var pos = hole_marker.global_position
+		hole_locs.append(pos)
+		for aberration_ind in range(4):
+			var x_move = hole_rad * dx[aberration_ind]
+			var z_move = hole_rad * dz[aberration_ind]
+			hole_locs.append(pos + Vector3(x_move, 0, z_move))
 
 func calc_ghost_ball_pos(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3) -> Vector3:
 	var hole_to_obj_dir = obj_ball.global_position - hole_loc
@@ -74,12 +87,17 @@ func find_shots(cue_ball: Ball, obj_balls: Array[Ball]):
 		for i in range(6):
 			var hole_loc = hole_locs[i]
 			if await find_shot(cue_ball, obj_ball, hole_loc):
-				print("choosing shot: ball num=", obj_ball.ball_num, " hole loc=", hole_loc)
+				print("choosing shot: ball num = ", obj_ball.ball_num, " hole loc = ", hole_loc)
+				found_shot = true
 				shoot(cue_ball, obj_ball, hole_loc)
 				return
 				
 	print("AI didn't find any shots")
-	shoot(cue_ball, obj_balls[1], hole_locs[0])
+	var rand_ball_ind = randi_range(0, len(obj_balls) - 1)
+	var rand_hole_loc = randi_range(0, len(hole_locs) - 1)
+	print(hole_locs)
+	found_shot = false
+	shoot(cue_ball, obj_balls[rand_ball_ind], hole_locs[rand_hole_loc])
 
 func find_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3) -> bool:
 	var hole_path_clear = shapecast_to_hole(obj_ball, hole_loc)
