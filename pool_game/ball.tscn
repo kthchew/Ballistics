@@ -5,9 +5,7 @@
 [ext_resource type="AudioStream" uid="uid://d4d5xwkfyjgea" path="res://Sounds/BallCollide.mp3" id="3_ktgx5"]
 [ext_resource type="AudioStream" uid="uid://cfk4cqd1xm3eo" path="res://Sounds/alex_jauk-billiard-hole-2-288420.mp3" id="4_hgol0"]
 [ext_resource type="AudioStream" uid="uid://np0f1uljd14" path="res://Sounds/CueCollide.mp3" id="4_n5601"]
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_7dm0k"]
-radius = 2.85
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="3_ktgx5"]
 
 [sub_resource type="Gradient" id="Gradient_41u45"]
 
@@ -35,7 +33,7 @@ max_contacts_reported = 3
 script = ExtResource("1_x8fbi")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1368237875]
-shape = SubResource("SphereShape3D_7dm0k")
+shape = ExtResource("3_ktgx5")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=617264105]
 mesh = SubResource("SphereMesh_lquwl")

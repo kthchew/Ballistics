@@ -1,5 +1,7 @@
 extends RigidBody3D
 
+signal first_hit_ball_changed
+
 @onready var BallCollide: AudioStreamPlayer3D = $BallCollide
 @onready var HoleSound: AudioStreamPlayer3D = $Hole
 @onready var CueCollide: AudioStreamPlayer3D = $CueCollide
@@ -45,11 +47,12 @@ func reset(pos: Vector3):
 func pot():
 	linear_velocity = Vector3(0, 0, 0)
 	angular_velocity = Vector3(0, 0, 0)
-	rotation = Vector3(0, 0, 0)
+	rotation = Vector3(PI / 2, 0, PI)
 	freeze = true
 	# position set manually + teleport are both needed for some reason
-	position = Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num)
-	teleport(Vector3(125, 0, -50 + 2 * BALL_RADIUS * ball_num))
+	var pos = Vector3(-42 + 2 * BALL_RADIUS * ball_num, 0, 68)
+	position = pos
+	teleport(pos)
 	potted = true
 
 func _physics_process(delta):
@@ -80,6 +83,7 @@ func _on_body_entered(body: Node) -> void:
 	# print("Collision with cue ball: " + body.name)
 	if self.name.contains("Cue") and first_hit_ball_num <= 0 and body.name.contains("Ball"):
 		first_hit_ball_num = body.ball_num
+		first_hit_ball_changed.emit()
 
 func _on_area_3d_area_entered(area: Area3D) -> void:
 	var other := area.get_parent()
