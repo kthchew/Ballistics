@@ -10,10 +10,10 @@
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
-[ext_resource type="Script" uid="uid://cra25iytidhf0" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
+[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="12_dg77c"]
-[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="12_dg77c"]
-[ext_resource type="Script" uid="uid://o2j4pevb7l7m" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
+[ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="14_w48qg"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -289,6 +289,6 @@ stream = ExtResource("12_dg77c")
 volume_db = 30.0
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
-shape = ExtResource("12_dg77c")
+shape = ExtResource("14_w48qg")
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]

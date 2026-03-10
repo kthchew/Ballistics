@@ -48,7 +48,10 @@ func _ready() -> void:
 	start_game()
 	
 	aim_visuals.hide()
+	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
+	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
+	$UI.visible = true
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
