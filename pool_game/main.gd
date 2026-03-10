@@ -17,11 +17,13 @@ const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
 const BALLS_BEFORE_EIGHT: int = 7
 
+var init_peer = null
 var has_aimed := false
 var cue_ball: RigidBody3D = null
 var balls: Array[RigidBody3D] = []
 # physics defaults to 60 ticks per second
 var cur_static_ticks = 0
+@export var lobby_slot: int = -1
 @export var player_ind: int = 0
 @export var scores: Array[int] = [0, 0]
 @export var balls_sunk: Array[int] = [0, 0]
@@ -34,10 +36,12 @@ var cur_static_ticks = 0
 @export var target_hole: int = -1
 @export var connected_peers = [-1, -1] # index is player index, value is peer id
 
-const ball_scene = preload("res://ball.tscn")	
-const ball_script = preload("res://ball.gd")	
+const ball_scene = preload("res://ball.tscn")
+const ball_script = preload("res://ball.gd")
 
 func _ready() -> void:
+	if init_peer != null:
+		multiplayer.multiplayer_peer = init_peer
 	create_balls()
 	place_rack(56, 0)
 	hole_buttons.hide()
@@ -50,15 +54,9 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
 	
-	var args := OS.get_cmdline_args()
-	for a in args:
-		if a == "--server":
-			start_server(7777)
-		elif a.begins_with("--connect="):
-			var host = a.get_slice("=", 1)
-			start_client(host, 7777)
-		else:
-			start_client("127.0.0.1", 7777)
+	$MultiplayerSynchronizer.set_visibility_for(1, true)
+	if connected_peers[0] != -1 and connected_peers[1] != -1:
+		start_game()
 
 @rpc
 func change_hole_button_visibility(is_visible: bool) -> void:
@@ -88,8 +86,17 @@ func create_balls() -> void:
 			cue_ball.body_entered.connect(cue_ball._on_body_entered)
 			cue_ball.contact_monitor = true
 			cue_ball.max_contacts_reported = 3
+
+@rpc("authority", "call_local")
+func set_visibility():
+	print("setting visibility")
+	if connected_peers[0] != -1:
+		$MultiplayerSynchronizer.set_visibility_for(connected_peers[0], true)
+	if connected_peers[1] != -1:
+		$MultiplayerSynchronizer.set_visibility_for(connected_peers[1], true)
 	
 func start_game() -> void:
+	set_visibility.rpc()
 	
 	cue_ball.reset(Vector3(-56.0, ball_script.BALL_RADIUS, 0))
 	
@@ -153,49 +160,6 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			
 			ball_ind += 1
 			
-func start_server(port: int = 7777) -> void:
-	print("Starting server on port %d" % port)
-	var peer = ENetMultiplayerPeer.new()
-	peer.create_server(port, 4)
-	get_tree().get_root().multiplayer.multiplayer_peer = peer
-	get_tree().get_root().multiplayer.connect("peer_connected", Callable(self, "_on_peer_connected"))
-	get_tree().get_root().multiplayer.connect("peer_disconnected", Callable(self, "_on_peer_disconnected"))
-	get_tree().get_root().multiplayer.connect("server_disconnected", Callable(self, "_on_server_disconnected"))
-
-func start_client(host: String, port: int = 7777) -> void:
-	print("Connecting to server %s:%d" % [host, port])
-	var peer = ENetMultiplayerPeer.new()
-	peer.create_client(host, port)
-	get_tree().get_root().multiplayer.multiplayer_peer = peer
-	get_tree().get_root().multiplayer.connect("connected_to_server", Callable(self, "_on_connected_to_server"))
-	get_tree().get_root().multiplayer.connect("connection_failed", Callable(self, "_on_connection_failed"))
-	get_tree().get_root().multiplayer.connect("server_disconnected", Callable(self, "_on_server_disconnected"))
-	
-func _on_peer_connected(id: int) -> void:
-	if not multiplayer.is_server():
-		return
-	print("Peer connected: %d" % id)
-	if connected_peers[0] == -1:
-		connected_peers[0] = id
-	elif connected_peers[1] == -1:
-		connected_peers[1] = id
-		start_game()
-	else:
-		print("Peer connected but no space in room")
-
-func _on_peer_disconnected(id: int) -> void:
-	if not multiplayer.is_server():
-		return
-	print("Peer disconnected: %d" % id)
-
-func _on_connected_to_server() -> void:
-	print("Connected to server")
-
-func _on_connection_failed() -> void:
-	print("Connection failed")
-
-func _on_server_disconnected() -> void:
-	print("Disconnected from server")
 
 @rpc("any_peer", "reliable")
 func _on_aim_changed(touch_pos: Vector2):
