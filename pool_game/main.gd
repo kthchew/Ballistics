@@ -332,7 +332,8 @@ func _on_fire_pressed():
 		.set_ease(Tween.EASE_IN_OUT)
 
 	tween.tween_callback(func():
-		cue_stick.visible = false
+		aim_visuals.hide()
+		cue_stick.hide()
 		cue_stick.striking = false
 		cue_ball.apply_impulse(force, offset_3d)
 	)
