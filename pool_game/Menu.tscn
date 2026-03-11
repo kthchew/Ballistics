@@ -2,16 +2,17 @@
 
 [ext_resource type="Script" uid="uid://bhcr7nukm7qqq" path="res://menu.gd" id="1_v0s1l"]
 [ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://cue_ball.tscn" id="2_dlksc"]
-[ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="2_dolsu"]
+[ext_resource type="Script" uid="uid://857861wloa56" path="res://Scripts/profile_button.gd" id="2_dolsu"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="2_n4eug"]
 [ext_resource type="AudioStream" uid="uid://bnfsg1511m8v5" path="res://Sounds/lightOff.mp3" id="3_5qkn8"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="3_hcwhg"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="4_5p1lm"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="4_dlksc"]
-[ext_resource type="Script" uid="uid://642u25okqf25" path="res://random_pool_button.gd" id="5_1igrg"]
-[ext_resource type="Script" uid="uid://cye7qp68m5yg" path="res://random_crazy_pool_button.gd" id="6_5qkn8"]
+[ext_resource type="Script" uid="uid://bf40iov1exavf" path="res://Scripts/settings_button.gd" id="4_ktlje"]
+[ext_resource type="Script" uid="uid://642u25okqf25" path="res://Scripts/random_pool_button.gd" id="5_1igrg"]
+[ext_resource type="Script" uid="uid://cye7qp68m5yg" path="res://Scripts/random_crazy_pool_button.gd" id="6_5qkn8"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="6_v0s1l"]
-[ext_resource type="Script" uid="uid://q787dwlweys4" path="res://random_knockout_button.gd" id="7_xucoo"]
+[ext_resource type="Script" uid="uid://q787dwlweys4" path="res://Scripts/random_knockout_button.gd" id="7_xucoo"]
 [ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://account_screen.tscn" id="9_5qkn8"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
@@ -82,7 +83,7 @@ offset_right = 100.0
 offset_bottom = 40.0
 theme = ExtResource("2_n4eug")
 text = "Settings"
-script = ExtResource("2_dolsu")
+script = ExtResource("4_ktlje")
 
 [node name="ProfileButton" type="Button" parent="MainMenu/MenuUI" unique_id=914265886]
 layout_mode = 1
