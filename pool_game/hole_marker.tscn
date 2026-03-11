@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://pbkcxah75e23"]
+
+[sub_resource type="GDScript" id="GDScript_b4evi"]
+
+[node name="HoleMarker" type="Marker3D" unique_id=514926679]
+script = SubResource("GDScript_b4evi")

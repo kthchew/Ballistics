@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="ball-istics"
-run/main_scene="uid://dytao3r8nooel"
+run/main_scene="uid://comeyp103ci14"
 config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
 

@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://cue_ball.tscn" id="2_dlksc"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="2_dolsu"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="2_n4eug"]
+[ext_resource type="AudioStream" uid="uid://bnfsg1511m8v5" path="res://Sounds/lightOff.mp3" id="3_5qkn8"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="3_hcwhg"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="4_5p1lm"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="4_dlksc"]
@@ -191,3 +192,8 @@ shadow_bias = 0.075
 shadow_opacity = 0.7
 spot_range = 270.72592
 spot_angle = 72.564
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=194489554]
+transform = Transform3D(0.6084552, 0.24058907, -0.75624025, -0.7935883, 0.18446292, -0.5798199, -3.4688846e-08, 0.9529377, 0.3031661, -119.03245, -91.263824, -16.2915)
+stream = ExtResource("3_5qkn8")
+volume_db = 30.0
