@@ -1,19 +1,23 @@
 import pytest
-import app as app_module
+import sys
+from dotenv import load_dotenv
+
+load_dotenv()
+sys.path.append('.')
+
+from app import app
 
 @pytest.fixture()
-def app():
-    yield app_module.app
-
-
-@pytest.fixture()
-def client(app):
-    return app.test_client()
-
+def flask_app():
+    yield app
 
 @pytest.fixture()
-def runner(app):
-    return app.test_cli_runner()
+def client(flask_app):
+    return flask_app.test_client()
+
+@pytest.fixture()
+def runner(flask_app):
+    return flask_app.test_cli_runner()
 
 def test_unauth_profile(client):
     response = client.get("/profile")
