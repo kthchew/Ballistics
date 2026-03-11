@@ -13,7 +13,7 @@
 [ext_resource type="Script" uid="uid://cye7qp68m5yg" path="res://Scripts/random_crazy_pool_button.gd" id="6_5qkn8"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="6_v0s1l"]
 [ext_resource type="Script" uid="uid://q787dwlweys4" path="res://Scripts/random_knockout_button.gd" id="7_xucoo"]
-[ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://account_screen.tscn" id="9_5qkn8"]
+[ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="9_5qkn8"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
