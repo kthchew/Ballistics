@@ -8,7 +8,9 @@ extends Node3D
 @onready var aimer = $UI/Aimer
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
-@onready var cue_stick = $CueStick
+@onready var aim_visuals = $UI/AimVisuals
+@onready var cue_stick = $UI/AimVisuals/CueStick
+@onready var shape_cast = $ShapeCast3D
 
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
 const STATIC_TICKS_THRESHOLD: int = 60
@@ -27,22 +29,29 @@ var scores: Array[int] = [0, 0]
 var balls_sunk: Array[int] = [0, 0]
 var game_state: GameState = GameState.AIMING
 var turn_num: int = 0
+var round_num: int = 0
 var solids_player = -1
 var next_solids_player = -1
 var winner: int = -1
 var play_again: bool = false
 var target_hole: int = -1
+var first_hit_scratch: bool = false
 
-const ball_scene = preload("res://ball.tscn")	
-const ball_script = preload("res://ball.gd")	
+const ball_scene = preload("res://ball.tscn")
+const ball_script = preload("res://ball.gd")
+const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
 	
 	create_balls()
+	cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
 	start_game()
 	
-	cue_stick.visible = false
+	aim_visuals.hide()
+	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
+	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
+	$UI.visible = true
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
@@ -53,6 +62,61 @@ func _on_hole_selected(hole_ind: int) -> void:
 	target_hole = hole_ind
 	hole_buttons.hide()
 	start_round()
+	
+func _on_reset_button_pressed() -> void:
+	start_game()
+	
+func _on_first_hit_ball_changed() -> void:
+	first_hit_scratch = not check_is_ball_valid(cue_ball.first_hit_ball_num)
+	
+func cast_aim_ray(aim_dir: Vector2) -> void:
+	var origin = cue_ball.global_position
+	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
+	
+	shape_cast.global_position = origin
+	shape_cast.max_results = 1
+	shape_cast.target_position = 500 * dir
+	shape_cast.collision_mask = 1 << 2
+	
+	shape_cast.force_shapecast_update()
+	
+	if not shape_cast.is_colliding():
+		return
+	
+	var collider = shape_cast.get_collider(0)
+		
+	var collision_point = shape_cast.get_collision_point(0)
+	var collision_normal = shape_cast.get_collision_normal(0).normalized()
+	var aim_guide_line = $UI/AimVisuals/AimGuideLine
+	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
+	
+	var ghost_ball_pos = collision_point + collision_normal * ball_script.BALL_RADIUS
+	
+	$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
+	$UI/AimVisuals/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
+	
+	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
+	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
+	
+	aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
+	
+	var length = 20
+	var normal_comp = dir.project(collision_normal)
+	var surface_comp = dir - normal_comp
+	
+	var cue_ball_endpoint = ghost_ball_pos
+	var object_ball_endpoint = ghost_ball_pos
+	var hitting_ball = collider.name.contains("Ball")
+	
+	if hitting_ball and check_is_ball_valid(collider.ball_num):
+		cue_ball_endpoint = ghost_ball_pos + length * surface_comp
+		object_ball_endpoint = ghost_ball_pos + length * normal_comp
+	elif not hitting_ball:
+		cue_ball_endpoint = ghost_ball_pos + length * (surface_comp - normal_comp)
+		
+	aim_guide_line.set_point_position(2, camera.unproject_position(cue_ball_endpoint))
+	aim_guide_line2.set_point_position(1, camera.unproject_position(object_ball_endpoint))
+	
 	
 func create_balls() -> void:
 	balls = []
@@ -68,27 +132,8 @@ func create_balls() -> void:
 			cue_ball = ball
 			cue_ball.contact_monitor = true
 			cue_ball.max_contacts_reported = 3
-	
-func start_game() -> void:
-	
-	cue_ball.reset(Vector3(-56.0, ball_script.BALL_RADIUS, 0))
-	
-	has_aimed = false
-	game_state = GameState.AIMING
-	
-	player_ind = 0
-	cur_static_ticks = 0
-	solids_player = -1
-	next_solids_player = -1
-	scores = [0, 0]
-	balls_sunk = [0, 0]
-	turn_num = 0
-	play_again = false
-	target_hole = -1
-	
-	hole_buttons.hide()
-	
-	place_rack(56, 0)
+		else:
+			ball.collision_layer += 1 << 2
 	
 func color_ball(ball_node: RigidBody3D) -> void:
 	var texture_path = "res://ball_textures/Ball" + str(ball_node.ball_num) + ".jpg"
@@ -100,11 +145,38 @@ func color_ball(ball_node: RigidBody3D) -> void:
 	
 	var mesh = ball_node.get_node("MeshInstance3D")
 	mesh.set_surface_override_material(0, material)
-
+	
 func pot_all_solids():
 	for ball in balls:
 		if ball.is_solid():
 			process_fallen_ball(ball)
+	
+func start_game() -> void:
+	cue_ball.reset(Vector3(-56, ball_script.BALL_RADIUS, 0))
+	
+	aim_visuals.hide()
+	cue_stick.hide()
+	has_aimed = false
+	slider.value = 0
+	cue_stick.set_force_strength(0.0)
+	aimer._reset_knob()
+	
+	game_state = GameState.AIMING
+	
+	player_ind = 0
+	cur_static_ticks = 0
+	solids_player = -1
+	next_solids_player = -1
+	scores = [0, 0]
+	balls_sunk = [0, 0]
+	turn_num = 0
+	round_num = 0
+	play_again = false
+	target_hole = -1
+	
+	hole_buttons.hide()
+	
+	place_rack(56, 0)
 
 func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 	balls.sort_custom(func(a, b): return a.ball_num < b.ball_num)
@@ -126,7 +198,7 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			var x: float = x_shift + spacing * i * ball_script.BALL_RADIUS * sqrt(3)
 			var z: float = z_shift + (-i + 2 * j) * ball_script.BALL_RADIUS * spacing
 			balls[ball_ind].reset(Vector3(x, ball_script.BALL_RADIUS, z))
-			balls[ball_ind].rotation = Vector3(PI/2, 0, PI)
+			balls[ball_ind].rotation = Vector3(PI / 2, 0, PI)
 			
 			ball_ind += 1
 	
@@ -137,7 +209,9 @@ func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.PLACING:
 		var ray_origin = camera.project_ray_origin(touch_pos)
 		var ray_normal = camera.project_ray_normal(touch_pos)
+		
 		var drop_plane = Plane(Vector3.UP, Vector3(0, ball_script.BALL_RADIUS, 0))
+		
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
 		cue_ball.reset(intersection)
 		start_round()
@@ -215,6 +289,8 @@ func sway_light(amount: float, duration: float) -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	
 func _on_fire_pressed():
+	if not(has_aimed):
+		return
 	var strength = slider.value
 	var angle = cue_stick.angle
 
@@ -259,9 +335,17 @@ func _on_fire_pressed():
 		cue_ball.apply_impulse(force, offset_3d)
 	)
 	print("STRENGTH:", strength)
+	var t :float= clamp(strength / 0.5, 0.0, 1.0)
+	var volume_db :float= lerp(-25.0, 0.0, t)
+	cue_ball.CueCollide.volume_db = volume_db
+	cue_ball.CueCollide.pitch_scale = lerp(0.9, 1.1, t)
+
 	if strength > 95.0:
-		shake_camera(.5, .1)
+		shake_camera(0.5, 0.1)
 		sway_light(7, 7)
+
+	cue_ball.CueCollide.play()
+
 	has_aimed = false
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)
@@ -273,6 +357,38 @@ func check_all_not_moving() -> bool:
 		or ball.get_angular_velocity().length() > ANGULAR_SPEED_THRESH:
 			return false
 	return true
+	
+func process_fallen_ball(ball: RigidBody3D) -> void:
+	if ball.is_eight_ball():
+		var hole_ind = calc_hole_ind_from_pos(ball.position)
+		if scores[player_ind] >= BALLS_BEFORE_EIGHT and target_hole == hole_ind:
+			end_game(player_ind)
+		else:
+			end_game(1 - player_ind)
+	
+	elif not ball.is_cue_ball():
+		if solids_player == -1:
+			play_again = true
+		if ball.is_solid():
+			balls_sunk[0] += 1
+			if solids_player == player_ind:
+				play_again = true
+		elif ball.is_stripe():
+			balls_sunk[1] += 1
+			if solids_player == 1 - player_ind:
+				play_again = true
+		
+		if round_num > 0 and solids_player == -1:
+			if ball.is_solid():
+				next_solids_player = player_ind
+			elif ball.is_stripe():
+				next_solids_player = 1 - player_ind
+		
+		if next_solids_player != -1:
+			scores[next_solids_player] = balls_sunk[0]
+			scores[1 - next_solids_player] = balls_sunk[1]
+	
+	ball.pot()
 	
 func process_fallen_balls() -> void:
 	var fallen_balls: Array[RigidBody3D] = find_fallen_balls()
@@ -305,62 +421,32 @@ func calc_hole_ind_from_pos(pos: Vector3) -> int:
 		hole_ind += 1
 	
 	return hole_ind
-		
 	
-func process_fallen_ball(ball: RigidBody3D) -> void:
-	if ball.is_eight_ball():
-		var hole_ind = calc_hole_ind_from_pos(ball.position)
-		if scores[player_ind] >= BALLS_BEFORE_EIGHT and target_hole == hole_ind:
-			end_game(player_ind)
-		else:
-			end_game(1 - player_ind)
-	
-	elif not ball.is_cue_ball():
-		if solids_player == -1:
-			play_again = true
-		if ball.is_solid():
-			balls_sunk[0] += 1
-			if solids_player == player_ind:
-				play_again = true
-		elif ball.is_stripe():
-			balls_sunk[1] += 1
-			if solids_player == 1 - player_ind:
-				play_again = true
-		
-		if turn_num > 0 and solids_player == -1:
-			if ball.is_solid():
-				next_solids_player = player_ind
-			elif ball.is_stripe():
-				next_solids_player = 1 - player_ind
-		
-		if next_solids_player != -1:
-			scores[next_solids_player] = balls_sunk[0]
-			scores[1 - next_solids_player] = balls_sunk[1]
-	
-	ball.pot()
-	
-func check_for_first_hit_scratch() -> bool:
-	var first_hit_ball_num = cue_ball.first_hit_ball_num
-	if first_hit_ball_num == -1:
+# valid meaning allowed to hit the ball first and it's not a scratch
+func check_is_ball_valid(ball_num: int) -> bool:
+	if ball_num == 0:
 		return false
-	if scores[player_ind] >= BALLS_BEFORE_EIGHT and first_hit_ball_num == 8:
-		return false
-	if solids_player == player_ind and not (1 <= first_hit_ball_num and first_hit_ball_num <= 7):
+	if solids_player == -1:
 		return true
-	if solids_player == 1 - player_ind and not (9 <= first_hit_ball_num and first_hit_ball_num <= 15):
-		return true
-	return false
+	if scores[player_ind] >= BALLS_BEFORE_EIGHT:
+		return ball_num == 8
+	if player_ind == solids_player:
+		return 1 <= ball_num and ball_num <= 7
+	else:
+		return 9 <= ball_num and ball_num <= 15
 	
 func check_for_scratch():
-	return cue_ball.potted or check_for_first_hit_scratch()
+	return cue_ball.potted or first_hit_scratch
 
 func end_round() -> void:
+	round_num += 1
 	
 	target_hole = -1
 	if next_solids_player != -1:
 		solids_player = next_solids_player
 	
 	var scratched = check_for_scratch()
+	first_hit_scratch = false
 	cue_ball.first_hit_ball_num = -1
 	
 	if not scratched and play_again:
@@ -375,6 +461,7 @@ func end_round() -> void:
 		
 func start_round(scratched_prev: bool = false) -> void:
 	if scratched_prev:
+		# 8 ball potted
 		if balls[5].potted:
 			end_game(player_ind)
 		print("Scratch registered")
@@ -389,27 +476,35 @@ func start_round(scratched_prev: bool = false) -> void:
 	
 	game_state = GameState.AIMING
 	
-func _physics_process(delta: float) -> void:
+func process_midturn():
 	if game_state != GameState.MIDTURN:
 		return
-	elif game_state == GameState.MIDTURN:
-		cue_stick.visible = false
 		
 	process_fallen_balls()
-	
+	process_movement()
+
+func process_movement():
 	if check_all_not_moving():
 		cur_static_ticks += 1
 	else:
 		cur_static_ticks = 0
-	
+		
 	if cur_static_ticks == STATIC_TICKS_THRESHOLD:
 		end_round()
+
+func _physics_process(delta: float) -> void:
+	process_midturn()
+		
+func _process(delta: float) -> void:
+	fill_debug_label()
+	fill_info_label()
 	
 func fill_debug_label() -> void:
 	var label_txt = "Static Ticks: " + str(cur_static_ticks)
 	label_txt += "\nGame State: " + str(game_state)
 	label_txt += "\nCurrent Player Ind: " + str(player_ind)
 	label_txt += "\nTurn Num: " + str(turn_num)
+	label_txt += "\nRound Num: " + str(round_num)
 	label_txt += "\nPlayer 0 Score: " + str(scores[0])
 	label_txt += "\nPlayer 1 Score: " + str(scores[1])
 	label_txt += "\nSolids Sunk: " + str(balls_sunk[0])
@@ -417,6 +512,7 @@ func fill_debug_label() -> void:
 	label_txt += "\nSolids Player: " + str(solids_player)
 	label_txt += "\nNext Solids Player: " + str(next_solids_player)
 	label_txt += "\nFirst Hit: " + str(cue_ball.first_hit_ball_num)
+	label_txt += "\nFirst Hit Scratch: " + str(first_hit_scratch)
 	label_txt += "\nPlay Again: " + str(play_again)
 	debug_label.text = label_txt
 
@@ -439,10 +535,3 @@ func fill_info_label() -> void:
 			
 	if game_state == GameState.PLACING:
 		info_label.text += "Your opponent scratched, click to place the cue ball\n"
-
-func _process(delta: float) -> void:
-	fill_debug_label()
-	fill_info_label()
-
-func _on_reset_button_pressed() -> void:
-	start_game()

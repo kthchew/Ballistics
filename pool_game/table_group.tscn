@@ -5,12 +5,18 @@
 [ext_resource type="PhysicsMaterial" uid="uid://da8ohqxk1g88s" path="res://table.tres" id="3_2ca2e"]
 [ext_resource type="PackedScene" uid="uid://cu4vrdboa7shh" path="res://pool_table8.glb" id="3_7x25y"]
 [ext_resource type="Script" uid="uid://drgap37og6e1t" path="res://hole.gd" id="4_2ca2e"]
+[ext_resource type="Script" uid="uid://beipmpvv8h1k" path="res://area_3d.gd" id="4_vtvkm"]
+[ext_resource type="AudioStream" uid="uid://cfk4cqd1xm3eo" path="res://Sounds/alex_jauk-billiard-hole-2-288420.mp3" id="4_x7d4t"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mlwoa"]
 size = Vector3(300, 50, 150)
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_jnl82"]
 height = 20.0
+radius = 4.15
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_x7d4t"]
+height = 2.5
 radius = 4.15
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5y63s"]
@@ -54,51 +60,118 @@ shape = SubResource("BoxShape3D_mlwoa")
 [node name="Holes" type="Area3D" parent="Table" unique_id=1164722396]
 script = ExtResource("4_2ca2e")
 
-[node name="Hole1" type="CollisionShape3D" parent="Table/Holes" unique_id=1613034704]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.826, 0, -50.75)
-shape = SubResource("CylinderShape3D_jnl82")
-
-[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole1" unique_id=209095415]
-
-[node name="Hole2" type="CollisionShape3D" parent="Table/Holes" unique_id=444051080]
+[node name="Hole1" type="CollisionShape3D" parent="Table/Holes" unique_id=444051080]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50.75)
 shape = SubResource("CylinderShape3D_jnl82")
 
-[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole2" unique_id=1147084017]
+[node name="HoleMarker" type="Area3D" parent="Table/Holes/Hole1" unique_id=1552451818]
+script = ExtResource("4_vtvkm")
 
-[node name="Hole3" type="CollisionShape3D" parent="Table/Holes" unique_id=1048187652]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.82, 0, -50.75)
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Table/Holes/Hole1/HoleMarker" unique_id=949601550]
+stream = ExtResource("4_x7d4t")
+volume_db = 25.0
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="HoleMarker" type="CollisionShape3D" parent="Table/Holes/Hole1/HoleMarker" unique_id=375380306]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+shape = SubResource("CylinderShape3D_x7d4t")
+
+[node name="Hole2" type="CollisionShape3D" parent="Table/Holes" unique_id=55915166]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50.75)
 shape = SubResource("CylinderShape3D_jnl82")
 
-[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole3" unique_id=1041987064]
+[node name="HoleMarker" type="Area3D" parent="Table/Holes/Hole2" unique_id=1030239730]
+script = ExtResource("4_vtvkm")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Table/Holes/Hole2/HoleMarker" unique_id=144658315]
+stream = ExtResource("4_x7d4t")
+volume_db = 25.0
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Table/Holes/Hole2/HoleMarker" unique_id=1411873916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+shape = SubResource("CylinderShape3D_x7d4t")
+
+[node name="Hole3" type="CollisionShape3D" parent="Table/Holes" unique_id=1258958387]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.8, 0, 50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="HoleMarker" type="Area3D" parent="Table/Holes/Hole3" unique_id=728222975]
+script = ExtResource("4_vtvkm")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Table/Holes/Hole3/HoleMarker" unique_id=941406339]
+stream = ExtResource("4_x7d4t")
+volume_db = 25.0
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Table/Holes/Hole3/HoleMarker" unique_id=2091062276]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+shape = SubResource("CylinderShape3D_x7d4t")
 
 [node name="Hole4" type="CollisionShape3D" parent="Table/Holes" unique_id=1513126791]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.826, 0, 50.75)
 shape = SubResource("CylinderShape3D_jnl82")
 
-[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole4" unique_id=1994903109]
+[node name="HoleMarker" type="Area3D" parent="Table/Holes/Hole4" unique_id=1265504262]
+script = ExtResource("4_vtvkm")
 
-[node name="Hole5" type="CollisionShape3D" parent="Table/Holes" unique_id=55915166]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50.75)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Table/Holes/Hole4/HoleMarker" unique_id=892230572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+shape = SubResource("CylinderShape3D_x7d4t")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Table/Holes/Hole4/HoleMarker" unique_id=1731415487]
+stream = ExtResource("4_x7d4t")
+volume_db = 25.0
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="Hole5" type="CollisionShape3D" parent="Table/Holes" unique_id=1613034704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.826, 0, -50.75)
 shape = SubResource("CylinderShape3D_jnl82")
 
-[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole5" unique_id=826441738]
+[node name="HoleMarker" type="Area3D" parent="Table/Holes/Hole5" unique_id=71394494]
+script = ExtResource("4_vtvkm")
 
-[node name="Hole6" type="CollisionShape3D" parent="Table/Holes" unique_id=1258958387]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.82, 0, 50.75)
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Table/Holes/Hole5/HoleMarker" unique_id=1163437698]
+stream = ExtResource("4_x7d4t")
+volume_db = 25.0
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Table/Holes/Hole5/HoleMarker" unique_id=2103306769]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+shape = SubResource("CylinderShape3D_x7d4t")
+
+[node name="Hole6" type="CollisionShape3D" parent="Table/Holes" unique_id=1048187652]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.826, 0, -50.75)
 shape = SubResource("CylinderShape3D_jnl82")
 
-[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole6" unique_id=393886873]
+[node name="HoleMarker" type="Area3D" parent="Table/Holes/Hole6" unique_id=457691105]
+script = ExtResource("4_vtvkm")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Table/Holes/Hole6/HoleMarker" unique_id=614991394]
+stream = ExtResource("4_x7d4t")
+volume_db = 25.0
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Table/Holes/Hole6/HoleMarker" unique_id=276271164]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+shape = SubResource("CylinderShape3D_x7d4t")
 
 [node name="BouncyWalls" type="StaticBody3D" parent="." unique_id=1562318490]
+collision_layer = 5
 physics_material_override = ExtResource("1_q33ou")
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="BouncyWalls" unique_id=1300671624]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -124.414955, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -123.8499, 0, 0)
 shape = SubResource("BoxShape3D_5y63s")
 
 [node name="CollisionShape3D3" type="CollisionShape3D" parent="BouncyWalls" unique_id=1104526351]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.320015, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.90443, 0, 0)
 shape = SubResource("BoxShape3D_5y63s")
 
 [node name="CollisionShape3D4" type="CollisionShape3D" parent="BouncyWalls" unique_id=397794200]
@@ -123,6 +196,7 @@ visible = false
 shape = SubResource("BoxShape3D_l6n3u")
 
 [node name="AbsorbentWalls" type="StaticBody3D" parent="." unique_id=1723829790]
+collision_layer = 5
 physics_material_override = ExtResource("2_8iwpp")
 
 [node name="CollisionShape3D8" type="CollisionShape3D" parent="AbsorbentWalls" unique_id=1519470793]
@@ -161,3 +235,9 @@ mesh = SubResource("CylinderMesh_x7d4t")
 
 [connection signal="body_entered" from="Table/Holes" to="Table/Holes" method="_on_body_entered"]
 [connection signal="body_exited" from="Table/Holes" to="Table/Holes" method="_on_body_exited"]
+[connection signal="area_entered" from="Table/Holes/Hole1/HoleMarker" to="Table/Holes/Hole1/HoleMarker" method="_on_area_entered"]
+[connection signal="area_entered" from="Table/Holes/Hole2/HoleMarker" to="Table/Holes/Hole2/HoleMarker" method="_on_area_entered"]
+[connection signal="area_entered" from="Table/Holes/Hole3/HoleMarker" to="Table/Holes/Hole3/HoleMarker" method="_on_area_entered"]
+[connection signal="area_entered" from="Table/Holes/Hole4/HoleMarker" to="Table/Holes/Hole4/HoleMarker" method="_on_area_entered"]
+[connection signal="area_entered" from="Table/Holes/Hole5/HoleMarker" to="Table/Holes/Hole5/HoleMarker" method="_on_area_entered"]
+[connection signal="area_entered" from="Table/Holes/Hole6/HoleMarker" to="Table/Holes/Hole6/HoleMarker" method="_on_area_entered"]
