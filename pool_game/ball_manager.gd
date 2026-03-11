@@ -119,13 +119,6 @@ func check_all_not_moving() -> bool:
 	return true
 	
 func pot_unused_balls():
-	#for ball in balls:
-		#if ball.ball_num != 0 and ball.ball_num != 8:
-			#process_fallen_ball(ball)
-			
-	#for i in range(7 - Constants.BALLS_BEFORE_EIGHT):
-		#process_fallen_ball(balls[1 + i])
-		#process_fallen_ball(balls[9 + i])
 	for ball in balls:
 		if ball.ball_num in range(1, 1 + (7 - Constants.BALLS_BEFORE_EIGHT)):
 			process_fallen_ball(ball)
