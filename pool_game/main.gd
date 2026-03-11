@@ -239,7 +239,8 @@ func _on_aim_changed(touch_pos: Vector2):
 	
 	cue_stick.update_position(cue_ball.global_position)
 	cue_stick.set_angle(angle)
-	cue_stick.visible = true
+	aim_visuals.show()
+	cue_stick.show()
 
 func _on_force_changed(value):
 	var normalized = value / $UI/ForceSlider.max_value
