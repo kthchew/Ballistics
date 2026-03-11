@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://2uo67aipwap1"]
 
-[ext_resource type="Script" uid="uid://dchsaukcs1crx" path="res://block.gd" id="1_im0tn"]
+[ext_resource type="Script" path="res://block.gd" id="1_im0tn"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_dg77c"]
 size = Vector3(10, 10, 5)
@@ -19,7 +19,7 @@ collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_im0tn")
 
-[node name="BlockCollision" type="CollisionShape3D" parent="." unique_id=1289563535]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1289563535]
 shape = SubResource("BoxShape3D_dg77c")
 debug_color = Color(1, 1, 1, 0.41960785)
 
@@ -27,11 +27,11 @@ debug_color = Color(1, 1, 1, 0.41960785)
 collision_layer = 3
 collision_mask = 3
 
-[node name="BlockCollision" type="CollisionShape3D" parent="Area3D" unique_id=106656689]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=106656689]
 shape = SubResource("BoxShape3D_dg77c")
 debug_color = Color(1, 1, 1, 0.41960785)
 
-[node name="BlockMesh" type="MeshInstance3D" parent="." unique_id=1406007474]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1406007474]
 mesh = SubResource("BoxMesh_dg77c")
 
 [connection signal="area_entered" from="Area3D" to="." method="_on_area_3d_area_entered"]

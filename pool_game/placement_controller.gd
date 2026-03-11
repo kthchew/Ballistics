@@ -41,7 +41,9 @@ func _gui_input(event):
 		var t = (table_plane_y - from.y) / dir.y
 		var hit = from + dir * t
 
-		preview.global_position = hit
+		var shape = preview.get_node("CollisionShape3D").shape
+		var half_height = shape.size.y * 0.5
+		preview.global_position = hit + Vector3(0, half_height, 0)
 
 
 func _on_place_button_pressed() -> void:
@@ -50,10 +52,32 @@ func _on_place_button_pressed() -> void:
 		return
 	if preview is RigidBody3D:
 		preview.freeze = false
-	preview.collision_layer = 2
-	preview.set_collision_mask(1)
-	preview.set_collision_mask(2)
+	preview.set_collision_layer_value(3, true)
+	preview.set_collision_mask_value(2, true)
+	preview.set_collision_mask_value(3, true)
 	var parent = get_parent()
 	parent.visible = false
 	parent.get_parent().get_node("UI").visible = true
 	preview = null
+	
+var rotating_left := false
+var rotating_right := false
+
+func _process(delta):
+	if preview:
+		if rotating_left:
+			preview.rotate_y(deg_to_rad(1))
+		if rotating_right:
+			preview.rotate_y(deg_to_rad(-1))
+			
+func _on_rotate_left_button_down():
+	rotating_left = true
+
+func _on_rotate_left_button_up():
+	rotating_left = false
+
+func _on_rotate_right_button_down():
+	rotating_right = true
+
+func _on_rotate_right_button_up():
+	rotating_right = false

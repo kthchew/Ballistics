@@ -76,7 +76,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	shape_cast.global_position = origin
 	shape_cast.max_results = 1
 	shape_cast.target_position = 500 * dir
-	shape_cast.collision_mask = 1 << 2
+	shape_cast.collision_mask = (1 << 2) | (1 << 3)
 	
 	shape_cast.force_shapecast_update()
 	
@@ -106,14 +106,15 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	
 	var cue_ball_endpoint = ghost_ball_pos
 	var object_ball_endpoint = ghost_ball_pos
+	print(collider.name)
 	var hitting_ball = collider.name.contains("Ball")
+	var hitting_block = collider is StaticBody3D
 	
 	if hitting_ball and check_is_ball_valid(collider.ball_num):
 		cue_ball_endpoint = ghost_ball_pos + length * surface_comp
 		object_ball_endpoint = ghost_ball_pos + length * normal_comp
 	elif not hitting_ball:
 		cue_ball_endpoint = ghost_ball_pos + length * (surface_comp - normal_comp)
-		
 	aim_guide_line.set_point_position(2, camera.unproject_position(cue_ball_endpoint))
 	aim_guide_line2.set_point_position(1, camera.unproject_position(object_ball_endpoint))
 	
@@ -203,42 +204,42 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			ball_ind += 1
 	
 func _on_aim_changed(touch_pos: Vector2):
-	if game_state == GameState.MIDTURN or game_state == GameState.ENDED:
+	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
 		return
 		
 	if game_state == GameState.PLACING:
 		var ray_origin = camera.project_ray_origin(touch_pos)
 		var ray_normal = camera.project_ray_normal(touch_pos)
-		
 		var drop_plane = Plane(Vector3.UP, Vector3(0, ball_script.BALL_RADIUS, 0))
-		
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
 		cue_ball.reset(intersection)
 		start_round()
 		return
-		
-	if not has_aimed:
-		has_aimed = true
 
 	var ball_screen_pos = camera.unproject_position(cue_ball.global_position)
 	var dir = ball_screen_pos - touch_pos
-
-	if dir.length() < 20:
+	
+	if dir.length() < 20 or cue_ball.position.z > 60:
 		return
+		
+	has_aimed = true
 
 	var angle = dir.angle()
 	var dir_norm = dir.normalized()
+	
+	cast_aim_ray(dir_norm)
 
 	var ball_center_3d = cue_ball.global_position
 	var ball_edge_3d = ball_center_3d + Vector3(5, 0, 0)
-	var center_screen = $CameraPivot/Camera3D.unproject_position(ball_center_3d)
-	var edge_screen = $CameraPivot/Camera3D.unproject_position(ball_edge_3d)
+	var center_screen = camera.unproject_position(ball_center_3d)
+	var edge_screen = camera.unproject_position(ball_edge_3d)
 	var ball_radius_px = (edge_screen - center_screen).length()
 	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
 	
 	cue_stick.update_position(cue_ball.global_position)
 	cue_stick.set_angle(angle)
-	cue_stick.visible = true
+	aim_visuals.show()
+	cue_stick.show()
 
 func _on_force_changed(value):
 	var normalized = value / $UI/ForceSlider.max_value
@@ -330,7 +331,8 @@ func _on_fire_pressed():
 		.set_ease(Tween.EASE_IN_OUT)
 
 	tween.tween_callback(func():
-		cue_stick.visible = false
+		aim_visuals.hide()
+		cue_stick.hide()
 		cue_stick.striking = false
 		cue_ball.apply_impulse(force, offset_3d)
 	)

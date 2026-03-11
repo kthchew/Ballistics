@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://b3yvxs7qw3v2u" path="res://hole_buttons.gd" id="7_5vw27"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
-[ext_resource type="Script" path="res://placement_controller.gd" id="8_dg77c"]
+[ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://placement_controller.gd" id="8_dg77c"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="8_w48qg"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
@@ -23,6 +23,7 @@ background_mode = 2
 ambient_light_source = 3
 ambient_light_sky_contribution = 0.0
 ambient_light_energy = 0.0
+fog_enabled = true
 fog_light_energy = 0.01
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
@@ -75,6 +76,24 @@ font_size = 18
 
 [sub_resource type="LabelSettings" id="LabelSettings_5vw27"]
 font_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yaehf"]
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 100
+corner_radius_bottom_left = 100
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_074og"]
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vivmo"]
 albedo_texture = ExtResource("11_w48qg")
@@ -345,7 +364,7 @@ offset_top = -200.0
 offset_right = 200.0
 grow_vertical = 0
 
-[node name="Background" type="Button" parent="pUI/Rotate" unique_id=1178531492]
+[node name="rotateLeft" type="Button" parent="pUI/Rotate" unique_id=1178531492]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -354,24 +373,24 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -100.0
 offset_top = -100.0
-offset_right = 100.0
 offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_yaehf")
+text = "Left"
 
-[node name="Knob" type="Button" parent="pUI/Rotate" unique_id=334276626]
+[node name="rotateRight" type="Button" parent="pUI/Rotate" unique_id=334276626]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -5.0
-offset_top = -5.0
-offset_right = 5.0
-offset_bottom = 5.0
-mouse_filter = 2
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_074og")
+text = "Right"
 
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
@@ -409,6 +428,16 @@ volume_db = 30.0
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
 shape = ExtResource("14_w48qg")
 
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1750200922]
+transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.9107674, 0.41267863, 0.05280001, -0.4128225, 0.9092798, -14.222816, 97.954666, 209.47566)
+visible = false
+projection = 1
+size = 130.0
+
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="pUI/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
 [connection signal="pressed" from="pUI/placeButton" to="pUI/placementController" method="_on_place_button_pressed"]
+[connection signal="button_down" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_down"]
+[connection signal="button_up" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_up"]
+[connection signal="button_down" from="pUI/Rotate/rotateRight" to="pUI/placementController" method="_on_rotate_right_button_down"]
+[connection signal="button_up" from="pUI/Rotate/rotateRight" to="pUI/placementController" method="_on_rotate_right_button_up"]
