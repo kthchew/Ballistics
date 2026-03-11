@@ -2,7 +2,6 @@ extends Node
 
 signal ball_sunk(ball: RigidBody3D)
 
-
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
