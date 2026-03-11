@@ -9,7 +9,7 @@ const ANGULAR_SPEED_THRESH: float = 0.25
 const ball_scene = preload("res://ball.tscn")
 
 var balls: Array[Ball]
-var balls_sunk: Array[int]
+var balls_sunk: Array[int] = [0, 0]
 var cue_ball: Ball
 var first_hit_scratch: bool
 
@@ -17,10 +17,10 @@ func init():
 	create_balls()
 	
 func start_game():
-	balls_sunk = [0, 0]
 	cue_ball.reset(Vector3(-56, Constants.BALL_RADIUS, 0))
 	place_rack(56, 0)
-	pot_all_solids()
+	pot_unused_balls()
+	balls_sunk = [0, 0]
 	
 func end_round():
 	first_hit_scratch = false
@@ -118,9 +118,18 @@ func check_all_not_moving() -> bool:
 			return false
 	return true
 	
-func pot_all_solids():
+func pot_unused_balls():
+	#for ball in balls:
+		#if ball.ball_num != 0 and ball.ball_num != 8:
+			#process_fallen_ball(ball)
+			
+	#for i in range(7 - Constants.BALLS_BEFORE_EIGHT):
+		#process_fallen_ball(balls[1 + i])
+		#process_fallen_ball(balls[9 + i])
 	for ball in balls:
-		if ball.ball_num != 0 and ball.ball_num != 8:
+		if ball.ball_num in range(1, 1 + (7 - Constants.BALLS_BEFORE_EIGHT)):
+			process_fallen_ball(ball)
+		if ball.ball_num in range (9, 9 + (7 - Constants.BALLS_BEFORE_EIGHT)):
 			process_fallen_ball(ball)
 	
 func find_fallen_balls() -> Array[RigidBody3D]:
