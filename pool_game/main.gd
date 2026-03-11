@@ -66,7 +66,6 @@ func create_balls() -> void:
 		color_ball(ball)
 		if i == 0:
 			cue_ball = ball
-			cue_ball.body_entered.connect(cue_ball._on_body_entered)
 			cue_ball.contact_monitor = true
 			cue_ball.max_contacts_reported = 3
 	

@@ -4,13 +4,16 @@
 [ext_resource type="Script" uid="uid://b3yvxs7qw3v2u" path="res://hole_buttons.gd" id="7_5vw27"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
+[ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://placement_controller.gd" id="8_dg77c"]
+[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="8_w48qg"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
-[ext_resource type="PackedScene" path="res://cue_stick.tscn" id="11_dg77c"]
+[ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://power_2.gd" id="9_vivmo"]
+[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
-[ext_resource type="Script" path="res://force_slider.gd" id="11_ycdy4"]
-[ext_resource type="Script" path="res://cue_stick.gd" id="12_ycdy4"]
+[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
+[ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -19,8 +22,6 @@ ambient_light_sky_contribution = 0.0
 ambient_light_energy = 0.0
 fog_enabled = true
 fog_light_energy = 0.01
-
-[sub_resource type="GDScript" id="GDScript_5vw27"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
 texture = ExtResource("9_efxa6")
@@ -88,13 +89,14 @@ transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
 transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.4210855e-14, 0, 1.4210855e-14, 1.0000001, 0, -3.5294624e-06, 115.74469)
-size = 130.0
+projection = 1
+size = 200.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
 environment = SubResource("Environment_4c57u")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1888597792]
-script = SubResource("GDScript_5vw27")
+visible = false
 
 [node name="AimInputRegion" type="Control" parent="UI" unique_id=944627298]
 layout_mode = 3
@@ -229,8 +231,121 @@ offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("7_5vw27")
 
+[node name="pUI" type="CanvasLayer" parent="." unique_id=1463384008]
+
+[node name="HBoxContainer" type="HBoxContainer" parent="pUI" unique_id=1034607390]
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -27.0
+offset_bottom = 27.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 90
+alignment = 1
+
+[node name="Power1" type="Button" parent="pUI/HBoxContainer" unique_id=379034427]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("8_w48qg")
+theme_override_font_sizes/font_size = 44
+text = "Option 1"
+
+[node name="Power2" type="Button" parent="pUI/HBoxContainer" unique_id=1417258925]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("8_w48qg")
+theme_override_font_sizes/font_size = 44
+text = "Block"
+script = ExtResource("9_vivmo")
+
+[node name="Power3" type="Button" parent="pUI/HBoxContainer" unique_id=1937977840]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("8_w48qg")
+theme_override_font_sizes/font_size = 44
+text = "Option 3"
+
+[node name="placementController" type="Control" parent="pUI" unique_id=1682392652]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 40.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("8_dg77c")
+
+[node name="placeButton" type="Button" parent="pUI" unique_id=1569992797]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -100.0
+offset_right = -50.0
+offset_bottom = -50.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Background" type="Panel" parent="pUI/placeButton" unique_id=323250726]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -50.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
+
+[node name="Rotate" type="Control" parent="pUI" unique_id=1507078927]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -200.0
+offset_right = 200.0
+grow_vertical = 0
+
+[node name="Background" type="Button" parent="pUI/Rotate" unique_id=1178531492]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Knob" type="Button" parent="pUI/Rotate" unique_id=334276626]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -5.0
+offset_top = -5.0
+offset_right = 5.0
+offset_bottom = 5.0
+mouse_filter = 2
+
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
+metadata/psx_material = "opaque_double"
 
 [node name="CueStick" parent="." unique_id=1895437411 instance=ExtResource("11_dg77c")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
@@ -255,4 +370,8 @@ shadow_opacity = 0.7
 spot_range = 270.72592
 spot_angle = 72.564
 
+[node name="PreviewContainer" type="Node3D" parent="." unique_id=1410175614]
+
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="pUI/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
+[connection signal="pressed" from="pUI/placeButton" to="pUI/placementController" method="_on_place_button_pressed"]
