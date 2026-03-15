@@ -47,10 +47,10 @@ func pot():
 	teleport(pos)
 	potted = true
 
-@onready var ai_controller = self.get_parent().get_parent().find_children("*", "AIController3D")[0]
-@onready var holes = self.get_parent().get_parent().find_children("TableGroup")[0].find_children("Holes")[0]
-#@onready var ai_controller = $/AIController3D
-#@onready var holes = $/TableGroup/Table/Holes
+@onready var holes = $"../../TableGroup/Table/Holes"
+@onready var ai_controller = $"../../AIController3D"
+#@onready var ai_controller = self.get_parent().get_parent().find_children("*", "AIController3D")[0]
+#@onready var holes = self.get_parent().get_parent().find_children("TableGroup")[0].find_children("Holes")[0]
 
 func _physics_process(delta):
 	var friction_accel := 2
