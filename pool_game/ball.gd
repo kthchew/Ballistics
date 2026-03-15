@@ -1,10 +1,15 @@
-extends RigidBody3D
+class_name Ball extends RigidBody3D
 
-var last_vel: Vector3 = Vector3(0, 0, 0)
+signal first_hit_ball_changed
+
 var ball_num: int = 0
 var first_hit_ball_num: int = -1
 var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
+var potted: bool = false
+
+func _ready() -> void:
+	self.body_entered.connect(self._on_body_entered)
 
 var closest_dist_ever_to_hole: float = 1e308
 
@@ -21,24 +26,34 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var new_transform = state.transform
 		new_transform.origin = teleport_pos
 		state.transform = new_transform
+		
+func reset(pos: Vector3):
+	teleport(pos)
+	linear_velocity = Vector3(0, 0, 0)
+	angular_velocity = Vector3(0, 0, 0)
+	rotation = Vector3(0, 0, 0)
+	freeze = false
+	potted = false
+	first_hit_ball_num = -1
+	show()
+
+func pot():
+	linear_velocity = Vector3(0, 0, 0)
+	angular_velocity = Vector3(0, 0, 0)
+	rotation = Vector3(PI / 2, 0, PI)
+	freeze = true
+	# position set manually + teleport are both needed for some reason
+	var pos = Vector3(-42 + 2 * Constants.BALL_RADIUS * ball_num, 0, 68)
+	position = pos
+	teleport(pos)
+	potted = true
 
 @onready var ai_controller = $"../AIController3D"
 @onready var holes = $"../TableGroup/Table/Holes"
 #@onready var ai_controller = $AIController3D
 #@onready var holes = $TableGroup/Table/Holes
 
-func reset():
-	position = Vector3(-56.0, 2.85, 0)
-	linear_velocity = Vector3(0, 0, 0)
-	angular_velocity = Vector3(0, 0, 0)	
-	freeze = false
-	show()
-
 func _physics_process(delta):
-	#if is_cue_ball() and linear_velocity.length() != 0 and last_vel.length() < 0.01:
-		#print("Cue ball velocity: " + str(linear_velocity))
-	
-	last_vel = linear_velocity
 	var friction_accel := 2
 
 	linear_velocity = linear_velocity.move_toward(Vector3.ZERO, friction_accel * delta)
@@ -92,6 +107,7 @@ func _on_body_entered(body: Node) -> void:
 	#print("Collision with cue ball: " + body.name)
 	if first_hit_ball_num <= 0 and body.name.contains("Ball"):
 		first_hit_ball_num = body.ball_num
+		first_hit_ball_changed.emit()
 		ai_controller.reward -= 0.2
 		if body.ball_num < 8 or (body.ball_num == 8 and $"..".balls_sunk[0] == 7):
 			ai_controller.reward += 0.23

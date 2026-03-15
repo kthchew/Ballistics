@@ -47,46 +47,59 @@ physics_material_override = ExtResource("3_2ca2e")
 [node name="pool_table8" parent="Table" unique_id=1934817514 instance=ExtResource("3_7x25y")]
 transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, 0, 0)
 
-[node name="Floor" type="CollisionShape3D" parent="Table" unique_id=737817082]
+[node name="TableCollider" type="CollisionShape3D" parent="Table" unique_id=737817082]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -25, 0)
 shape = SubResource("BoxShape3D_mlwoa")
 
 [node name="Holes" type="Area3D" parent="Table" unique_id=1164722396]
 script = ExtResource("4_2ca2e")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Table/Holes" unique_id=444051080]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50.75)
-shape = SubResource("CylinderShape3D_jnl82")
-
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="Table/Holes" unique_id=55915166]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50.75)
-shape = SubResource("CylinderShape3D_jnl82")
-
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="Table/Holes" unique_id=1258958387]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.8, 0, 50.75)
-shape = SubResource("CylinderShape3D_jnl82")
-
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="Table/Holes" unique_id=1513126791]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.826, 0, 50.75)
-shape = SubResource("CylinderShape3D_jnl82")
-
-[node name="CollisionShape3D5" type="CollisionShape3D" parent="Table/Holes" unique_id=1613034704]
+[node name="Hole1" type="CollisionShape3D" parent="Table/Holes" unique_id=1613034704]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.826, 0, -50.75)
 shape = SubResource("CylinderShape3D_jnl82")
 
-[node name="CollisionShape3D6" type="CollisionShape3D" parent="Table/Holes" unique_id=1048187652]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.826, 0, -50.75)
+[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole1" unique_id=209095415]
+
+[node name="Hole2" type="CollisionShape3D" parent="Table/Holes" unique_id=444051080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50.75)
 shape = SubResource("CylinderShape3D_jnl82")
 
+[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole2" unique_id=1147084017]
+
+[node name="Hole3" type="CollisionShape3D" parent="Table/Holes" unique_id=1048187652]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.82, 0, -50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole3" unique_id=1041987064]
+
+[node name="Hole4" type="CollisionShape3D" parent="Table/Holes" unique_id=1513126791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.826, 0, 50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole4" unique_id=1994903109]
+
+[node name="Hole5" type="CollisionShape3D" parent="Table/Holes" unique_id=55915166]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole5" unique_id=826441738]
+
+[node name="Hole6" type="CollisionShape3D" parent="Table/Holes" unique_id=1258958387]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.82, 0, 50.75)
+shape = SubResource("CylinderShape3D_jnl82")
+
+[node name="HoleMarker" type="Marker3D" parent="Table/Holes/Hole6" unique_id=393886873]
+
 [node name="BouncyWalls" type="StaticBody3D" parent="." unique_id=1562318490]
+collision_layer = 5
 physics_material_override = ExtResource("1_q33ou")
 
 [node name="CollisionShape3D2" type="CollisionShape3D" parent="BouncyWalls" unique_id=1300671624]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -124.414955, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -123.8499, 0, 0)
 shape = SubResource("BoxShape3D_5y63s")
 
 [node name="CollisionShape3D3" type="CollisionShape3D" parent="BouncyWalls" unique_id=1104526351]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.320015, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.90443, 0, 0)
 shape = SubResource("BoxShape3D_5y63s")
 
 [node name="CollisionShape3D4" type="CollisionShape3D" parent="BouncyWalls" unique_id=397794200]
@@ -111,6 +124,7 @@ visible = false
 shape = SubResource("BoxShape3D_l6n3u")
 
 [node name="AbsorbentWalls" type="StaticBody3D" parent="." unique_id=1723829790]
+collision_layer = 5
 physics_material_override = ExtResource("2_8iwpp")
 
 [node name="CollisionShape3D8" type="CollisionShape3D" parent="AbsorbentWalls" unique_id=1519470793]
@@ -128,6 +142,8 @@ shape = SubResource("BoxShape3D_8iwpp")
 [node name="CollisionShape3D11" type="CollisionShape3D" parent="AbsorbentWalls" unique_id=523160879]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -133.4, 0, 0)
 shape = SubResource("BoxShape3D_8iwpp")
+
+[node name="Marker3D" type="Marker3D" parent="." unique_id=74192154]
 
 [node name="MeshInstance3D3" type="MeshInstance3D" parent="." unique_id=1862163959]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, -35, -40)
