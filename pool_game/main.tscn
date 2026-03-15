@@ -11,9 +11,8 @@
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
 [ext_resource type="Script" path="res://force_slider.gd" id="11_ycdy4"]
-[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="12_dg77c"]
 [ext_resource type="Script" uid="uid://b8a4li8lvbc73" path="res://single_controller.gd" id="12_dg77c"]
-[ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
+[ext_resource type="Script" path="res://cue_stick.gd" id="12_ycdy4"]
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="14_w48qg"]
 [ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://classical_ai.gd" id="15_vivmo"]
 
@@ -290,7 +289,6 @@ spot_range = 270.72592
 spot_angle = 72.564
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
-shape = ExtResource("12_dg77c")
 collision_mask = 0
 
 [node name="BallManager" type="Node" parent="." unique_id=1345349029]
@@ -299,8 +297,6 @@ script = ExtResource("14_w48qg")
 [node name="ClassicalAI" type="Node" parent="." unique_id=588989861]
 script = ExtResource("15_vivmo")
 
-[connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
-
 [node name="AIController3D" type="Node3D" parent="." unique_id=913085895]
 script = ExtResource("12_dg77c")
 control_mode = 4
@@ -308,3 +304,5 @@ expert_demo_save_path = "demos/demo.json"
 remove_last_episode_key = SubResource("InputEventKey_ycdy4")
 action_repeat = 1
 metadata/_custom_type_script = "uid://c3x2s2t3a8tf5"
+
+[connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]

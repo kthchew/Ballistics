@@ -2,8 +2,8 @@ extends Node
 
 signal ai_aimed(dir: Vector2)
 
-@onready var shape_cast = $/root/Main/ShapeCast3D
-
+@onready var shape_cast = $"../ShapeCast3D"
+@onready var holes = $"../TableGroup/Table/Holes"
 var hole_locs: Array[Vector3]
 var ghost_circle: Node2D
 var hole_circle: Node2D
@@ -32,8 +32,7 @@ func _ready():
 	var dx = [-1, 1, 0, 0]
 	var dz = [0, 0, -1, 1]
 	for hole_ind in range(6):
-		var path_str = "/root/Main/TableGroup/Table/Holes/Hole" + str(hole_ind + 1) + "/HoleMarker"
-		var hole_marker = get_node(path_str)
+		var hole_marker = holes.get_children()[hole_ind].find_children("HoleMarker")[0]
 		var pos = hole_marker.global_position
 		hole_locs.append(pos)
 		for aberration_ind in range(4):

@@ -2,7 +2,7 @@ extends AIController3D
 
 @onready var slider = $"../UI/ForceSlider"
 @onready var aimer = $"../UI/Aimer"
-@onready var cue_stick = $"../CueStick"
+@onready var cue_stick = $"../UI/AimVisuals/CueStick"
 
 var action_angle = 0.0
 var action_power = 0.0
