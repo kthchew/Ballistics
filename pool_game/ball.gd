@@ -10,11 +10,10 @@ var potted: bool = false
 
 func _ready() -> void:
 	self.body_entered.connect(self._on_body_entered)
+	closest_dist_ever_to_hole = min(distance_to_closest_hole(), closest_dist_ever_to_hole)
+	#var ai_controller = get_tree().get_nodes_in_group("AGENT")[0]
 
 var closest_dist_ever_to_hole: float = 1e308
-
-func _ready() -> void:
-	closest_dist_ever_to_hole = min(distance_to_closest_hole(), closest_dist_ever_to_hole)
 
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true
@@ -48,10 +47,10 @@ func pot():
 	teleport(pos)
 	potted = true
 
-@onready var ai_controller = $"../AIController3D"
-@onready var holes = $"../TableGroup/Table/Holes"
-#@onready var ai_controller = $AIController3D
-#@onready var holes = $TableGroup/Table/Holes
+@onready var ai_controller = self.get_parent().get_parent().find_children("*", "AIController3D")[0]
+@onready var holes = self.get_parent().get_parent().find_children("TableGroup")[0].find_children("Holes")[0]
+#@onready var ai_controller = $/AIController3D
+#@onready var holes = $/TableGroup/Table/Holes
 
 func _physics_process(delta):
 	var friction_accel := 2
@@ -97,6 +96,8 @@ func distance_to_closest_hole():
 	if not visible:
 		return 0
 	var dist = 9999
+	#var holes = get_tree().get_nodes_in_group("HOLE")
+	#for hole in holes:
 	for hole in holes.get_children():
 		var hole_dist = hole.global_position.distance_to(global_position)
 		if hole_dist < dist:

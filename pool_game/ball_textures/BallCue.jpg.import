@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ddroi41cdaecn"
 path.s3tc="res://.godot/imported/BallCue.jpg-7075baf2b6ef7fcd5b520415fb8a5b22.s3tc.ctex"
+path.etc2="res://.godot/imported/BallCue.jpg-7075baf2b6ef7fcd5b520415fb8a5b22.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://ball_textures/BallCue.jpg"
-dest_files=["res://.godot/imported/BallCue.jpg-7075baf2b6ef7fcd5b520415fb8a5b22.s3tc.ctex"]
+dest_files=["res://.godot/imported/BallCue.jpg-7075baf2b6ef7fcd5b520415fb8a5b22.s3tc.ctex", "res://.godot/imported/BallCue.jpg-7075baf2b6ef7fcd5b520415fb8a5b22.etc2.ctex"]
 
 [params]
 
