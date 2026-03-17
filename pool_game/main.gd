@@ -721,6 +721,9 @@ func end_round() -> void:
 	start_round(scratched)
 
 func process_midturn():
+	ball_manager.process_fallen_balls()
+	process_movement()
+	
 	if (ai_controller.needs_reset):
 		ai_controller.done = true #guarantees "terminal" branch in sync node?
 		var sync = get_tree().get_nodes_in_group("SYNC")
@@ -730,8 +733,6 @@ func process_midturn():
 		start_game()
 		return
 	
-	ball_manager.process_fallen_balls()
-	process_movement()
 
 func process_movement():
 	if ball_manager.check_all_not_moving():
