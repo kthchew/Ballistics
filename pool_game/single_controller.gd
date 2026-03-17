@@ -34,20 +34,22 @@ func sort_balls_by_num(a, b):
 
 #-- Methods that need implementing using the "extend script" option in Godot --#
 func get_obs() -> Dictionary:
-	var balls = _player.balls
+	var balls = _player.ball_manager.balls.duplicate()
 	balls.sort_custom(sort_balls_by_num)
 	var obs = []
 	
-	var cue_ball = $"../CueBall"
-	var cue_pos = cue_ball.position
+	var cue_pos = _player.ball_manager.cue_ball.position
 	obs.append_array([
 		cue_pos.x / 109, #-1->1 
 		#clamp(((cue_pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
 		(cue_pos.z + 53) / (2 * 53) #0->1
 	])
-	for ball in balls.slice(1):
-		var x_diff = ball.position.x - cue_ball.position.x
-		var z_diff = ball.position.z - cue_ball.position.z
+	for i in range(1, len(balls)):
+		var ball = balls[i]
+		if ($"..".player_ind != $"..".solids_player): #recorded demo always "aims for" solids
+			ball = balls[16 - i]
+		var x_diff = ball.position.x - cue_pos.x
+		var z_diff = ball.position.z - cue_pos.z
 		obs.append_array([
 			1.0 if ball.is_visible() else 0.0,
 			x_diff / 218 if ball.is_visible() else 0.0,
@@ -73,8 +75,8 @@ func get_action_space() -> Dictionary:
 func get_info() -> Dictionary:
 	if done: 
 		return {
-			"solids_sunk": $"..".balls_sunk[0],
-			"stripes_sunk": $"..".balls_sunk[1],
+			"solids_sunk": $"..".ball_manager.balls_sunk[0],
+			"stripes_sunk": $"..".ball_manager.balls_sunk[1],
 			"eight_ball_sunk": eight_ball_sunk,
 			"cue_ball_sink_count": cue_ball_sink_count
 		}
@@ -94,9 +96,7 @@ func set_action(action=null) -> void:
 		action_posy = aimer.output[1]
 	#fire.emit()
 
-
 #-----------------------------------------------------------------------------#
-
 
 #-- Methods that sometimes need implementing using the "extend script" option in Godot --#
 # Only needed if you are recording expert demos with this AIController

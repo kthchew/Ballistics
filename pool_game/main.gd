@@ -399,8 +399,11 @@ func start_round(scratched_prev: bool = false) -> void:
 		game_state = GameState.PICKPOCKET
 		hole_buttons.show()
 		return
+		
+	game_state = GameState.AIMING
+		
 	#if player_ind == 0:
-		#classical_ai.find_shots(ball_manager.cue_ball, ball_manager.get_pottable_balls(player_ind, solids_player, scores))
+	classical_ai.find_shots(ball_manager.cue_ball, ball_manager.get_pottable_balls(player_ind, solids_player, scores))
 
 
 func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:

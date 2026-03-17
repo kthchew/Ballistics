@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://cue_stick.gd" id="12_ycdy4"]
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="14_w48qg"]
 [ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://classical_ai.gd" id="15_vivmo"]
+[ext_resource type="Script" uid="uid://dw43wplnt70pi" path="res://addons/godot_rl_agents/sync.gd" id="16_2cqfq"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -304,5 +305,10 @@ expert_demo_save_path = "demos/demo.json"
 remove_last_episode_key = SubResource("InputEventKey_ycdy4")
 action_repeat = 1
 metadata/_custom_type_script = "uid://c3x2s2t3a8tf5"
+
+[node name="Sync" type="Node" parent="." unique_id=1623843261]
+script = ExtResource("16_2cqfq")
+action_repeat = 1
+metadata/_custom_type_script = "uid://dw43wplnt70pi"
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
