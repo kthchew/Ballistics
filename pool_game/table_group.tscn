@@ -4,7 +4,7 @@
 [ext_resource type="PhysicsMaterial" uid="uid://cdapvl7elmtrh" path="res://absorbent_wall.tres" id="2_8iwpp"]
 [ext_resource type="PhysicsMaterial" uid="uid://da8ohqxk1g88s" path="res://table.tres" id="3_2ca2e"]
 [ext_resource type="PackedScene" uid="uid://cu4vrdboa7shh" path="res://pool_table8.glb" id="3_7x25y"]
-[ext_resource type="Script" uid="uid://drgap37og6e1t" path="res://hole.gd" id="4_2ca2e"]
+[ext_resource type="Script" path="res://hole.gd" id="4_2ca2e"]
 [ext_resource type="Script" uid="uid://beipmpvv8h1k" path="res://area_3d.gd" id="4_vtvkm"]
 [ext_resource type="AudioStream" uid="uid://cfk4cqd1xm3eo" path="res://Sounds/alex_jauk-billiard-hole-2-288420.mp3" id="4_x7d4t"]
 
