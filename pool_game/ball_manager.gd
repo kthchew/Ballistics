@@ -10,6 +10,7 @@ const ball_scene = preload("res://ball.tscn")
 
 var balls: Array[Ball]
 var balls_sunk: Array[int] = [0, 0]
+var prev_sunk: Array[int] = [0, 0]
 var cue_ball: Ball
 var first_hit_scratch: bool
 
@@ -21,6 +22,7 @@ func start_game():
 	place_rack(56, 0)
 	pot_unused_balls()
 	balls_sunk = [0, 0]
+	prev_sunk = [0, 0]
 	
 func end_round():
 	first_hit_scratch = false

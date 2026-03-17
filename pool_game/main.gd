@@ -245,6 +245,10 @@ func _on_ball_sunk(ball):
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
 			end_game(player_ind)
 		else:
+			var sync = get_tree().get_nodes_in_group("SYNC")
+			print("Removing really unsuccessful shot...")
+			sync[0].current_demo_trajectory[0].pop_back()
+			sync[0].current_demo_trajectory[1].pop_back()
 			end_game(1 - player_ind)
 	
 	elif not ball.is_cue_ball():
@@ -700,6 +704,15 @@ func add_to_ewma(won: bool):
 	#return cue_ball_potted or check_for_first_hit_scratch()
 
 func end_round() -> void:
+	ai_controller.increment_n_steps()
+	if ((solids_player != -1 and ball_manager.balls_sunk[int(player_ind != solids_player)] == ball_manager.prev_sunk[int(player_ind != solids_player)])
+	or (solids_player == -1 and ball_manager.balls_sunk[0] == ball_manager.prev_sunk[0] and ball_manager.balls_sunk[1] == ball_manager.prev_sunk[1])):
+		var sync = get_tree().get_nodes_in_group("SYNC")
+		print("Removing unsuccessful shot...")
+		sync[0].current_demo_trajectory[0].pop_back()
+		sync[0].current_demo_trajectory[1].pop_back()
+	ball_manager.prev_sunk = ball_manager.balls_sunk.duplicate()
+	
 	round_num += 1
 	
 	target_hole = -1
@@ -708,7 +721,6 @@ func end_round() -> void:
 	
 	var scratched = ball_manager.check_scratch()
 	ball_manager.end_round()
-	ai_controller.increment_n_steps()
 	
 	if not scratched and play_again:
 		play_again = false
