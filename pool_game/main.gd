@@ -386,19 +386,24 @@ func end_game(winner: int) -> void:
 	self.winner = winner
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
+	#start_game()
+	ai_controller.needs_reset = true
+	process_midturn() #this is jank but should work
 		
 func start_round(scratched_prev: bool = false) -> void:
 	if scratched_prev:
 		if ball_manager.check_eight_ball_potted():
 			end_game(player_ind)
 		print("Scratch registered")
-		game_state = GameState.PLACING
+		#game_state = GameState.PLACING
+		
 		ball_manager.cue_ball.pot()
-		return
-	if target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
-		game_state = GameState.PICKPOCKET
-		hole_buttons.show()
-		return
+		ball_manager.reset_cue_ball(Vector3(-56, Constants.BALL_RADIUS, 0))
+		#return
+	#if target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
+		#game_state = GameState.PICKPOCKET
+		#hole_buttons.show()
+		#return
 		
 	game_state = GameState.AIMING
 		
@@ -703,6 +708,7 @@ func end_round() -> void:
 	
 	var scratched = ball_manager.check_scratch()
 	ball_manager.end_round()
+	ai_controller.increment_n_steps()
 	
 	if not scratched and play_again:
 		play_again = false
@@ -716,6 +722,7 @@ func end_round() -> void:
 
 func process_midturn():
 	if (ai_controller.needs_reset):
+		ai_controller.done = true #guarantees "terminal" branch in sync node?
 		var sync = get_tree().get_nodes_in_group("SYNC")
 		sync[0]._demo_record_process()
 		
