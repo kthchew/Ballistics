@@ -350,7 +350,7 @@ func start_round(scratched_prev: bool = false) -> void:
 	game_state = GameState.AIMING
 	
 	#if player_ind == 0:
-	#classical_ai.find_shots(ball_manager.cue_ball, ball_manager.get_pottable_balls(player_ind, solids_player, scores))
+	classical_ai.find_shots(ball_manager.cue_ball, ball_manager.get_pottable_balls(player_ind, solids_player, scores))
 	
 func end_round() -> void:
 	round_num += 1

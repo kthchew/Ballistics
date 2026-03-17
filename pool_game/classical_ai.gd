@@ -84,8 +84,7 @@ func find_shots(cue_ball: Ball, obj_balls: Array[Ball]):
 	for obj_ball in obj_balls:
 		if obj_ball.potted or obj_ball == cue_ball:
 			continue
-		for i in range(6):
-			var hole_loc = hole_locs[i]
+		for hole_loc in hole_locs:
 			if await find_shot(cue_ball, obj_ball, hole_loc):
 				print("choosing shot: ball num = ", obj_ball.ball_num, " hole loc = ", hole_loc)
 				found_shot = true

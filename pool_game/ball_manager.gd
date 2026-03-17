@@ -19,7 +19,7 @@ func start_game():
 	balls_sunk = [0, 0]
 	cue_ball.reset(Vector3(-56, Constants.BALL_RADIUS, 0))
 	place_rack(56, 0)
-	pot_all_solids()
+	#pot_all_solids()
 	
 func end_round():
 	first_hit_scratch = false
