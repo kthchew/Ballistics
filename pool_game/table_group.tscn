@@ -165,7 +165,7 @@ unit_size = 100.0
 emission_angle_enabled = true
 
 [node name="BouncyWalls" type="StaticBody3D" parent="." unique_id=1562318490]
-collision_layer = 0
+collision_layer = 5
 physics_material_override = ExtResource("1_q33ou")
 
 [node name="Wall1" type="CollisionShape3D" parent="BouncyWalls" unique_id=397794200]
