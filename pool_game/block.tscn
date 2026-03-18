@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://2uo67aipwap1"]
 
 [ext_resource type="Script" path="res://block.gd" id="1_im0tn"]
+[ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://wall.tres" id="1_xfwl5"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_dg77c"]
 size = Vector3(10, 10, 5)
@@ -17,6 +18,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 disable_mode = 2
 collision_layer = 0
 collision_mask = 0
+physics_material_override = ExtResource("1_xfwl5")
 script = ExtResource("1_im0tn")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1289563535]

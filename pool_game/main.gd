@@ -11,8 +11,10 @@ extends Node3D
 @onready var aim_visuals = $UI/AimVisuals
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var shape_cast = $ShapeCast3D
+@onready var crazy = true
+@onready var cashout = false
 
-enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
+enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY}
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
@@ -36,13 +38,16 @@ var winner: int = -1
 var play_again: bool = false
 var target_hole: int = -1
 var first_hit_scratch: bool = false
+var money = [0,0]
 
 const ball_scene = preload("res://ball.tscn")
 const ball_script = preload("res://ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
-	
+	if get_tree().get_meta("crazy"):
+		crazy = true
+
 	create_balls()
 	cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
 	start_game()
@@ -52,6 +57,7 @@ func _ready() -> void:
 	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
 	$UI.visible = true
+	
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
@@ -106,7 +112,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	
 	var cue_ball_endpoint = ghost_ball_pos
 	var object_ball_endpoint = ghost_ball_pos
-	print(collider.name)
+	# print(collider.name)
 	var hitting_ball = collider.name.contains("Ball")
 	var hitting_block = collider is StaticBody3D
 	
@@ -170,6 +176,7 @@ func start_game() -> void:
 	next_solids_player = -1
 	scores = [0, 0]
 	balls_sunk = [0, 0]
+	money = [0, 0]
 	turn_num = 0
 	round_num = 0
 	play_again = false
@@ -246,7 +253,7 @@ func _on_force_changed(value):
 	cue_stick.set_force_strength(normalized)
 	
 func shake_camera(intensity: float, duration: float) -> void:
-	print("Shake Camera")
+	# print("Shake Camera")
 	var cam := $CameraPivot/Camera3D
 	var original :Vector3 = cam.rotation_degrees
 
@@ -336,7 +343,7 @@ func _on_fire_pressed():
 		cue_stick.striking = false
 		cue_ball.apply_impulse(force, offset_3d)
 	)
-	print("STRENGTH:", strength)
+	# print("STRENGTH:", strength)
 	var t :float= clamp(strength / 0.5, 0.0, 1.0)
 	var volume_db :float= lerp(-25.0, 0.0, t)
 	cue_ball.CueCollide.volume_db = volume_db
@@ -373,10 +380,14 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 			play_again = true
 		if ball.is_solid():
 			balls_sunk[0] += 1
+			money[0] += 1
+			$CashOut/Panel/VBoxContainer/Label.text = "Cash: " + str(money[0])
 			if solids_player == player_ind:
 				play_again = true
 		elif ball.is_stripe():
 			balls_sunk[1] += 1
+			money[1] += 1
+			$CashOut/Panel/VBoxContainer/Label.text = "Cash: " + str(money[1])
 			if solids_player == 1 - player_ind:
 				play_again = true
 		
@@ -389,7 +400,11 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 		if next_solids_player != -1:
 			scores[next_solids_player] = balls_sunk[0]
 			scores[1 - next_solids_player] = balls_sunk[1]
-	
+			
+			
+		if crazy:
+			print("ball fall CASHOUT")
+			cashout = true	
 	ball.pot()
 	
 func process_fallen_balls() -> void:
@@ -441,6 +456,11 @@ func check_for_scratch():
 	return cue_ball.potted or first_hit_scratch
 
 func end_round() -> void:
+	if cashout:
+		print("end_round CASHOUT")
+		$UI.visible = false
+		$CashOut.visible = true
+		return
 	round_num += 1
 	
 	target_hole = -1
@@ -461,7 +481,9 @@ func end_round() -> void:
 	player_ind = 1 - player_ind
 	start_round(scratched)
 		
+
 func start_round(scratched_prev: bool = false) -> void:
+		
 	if scratched_prev:
 		# 8 ball potted
 		if balls[5].potted:
@@ -516,6 +538,9 @@ func fill_debug_label() -> void:
 	label_txt += "\nFirst Hit: " + str(cue_ball.first_hit_ball_num)
 	label_txt += "\nFirst Hit Scratch: " + str(first_hit_scratch)
 	label_txt += "\nPlay Again: " + str(play_again)
+	if crazy:
+		label_txt += "\nStripes Crazy Currency: " + str(money[0])
+		label_txt += "\nSolids Crazy Currency: " + str(money[1])
 	debug_label.text = label_txt
 
 func fill_info_label() -> void:
@@ -537,3 +562,19 @@ func fill_info_label() -> void:
 			
 	if game_state == GameState.PLACING:
 		info_label.text += "Your opponent scratched, click to place the cue ball\n"
+
+
+func _on_no_pressed() -> void:
+	$CashOut.visible = false
+	$UI.visible = true
+	cashout = false
+	end_round()
+
+func _on_yes_pressed() -> void:
+	game_state = GameState.CRAZY
+	$CashOut.visible = false
+	$pUI.visible = true
+
+func _on_place_button_pressed() -> void:
+	cashout = false
+	end_round()

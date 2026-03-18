@@ -52,7 +52,10 @@ func _on_place_button_pressed() -> void:
 		return
 	if preview is RigidBody3D:
 		preview.freeze = false
+	preview.set_collision_layer_value(1, true)
+	preview.set_collision_layer_value(2, true)
 	preview.set_collision_layer_value(3, true)
+	preview.set_collision_mask_value(1, true)
 	preview.set_collision_mask_value(2, true)
 	preview.set_collision_mask_value(3, true)
 	var parent = get_parent()

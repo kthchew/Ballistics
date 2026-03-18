@@ -8,8 +8,9 @@
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="8_w48qg"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
-[ext_resource type="Script" path="res://power_2.gd" id="9_vivmo"]
+[ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://power_2.gd" id="9_vivmo"]
 [ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://aim_guide_circle.gd" id="10_ycdy4"]
+[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_074og"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
@@ -76,6 +77,35 @@ font_size = 18
 
 [sub_resource type="LabelSettings" id="LabelSettings_5vw27"]
 font_size = 24
+
+[sub_resource type="GDScript" id="GDScript_yaehf"]
+script/source = "extends CanvasLayer
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+
+
+func _on_yes_pressed() -> void:
+	pass # Replace with function body.
+
+
+
+func _on_no_pressed() -> void:
+	pass # Replace with function body.
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cegan"]
+bg_color = Color(0.15686275, 0.15686275, 0.15686275, 0.78431374)
+
+[sub_resource type="Theme" id="Theme_cegan"]
+default_font = ExtResource("11_074og")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yaehf"]
 border_width_left = 2
@@ -280,28 +310,107 @@ width = 3.0
 points = PackedVector2Array(0, 0, 0, 0)
 width = 3.0
 
-[node name="pUI" type="CanvasLayer" parent="." unique_id=1463384008]
+[node name="CashOut" type="CanvasLayer" parent="." unique_id=276110570]
+visible = false
+script = SubResource("GDScript_yaehf")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="pUI" unique_id=1034607390]
-anchors_preset = 14
+[node name="Panel" type="Panel" parent="CashOut" unique_id=1285902101]
+anchors_preset = -1
+anchor_left = 0.5
 anchor_top = 0.5
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -80.0
+offset_right = 150.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_stretch_ratio = 0.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_cegan")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CashOut/Panel" unique_id=1529902629]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -60.0
+offset_right = 150.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Label" type="Label" parent="CashOut/Panel/VBoxContainer" unique_id=828797622]
+layout_mode = 2
+theme = SubResource("Theme_cegan")
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CashOut/Panel/VBoxContainer" unique_id=445537174]
+layout_mode = 2
+theme_override_constants/separation = 90
+alignment = 1
+
+[node name="Yes" type="Button" parent="CashOut/Panel/VBoxContainer/HBoxContainer" unique_id=305944815]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("8_w48qg")
+theme_override_font_sizes/font_size = 44
+text = "Yes!"
+
+[node name="No" type="Button" parent="CashOut/Panel/VBoxContainer/HBoxContainer" unique_id=1854655039]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("8_w48qg")
+theme_override_font_sizes/font_size = 44
+text = "No!"
+
+[node name="pUI" type="CanvasLayer" parent="." unique_id=1463384008]
+visible = false
+
+[node name="Panel" type="Panel" parent="pUI" unique_id=1327703238]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -325.0
+offset_top = -40.0
+offset_right = 325.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_stretch_ratio = 0.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_cegan")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="pUI/Panel" unique_id=1034607390]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -311.0
 offset_top = -27.0
+offset_right = 311.0
 offset_bottom = 27.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 90
 alignment = 1
 
-[node name="Power1" type="Button" parent="pUI/HBoxContainer" unique_id=379034427]
+[node name="Power1" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=379034427]
 layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("8_w48qg")
 theme_override_font_sizes/font_size = 44
 text = "Option 1"
 
-[node name="Power2" type="Button" parent="pUI/HBoxContainer" unique_id=1417258925]
+[node name="Power2" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=1417258925]
 layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("8_w48qg")
@@ -309,7 +418,7 @@ theme_override_font_sizes/font_size = 44
 text = "Block"
 script = ExtResource("9_vivmo")
 
-[node name="Power3" type="Button" parent="pUI/HBoxContainer" unique_id=1937977840]
+[node name="Power3" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=1937977840]
 layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("8_w48qg")
@@ -435,7 +544,12 @@ projection = 1
 size = 130.0
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
-[connection signal="pressed" from="pUI/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
+[connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/Yes" to="." method="_on_yes_pressed"]
+[connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/Yes" to="CashOut" method="_on_yes_pressed"]
+[connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/No" to="." method="_on_no_pressed"]
+[connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/No" to="CashOut" method="_on_no_pressed"]
+[connection signal="pressed" from="pUI/Panel/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
+[connection signal="pressed" from="pUI/placeButton" to="." method="_on_place_button_pressed"]
 [connection signal="pressed" from="pUI/placeButton" to="pUI/placementController" method="_on_place_button_pressed"]
 [connection signal="button_down" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_down"]
 [connection signal="button_up" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_up"]
