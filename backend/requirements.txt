@@ -1,3 +1,4 @@
 Flask~=3.1.2
 pymongo~=4.16.0
 pyargon2~=1.1.2
+python-dotenv~=1.2.2

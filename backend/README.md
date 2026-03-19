@@ -1,5 +1,12 @@
 # Backend
 
+## How to Run
+
+1. copy .env.example to .env
+2. if you're a dev, copy the env vars from the pinned msg into .env
+3. pip install -r requirements.txt
+4. flask run
+
 ## Accounts
 An account has an email and password. A user can be in one current game at a time, and the game is not necessarily finished in one sitting.
 
