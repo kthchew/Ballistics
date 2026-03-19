@@ -15,6 +15,7 @@ var first_hit_scratch: bool
 
 func init():
 	create_balls()
+	start_game()
 	
 func start_game():
 	balls_sunk = [0, 0]

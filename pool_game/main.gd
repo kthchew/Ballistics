@@ -48,7 +48,6 @@ func _ready() -> void:
 	
 	start_game()
 	
-<<<<<<< HEAD
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
 		return
@@ -148,9 +147,9 @@ func _on_fire_pressed():
 	
 	var t: float = clamp(strength / 0.5, 0.0, 1.0)
 	var volume_db: float = lerp(-25.0, 0.0, t)
-	cue_ball.CueCollide.volume_db = volume_db
-	cue_ball.CueCollide.pitch_scale = lerp(0.9, 1.1, t)
-	cue_ball.CueCollide.play()
+	ball_manager.cue_ball.CueCollide.volume_db = volume_db
+	ball_manager.cue_ball.CueCollide.pitch_scale = lerp(0.9, 1.1, t)
+	ball_manager.cue_ball.CueCollide.play()
 
 	if strength > 95.0:
 		shake_camera(0.5, 0.1)
