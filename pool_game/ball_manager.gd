@@ -36,6 +36,13 @@ func hit_cue_ball(force: Vector3, offset_3d: Vector3):
 func reset_cue_ball(pos: Vector3):
 	cue_ball.reset(pos)
 	
+func play_cue_ball_sound(strength):
+	var t: float = clamp(strength / 0.5, 0.0, 1.0)
+	var volume_db: float = lerp(-25.0, 0.0, t)
+	cue_ball.CueCollide.volume_db = volume_db
+	cue_ball.CueCollide.pitch_scale = lerp(0.9, 1.1, t)
+	cue_ball.CueCollide.play()
+	
 func freeze_balls():
 	for ball in balls:
 		ball.freeze = true
