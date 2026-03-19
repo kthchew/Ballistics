@@ -24,8 +24,8 @@ class GameInstance:
 	var game_type: GameType = GameType.EIGHT_BALL_MULTIPLAYER
 	var player_points: Dictionary # dict[ObjectId, int]
 	var current_turn: int
-	var ball_positions: Dictionary # dict[int, tuple[float, float]]
-	var ball_rotations: Dictionary # dict[int, tuple[float, float]]
+	var ball_positions: Dictionary # dict[int, tuple[float, float, float]]
+	var ball_rotations: Dictionary # dict[int, tuple[float, float, float]]
 	
 func _on_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	print("Request completed with result: " + str(result) + ", response code: " + str(response_code))
