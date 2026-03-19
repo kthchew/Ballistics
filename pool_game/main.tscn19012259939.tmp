@@ -1,20 +1,16 @@
 [gd_scene format=3 uid="uid://comeyp103ci14"]
 
 [ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://b3yvxs7qw3v2u" path="res://hole_buttons.gd" id="7_5vw27"]
+[ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://cue_ball.tscn" id="2_kek77"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
-[ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://aim_guide_circle.gd" id="10_ycdy4"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
 [ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
 [ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
-[ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="12_dg77c"]
 [ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
-[ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="14_w48qg"]
-[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="14_w48qg"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -24,7 +20,8 @@ ambient_light_energy = 0.0
 fog_enabled = true
 fog_light_energy = 0.01
 
-[sub_resource type="GDScript" id="GDScript_5vw27"]
+[sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
+font_size = 18
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
 texture = ExtResource("9_efxa6")
@@ -71,12 +68,6 @@ corner_radius_top_right = 100
 corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
-[sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
-font_size = 18
-
-[sub_resource type="LabelSettings" id="LabelSettings_5vw27"]
-font_size = 24
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vivmo"]
 albedo_texture = ExtResource("11_w48qg")
 
@@ -87,20 +78,36 @@ top_radius = 300.0
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
 
+[node name="CueBall" parent="." unique_id=1266988142 instance=ExtResource("2_kek77")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.475, 3, 0)
+
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
 transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.4210855e-14, 0, 1.4210855e-14, 1.0000001, 0, -3.5294624e-06, 115.74469)
-projection = 1
-size = 200.0
+size = 130.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
 environment = SubResource("Environment_4c57u")
 
+[node name="Control" type="Control" parent="." unique_id=386163020]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DebugLabel" type="Label" parent="Control" unique_id=287979515]
+layout_mode = 1
+offset_left = 17.0
+offset_top = 11.0
+offset_right = 164.0
+offset_bottom = 84.0
+label_settings = SubResource("LabelSettings_h2yge")
+
 [node name="UI" type="CanvasLayer" parent="." unique_id=1888597792]
-visible = false
-script = SubResource("GDScript_5vw27")
 
 [node name="AimInputRegion" type="Control" parent="UI" unique_id=944627298]
 layout_mode = 3
@@ -205,68 +212,15 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 
-[node name="ResetButton" type="Button" parent="UI" unique_id=1937985300]
-offset_left = 1752.0
-offset_top = 15.0
-offset_right = 1905.0
-offset_bottom = 87.0
-text = "Reset Game
-"
-
-[node name="DebugLabel" type="Label" parent="UI" unique_id=287979515]
-offset_left = 17.0
-offset_top = 11.0
-offset_right = 164.0
-offset_bottom = 84.0
-label_settings = SubResource("LabelSettings_h2yge")
-
-[node name="InfoLabel" type="Label" parent="UI" unique_id=920015048]
-offset_left = 855.0
-offset_top = 24.0
-offset_right = 1045.0
-offset_bottom = 112.0
-label_settings = SubResource("LabelSettings_5vw27")
-horizontal_alignment = 1
-
-[node name="HoleButtons" type="Control" parent="UI" unique_id=760296245]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-script = ExtResource("7_5vw27")
-
-[node name="AimVisuals" type="Control" parent="UI" unique_id=329155063]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="CueStick" parent="UI/AimVisuals" unique_id=1895437411 instance=ExtResource("11_dg77c")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
-script = ExtResource("12_ycdy4")
-
-[node name="AimGuideMarker" type="Polygon2D" parent="UI/AimVisuals" unique_id=823821121]
-position = Vector2(-62, 31)
-polygon = PackedVector2Array(-5, -5, -5, 5, 5, 5, 5, -5)
-vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-
-[node name="AimGuideCircle" type="Node2D" parent="UI/AimVisuals" unique_id=513049058]
-position = Vector2(13, 24)
-script = ExtResource("10_ycdy4")
-
-[node name="AimGuideLine" type="Line2D" parent="UI/AimVisuals" unique_id=430159681]
-points = PackedVector2Array(0, 0, 0, 0, 0, 0)
-width = 3.0
-
-[node name="AimGuideLine2" type="Line2D" parent="UI/AimVisuals" unique_id=1448096911]
-points = PackedVector2Array(0, 0, 0, 0)
-width = 3.0
-
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
+[node name="CueStick" parent="." unique_id=1895437411 instance=ExtResource("11_dg77c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
+script = ExtResource("12_ycdy4")
+
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1063051328]
-transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.2828827, -63.39213, 0.6614113)
+transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.122802734, -63.39213, 0.8214874)
 mesh = SubResource("CylinderMesh_4c57u")
 
 [node name="OverheadLight" type="Node3D" parent="." unique_id=2043813551]
@@ -278,21 +232,8 @@ light_energy = 0.0
 light_volumetric_fog_energy = 0.0
 light_size = 1.0
 light_specular = 0.35
-light_bake_mode = 1
 shadow_enabled = true
 shadow_bias = 0.075
 shadow_opacity = 0.7
 spot_range = 270.72592
 spot_angle = 72.564
-
-[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=935783405]
-stream = ExtResource("12_dg77c")
-volume_db = 30.0
-
-[node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
-shape = ExtResource("14_w48qg")
-
-[node name="BallManager" type="Node" parent="." unique_id=1345349029]
-script = ExtResource("14_w48qg")
-
-[connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]

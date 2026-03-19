@@ -34,7 +34,10 @@ func _ready() -> void:
 	
 	ball_manager.init()
 	aim_visuals.hide()
+	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
+	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
+	$UI.visible = true
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
 	slider.value_changed.connect(_on_force_changed)
@@ -45,6 +48,7 @@ func _ready() -> void:
 	
 	start_game()
 	
+<<<<<<< HEAD
 func _on_aim_changed(touch_pos: Vector2):
 	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
 		return
@@ -142,8 +146,14 @@ func _on_fire_pressed():
 	)
 	print("STRENGTH:", strength)
 	
+	var t: float = clamp(strength / 0.5, 0.0, 1.0)
+	var volume_db: float = lerp(-25.0, 0.0, t)
+	cue_ball.CueCollide.volume_db = volume_db
+	cue_ball.CueCollide.pitch_scale = lerp(0.9, 1.1, t)
+	cue_ball.CueCollide.play()
+
 	if strength > 95.0:
-		shake_camera(.5, .1)
+		shake_camera(0.5, 0.1)
 		sway_light(7, 7)
 	
 	has_aimed = false
