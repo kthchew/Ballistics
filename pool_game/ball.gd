@@ -27,7 +27,8 @@ func play_hole_sound():
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if teleport_requested:
 		teleport_requested = false
-		var new_transform = state.transform
+		var new_basis = Basis.from_euler(Vector3(PI / 2, 0, PI))
+		var new_transform: Transform3D = Transform3D(new_basis)
 		new_transform.origin = teleport_pos
 		state.transform = new_transform
 		
