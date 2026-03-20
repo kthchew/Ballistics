@@ -19,7 +19,7 @@ func start_game():
 	cue_ball.reset(Vector3(-56, Constants.BALL_RADIUS, 0))
 	place_rack(56, 0)
 	
-	pot_unused_balls()
+	#pot_unused_balls()
 	balls_sunk = [0, 0]
 	
 func end_round():
@@ -69,7 +69,7 @@ func create_balls() -> void:
 			cue_ball.contact_monitor = true
 			cue_ball.max_contacts_reported = 3
 		else:
-			ball.collision_layer += 1 << 2
+			ball.collision_layer += Constants.SHAPECAST_LAYER
 
 func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 	balls.sort_custom(func(a, b): return a.ball_num < b.ball_num)

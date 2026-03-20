@@ -44,6 +44,7 @@ func _ready() -> void:
 	ball_manager.cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
 	ball_manager.ball_sunk.connect(_on_ball_sunk)
 	classical_ai.ai_aimed.connect(_on_ai_aimed)
+	classical_ai.ai_placed_cue_ball.connect(_on_ai_placed_cue_ball)
 	
 	start_game()
 	
@@ -56,8 +57,7 @@ func _on_aim_changed(touch_pos: Vector2):
 		var ray_normal = camera.project_ray_normal(touch_pos)
 		var drop_plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		ball_manager.reset_cue_ball(intersection)
-		start_round()
+		place_cue_ball_after_scratch(intersection)
 		return
 		
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
@@ -66,6 +66,10 @@ func _on_aim_changed(touch_pos: Vector2):
 	if dir.length() < 20 or ball_manager.check_cue_ball_potted_by_pos():
 		return
 	aim(dir)
+
+func place_cue_ball_after_scratch(pos: Vector3):
+	ball_manager.reset_cue_ball(pos)
+	start_round()
 	
 func _on_ai_aimed(dir: Vector2):
 	aim(dir)
@@ -73,6 +77,9 @@ func _on_ai_aimed(dir: Vector2):
 	_on_force_changed(slider.value)
 	await get_tree().create_timer(1.0).timeout
 	_on_fire_pressed()
+	
+func _on_ai_placed_cue_ball(pos: Vector3):
+	place_cue_ball_after_scratch(pos)
 	
 func aim(dir: Vector2):
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
@@ -230,7 +237,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
 	
 	var ghost_ball_pos = collision_point + collision_normal * Constants.BALL_RADIUS
-	print("aim guide line ghost pos ", ghost_ball_pos)
+	#print("aim guide line ghost pos ", ghost_ball_pos)
 	
 	$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
 	$UI/AimVisuals/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
@@ -332,6 +339,10 @@ func end_game(winner: int) -> void:
 	self.winner = winner
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
+	
+func is_ai_turn():
+	return true
+	#return player_ind == 1
 		
 func start_round(scratched_prev: bool = false) -> void:
 	if scratched_prev:
@@ -340,6 +351,13 @@ func start_round(scratched_prev: bool = false) -> void:
 		print("Scratch registered")
 		game_state = GameState.PLACING
 		ball_manager.cue_ball.pot()
+		
+		if is_ai_turn():
+			classical_ai.find_shots(
+				ball_manager.cue_ball,
+				ball_manager.get_pottable_balls(player_ind, solids_player, scores),
+				true,
+			)
 		return
 	
 	if target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
@@ -349,8 +367,12 @@ func start_round(scratched_prev: bool = false) -> void:
 	
 	game_state = GameState.AIMING
 	
-	#if player_ind == 0:
-	classical_ai.find_shots(ball_manager.cue_ball, ball_manager.get_pottable_balls(player_ind, solids_player, scores))
+	if is_ai_turn():
+		classical_ai.find_shots(
+			ball_manager.cue_ball,
+			ball_manager.get_pottable_balls(player_ind, solids_player, scores),
+			false,
+		)
 	
 func end_round() -> void:
 	round_num += 1
