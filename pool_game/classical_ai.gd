@@ -85,6 +85,12 @@ func print_shot(obj_balls: Array, hole_loc: Vector3):
 func find_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
 	await get_tree().create_timer(1.0).timeout
 	
+	if await find_potting_shot(cue_ball, obj_balls, scratched):
+		return 
+	
+	find_non_potting_shot(cue_ball, obj_balls, scratched)
+	
+func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool) -> bool:
 	var perms = generate_ball_perms(obj_balls)
 	for perm in perms:
 		for hole_loc in hole_locs:
@@ -95,27 +101,10 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
 			if shot_poss:
 				print_shot(perm, hole_loc)
 				shoot(cue_ball, perm, shot_target_pos, scratched)
-				return
-	
+				return true
 	Draw.clear_all()
-	print("AI couldn't find any potting shots")
+	return false
 	
-	for obj_ball in obj_balls:
-		var shot = test_non_potting_shot(cue_ball, obj_ball)
-		var shot_poss = shot[0]
-		var shot_target_pos = shot[1]
-		if shot_poss:
-			shoot(cue_ball, [obj_ball], shot_target_pos, scratched)
-			return
-	
-# find a shot just to touch a valid ball so that it's not a scratch
-func test_non_potting_shot(cue_ball: Ball, obj_ball: Ball):
-	var target_pos = calc_ghost_ball_pos(obj_ball, cue_ball.global_position, -1.0)
-	Draw.circle(camera.unproject_position(target_pos), 10.0, Color.YELLOW)
-	if shapecast_ball(cue_ball, target_pos):
-		return [true, obj_ball.global_position]
-	return [false, Vector3.ZERO]
-
 func test_potting_shot(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scratched: bool) -> Array:
 	var target_pos = hole_loc
 	Draw.circle(camera.unproject_position(target_pos), 10.0, Color.PURPLE)
@@ -134,6 +123,26 @@ func test_potting_shot(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scra
 		cue_ball_path_clear = shapecast_placing_cue_ball(obj_balls[0], target_pos)
 	
 	return [cue_ball_path_clear, target_pos]
+	
+func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool) -> bool:
+	for obj_ball in obj_balls:
+		Draw.clear_all()
+		var shot = test_non_potting_shot(cue_ball, obj_ball)
+		var shot_poss = shot[0]
+		var shot_target_pos = shot[1]
+		if shot_poss:
+			shoot(cue_ball, [obj_ball], shot_target_pos, scratched)
+			return true
+	Draw.clear_all()
+	return false
+
+# find a shot just to touch a valid ball so that it's not a scratch
+func test_non_potting_shot(cue_ball: Ball, obj_ball: Ball):
+	var target_pos = calc_ghost_ball_pos(obj_ball, cue_ball.global_position, -1.0)
+	Draw.circle(camera.unproject_position(target_pos), 10.0, Color.YELLOW)
+	if shapecast_ball(cue_ball, target_pos):
+		return [true, obj_ball.global_position]
+	return [false, Vector3.ZERO]
 	
 func shapecast(origin: Vector3, abs_target: Vector3) -> float:
 	shape_cast.global_position = origin
