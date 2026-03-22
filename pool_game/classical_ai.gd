@@ -42,12 +42,11 @@ func calc_shot(cue_ball: Ball, target_pos: Vector3):
 func calc_ai_color(ball_ind: int, obj_ball_cnt: int) -> Color:
 	return Color.PURPLE + (ball_ind - obj_ball_cnt) * 0.15 * Color(1, 1, 1)
 	
-func highlight_ball(obj_ball: Ball, ball_ind: int, obj_ball_cnt: int):
+func highlight_ball(obj_ball: Ball, color: Color):
 	var mesh = obj_ball.get_node("MeshInstance3D")
 	var outline_material = StandardMaterial3D.new()
 	outline_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var outline_color = Color.PURPLE
-	outline_material.albedo_color = calc_ai_color(ball_ind, obj_ball_cnt)
+	outline_material.albedo_color = color
 	outline_material.cull_mode = BaseMaterial3D.CULL_FRONT
 	outline_material.grow = true
 	outline_material.grow_amount = 1
@@ -61,7 +60,10 @@ func shoot(shot: Shot):
 		ai_placed_cue_ball.emit(place_pos)
 	
 	for i in range(len(shot.obj_balls)):
-		highlight_ball(shot.obj_balls[i], i, len(shot.obj_balls))
+		var color = Color.YELLOW
+		if shot.potting:
+			color = calc_ai_color(i, len(shot.obj_balls))
+		highlight_ball(shot.obj_balls[i], color)
 	
 	for i in range(len(shot.target_positions)):
 		var color = Color.YELLOW
