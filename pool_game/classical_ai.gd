@@ -42,11 +42,11 @@ func _ready():
 			var z_move = hole_rad * dz[aberration_ind]
 			hole_locs.append(pos + Vector3(x_move, 0, z_move))
 
-func calc_ghost_ball_pos(obj_ball: Ball, hole_loc: Vector3, mult: float = 1.0) -> Vector3:
-	var hole_to_obj_dir = obj_ball.global_position - hole_loc
-	hole_to_obj_dir.y = 0
-	hole_to_obj_dir = hole_to_obj_dir.normalized()
-	var ghost_ball_pos = obj_ball.global_position + mult * (2 * Constants.BALL_RADIUS * hole_to_obj_dir)
+func calc_ghost_ball_pos(obj_ball: Ball, target_pos: Vector3, mult: float = 1.0) -> Vector3:
+	var target_to_obj_dir = obj_ball.global_position - target_pos
+	target_to_obj_dir.y = 0
+	target_to_obj_dir = target_to_obj_dir.normalized()
+	var ghost_ball_pos = obj_ball.global_position + mult * (2 * Constants.BALL_RADIUS * target_to_obj_dir)
 	return ghost_ball_pos
 	
 func calc_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3):
@@ -84,17 +84,33 @@ func shoot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3, scratched: bool):
 	ai_aimed.emit(Vector2(-force.x, -force.z))
 	return
 
+func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
+	var ans = []
+	for i in range(len(obj_balls)):
+		ans.append([obj_balls[i]])
+	for i in range(len(obj_balls)):
+		for j in range(len(obj_balls)):
+			ans.append([obj_balls[i], obj_balls[j]])
+	return ans
+	
+func print_shot(obj_balls: Array[Ball], hole_loc: Vector3):
+	print("choosing shot")
+	for i in range(len(obj_balls)):
+		print("\tobj ball num ", i, "=", obj_balls[i].ball_num)
+		print("\tobj ball num ", i, "=", obj_balls[i].ball_num)
+	print("\thole loc=", hole_loc)
+
 func find_shots(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
 	await get_tree().create_timer(1.0).timeout
-	var candidates = []
-	for obj_ball in obj_balls:
-		if obj_ball.potted or obj_ball == cue_ball:
-			continue
+	
+	var perms = generate_ball_perms(obj_balls)
+	for perm in perms:
 		for hole_loc in hole_locs:
-			if await find_shot(cue_ball, obj_ball, hole_loc, scratched):
-				print("choosing shot: ball num=", obj_ball.ball_num, ", hole loc=", hole_loc)
+			print("perm=", perm)
+			if await find_shot(cue_ball, perm, hole_loc, scratched):
 				found_shot = true
-				shoot(cue_ball, obj_ball, hole_loc, scratched)
+				print_shot(obj_balls, hole_loc)
+				shoot(cue_ball, obj_balls[0], hole_loc, scratched)
 				return
 				
 	print("AI didn't find any shots")
@@ -105,15 +121,27 @@ func find_shots(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
 	
 	shoot(cue_ball, obj_balls[rand_ball_ind], hole_locs[rand_hole_loc], scratched)
 
-func find_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3, scratched: bool) -> bool:
-	var hole_path_clear = shapecast_to_hole(obj_ball, hole_loc)
+func find_shot(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scratched: bool) -> bool:
+	
+	var hole_path_clear = shapecast_to_hole(obj_balls[-1], hole_loc)
+	
+	var target_pos = hole_loc
+	for i in range(len(obj_balls) - 1, -1, -1):
+		calc_ghost_ball_pos(obj_balls[i], target_pos)
+		var obj_ball_pos = obj_balls[i].global_position
+		if shapecast(obj_ball_pos, target_pos - obj_ball_pos) < 0.99:
+			return false
+	
 	#await get_tree().create_timer(1.0).timeout
+	
 	var cue_ball_path_clear;
 	if not scratched:
-		cue_ball_path_clear = shapecast_to_cue_ball(cue_ball, obj_ball, hole_loc)
+		cue_ball_path_clear = shapecast_to_cue_ball(cue_ball, obj_balls[0], hole_loc)
 	else:
-		cue_ball_path_clear = shapecast_placing_cue_ball(obj_ball, hole_loc)
+		cue_ball_path_clear = shapecast_placing_cue_ball(obj_balls[0], hole_loc)
+	
 	#await get_tree().create_timer(1.0).timeout
+	
 	return hole_path_clear and cue_ball_path_clear
 	
 func shapecast(origin: Vector3, target_position: Vector3) -> float:
