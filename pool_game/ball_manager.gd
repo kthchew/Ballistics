@@ -190,12 +190,8 @@ func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, sco
 func get_pottable_balls(player_ind: int, solids_player: int, scores: Array[int]):
 	var ans: Array[Ball] = []
 	for ball in balls:
-		if ball.potted or ball.is_cue_ball():
+		if ball.potted:
 			continue
-		elif ball.is_solid() and (solids_player == -1 or player_ind == solids_player):
-			ans.append(ball)
-		elif ball.is_stripe() and (solids_player == -1 or player_ind == 1 - solids_player):
-			ans.append(ball)
-		elif ball.is_eight_ball() and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
+		if check_is_ball_valid(ball.ball_num, player_ind, solids_player, scores):
 			ans.append(ball)
 	return ans
