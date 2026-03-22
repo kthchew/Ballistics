@@ -133,9 +133,9 @@ func setup_two_ball_shot():
 		elif ball.is_eight_ball():
 			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
 		elif ball.ball_num == 1:
-			ball.teleport(Vector3(0, Constants.BALL_RADIUS, -40))
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, -30))
 		elif ball.ball_num == 2:
-			ball.teleport(Vector3(-15, Constants.BALL_RADIUS, 5))
+			ball.teleport(Vector3(20, Constants.BALL_RADIUS, -5))
 		else:
 			ball.pot()
 	
