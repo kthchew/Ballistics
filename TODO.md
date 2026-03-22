@@ -11,3 +11,4 @@ Pool Logic
 - Bank off walls
 - Old bug that I forgot about: collision of shapecast not found if there is a ball close to the origin. Like cue ball thinks it can hit through object ball if it's close?
 - Why are ball positions y != 2.85 (ball radius)
+- Add case for scratched non-potting shot
