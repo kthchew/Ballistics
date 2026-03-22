@@ -21,8 +21,8 @@ func start_game():
 	remove_material_overlays()
 	
 	#pot_unused_balls()
-	#setup_two_ball_shot()
-	setup_scratch()
+	setup_two_ball_shot()
+	#setup_scratch()
 	balls_sunk = [0, 0]
 	
 func end_round():

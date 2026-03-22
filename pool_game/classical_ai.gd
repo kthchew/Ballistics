@@ -39,12 +39,19 @@ func calc_shot(cue_ball: Ball, target_pos: Vector3):
 	var strength = 100
 	return strength * dir
 	
-func highlight_ball(obj_ball: Ball):
+func calc_ai_color(ball_ind: int, obj_ball_cnt: int) -> Color:
+	return Color.PURPLE + (ball_ind - obj_ball_cnt) * 0.15 * Color(1, 1, 1)
+	
+func highlight_ball(obj_ball: Ball, ball_ind: int, obj_ball_cnt: int):
 	var mesh = obj_ball.get_node("MeshInstance3D")
-	var highlight_material = StandardMaterial3D.new()
-	highlight_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	highlight_material.albedo_color = Color(1.0, 1.0, 1.0, 0.5)
-	mesh.material_overlay = highlight_material
+	var outline_material = StandardMaterial3D.new()
+	outline_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var outline_color = Color.PURPLE
+	outline_material.albedo_color = calc_ai_color(ball_ind, obj_ball_cnt)
+	outline_material.cull_mode = BaseMaterial3D.CULL_FRONT
+	outline_material.grow = true
+	outline_material.grow_amount = 1
+	mesh.material_overlay = outline_material
 	
 # target_pos = point that cue ball should move toward
 func shoot(cue_ball: Ball, obj_balls: Array, target_pos: Vector3, scratched: bool):
@@ -53,8 +60,8 @@ func shoot(cue_ball: Ball, obj_balls: Array, target_pos: Vector3, scratched: boo
 		var place_pos = calc_ghost_ball_pos(first_ball, target_pos, -2)
 		ai_placed_cue_ball.emit(place_pos)
 	
-	for obj_ball in obj_balls:
-		highlight_ball(obj_ball)
+	for i in range(len(obj_balls)):
+		highlight_ball(obj_balls[i], i, len(obj_balls))
 	
 	var force = calc_shot(cue_ball, target_pos)
 	ai_aimed.emit(Vector2(-force.x, -force.z))
@@ -65,8 +72,8 @@ func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
 	var ans = []
 	
 	# comment this loop out to test only 2 ball shots
-	for i in range(len(obj_balls)):
-		ans.append([obj_balls[i]])
+	#for i in range(len(obj_balls)):
+		#ans.append([obj_balls[i]])
 	
 	for i in range(len(obj_balls)):
 		for j in range(len(obj_balls)):
@@ -107,14 +114,14 @@ func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool) 
 	
 func test_potting_shot(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scratched: bool) -> Array:
 	var target_pos = hole_loc
-	Draw.circle(camera.unproject_position(target_pos), 10.0, Color.PURPLE)
+	Draw.circle(camera.unproject_position(target_pos), 10.0, calc_ai_color(len(obj_balls), len(obj_balls)))
 	for i in range(len(obj_balls) - 1, -1, -1):
 		
 		if not shapecast_ball(obj_balls[i], target_pos):
 			return [false, Vector3.ZERO]
 		
 		target_pos = calc_ghost_ball_pos(obj_balls[i], target_pos)
-		Draw.circle(camera.unproject_position(target_pos), 10.0, Color.PURPLE + (i - (len(obj_balls))) * 0.15 * Color(1, 1, 1))
+		Draw.circle(camera.unproject_position(target_pos), 10.0, calc_ai_color(i, len(obj_balls)))
 	
 	var cue_ball_path_clear
 	if not scratched:
