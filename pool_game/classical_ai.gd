@@ -11,6 +11,7 @@ var hole_circle: Node2D
 var found_shot: bool = true
 
 func _on_ghost_circle_draw():
+	pass
 	ghost_circle.draw_circle(Vector2(0, 0), 10.0, Color.TOMATO)
 	
 func _on_hole_circle_draw():
@@ -36,11 +37,12 @@ func _ready():
 		var path_str = "/root/Main/TableGroup/Table/Holes/Hole" + str(hole_ind + 1) + "/HoleMarker"
 		var hole_marker = get_node(path_str)
 		var pos = hole_marker.global_position
-		hole_locs.append(pos)
+		if hole_ind == 1:
+			hole_locs.append(pos)
 		for aberration_ind in range(len(dx)):
 			var x_move = hole_rad * dx[aberration_ind]
 			var z_move = hole_rad * dz[aberration_ind]
-			hole_locs.append(pos + Vector3(x_move, 0, z_move))
+			#hole_locs.append(pos + Vector3(x_move, 0, z_move))
 
 func calc_ghost_ball_pos(obj_ball: Ball, target_pos: Vector3, mult: float = 1.0) -> Vector3:
 	var target_to_obj_dir = obj_ball.global_position - target_pos
@@ -49,25 +51,24 @@ func calc_ghost_ball_pos(obj_ball: Ball, target_pos: Vector3, mult: float = 1.0)
 	var ghost_ball_pos = obj_ball.global_position + mult * (2 * Constants.BALL_RADIUS * target_to_obj_dir)
 	return ghost_ball_pos
 	
-func calc_shot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3):
-	var ghost_ball_pos = calc_ghost_ball_pos(obj_ball, hole_loc)
-	var dir = (cue_ball.global_position - ghost_ball_pos).normalized()
+func calc_shot(cue_ball: Ball, target_pos: Vector3):
+	var dir = (cue_ball.global_position - target_pos).normalized()
 	var strength = 100
 	return strength * dir
 	
-func shoot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3, scratched: bool):
-	if scratched:
-		var place_pos = calc_ghost_ball_pos(obj_ball, hole_loc, 2.0)
-		ai_placed_cue_ball.emit(place_pos)
+func shoot(cue_ball: Ball, obj_ball: Ball, target_pos: Vector3, scratched: bool):
+	#if scratched:
+		#var place_pos = calc_ghost_ball_pos(obj_ball, hole_loc, 2.0)
+		#ai_placed_cue_ball.emit(place_pos)
 		
-	var force = calc_shot(cue_ball, obj_ball, hole_loc)
-	var ghost_ball_pos = calc_ghost_ball_pos(obj_ball, hole_loc)
-	print("ai ghost pos ", ghost_ball_pos)
+	var force = calc_shot(cue_ball, target_pos)
+	#var ghost_ball_pos = calc_ghost_ball_pos(obj_ball, tar)
+	#print("ai ghost pos ", ghost_ball_pos)
 	
 	var camera = $/root/Main/CameraPivot/Camera3D
-	ghost_circle.position = camera.unproject_position(ghost_ball_pos)
-	ghost_circle.queue_redraw()
-	hole_circle.position = camera.unproject_position(hole_loc)
+	#ghost_circle.position = camera.unproject_position(ghost_ball_pos)
+	#ghost_circle.queue_redraw()
+	#hole_circle.position = camera.unproject_position(hole_loc)
 	hole_circle.queue_redraw()
 	
 	# highlight target object ball
@@ -86,17 +87,18 @@ func shoot(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3, scratched: bool):
 
 func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
 	var ans = []
-	for i in range(len(obj_balls)):
-		ans.append([obj_balls[i]])
+	#for i in range(len(obj_balls)):
+		#ans.append([obj_balls[i]])
 	for i in range(len(obj_balls)):
 		for j in range(len(obj_balls)):
+			if i == j:
+				continue
 			ans.append([obj_balls[i], obj_balls[j]])
 	return ans
 	
 func print_shot(obj_balls: Array[Ball], hole_loc: Vector3):
 	print("choosing shot")
 	for i in range(len(obj_balls)):
-		print("\tobj ball num ", i, "=", obj_balls[i].ball_num)
 		print("\tobj ball num ", i, "=", obj_balls[i].ball_num)
 	print("\thole loc=", hole_loc)
 
@@ -106,11 +108,13 @@ func find_shots(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
 	var perms = generate_ball_perms(obj_balls)
 	for perm in perms:
 		for hole_loc in hole_locs:
-			print("perm=", perm)
-			if await find_shot(cue_ball, perm, hole_loc, scratched):
+			var shot = await find_shot(cue_ball, perm, hole_loc, scratched)
+			var shot_poss = shot[0]
+			var shot_target_pos = shot[1]
+			if shot_poss:
 				found_shot = true
 				print_shot(obj_balls, hole_loc)
-				shoot(cue_ball, obj_balls[0], hole_loc, scratched)
+				shoot(cue_ball, obj_balls[0], shot_target_pos, scratched)
 				return
 				
 	print("AI didn't find any shots")
@@ -121,28 +125,37 @@ func find_shots(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
 	
 	shoot(cue_ball, obj_balls[rand_ball_ind], hole_locs[rand_hole_loc], scratched)
 
-func find_shot(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scratched: bool) -> bool:
+func find_shot(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scratched: bool) -> Array:
 	
 	var hole_path_clear = shapecast_to_hole(obj_balls[-1], hole_loc)
 	
 	var target_pos = hole_loc
 	for i in range(len(obj_balls) - 1, -1, -1):
-		calc_ghost_ball_pos(obj_balls[i], target_pos)
 		var obj_ball_pos = obj_balls[i].global_position
-		if shapecast(obj_ball_pos, target_pos - obj_ball_pos) < 0.99:
-			return false
+		var safe_frac = shapecast(obj_ball_pos, target_pos - obj_ball_pos)
+		print(
+			"shape casting from ball num=", obj_balls[i].ball_num,
+			", to target_pos=", target_pos,
+			", safe frac=", safe_frac)
+		if safe_frac < 0.99:
+			return [false, Vector3.ZERO]
+		target_pos = calc_ghost_ball_pos(obj_balls[i], target_pos)
+		var camera = $/root/Main/CameraPivot/Camera3D
+		target_pos.y = 10
+		Draw.circle(camera.unproject_position(target_pos), 5, Color.WHITE)
 	
 	#await get_tree().create_timer(1.0).timeout
 	
-	var cue_ball_path_clear;
+	var cue_ball_path_clear
 	if not scratched:
-		cue_ball_path_clear = shapecast_to_cue_ball(cue_ball, obj_balls[0], hole_loc)
+		cue_ball_path_clear = shapecast_to_cue_ball(cue_ball, target_pos)
 	else:
-		cue_ball_path_clear = shapecast_placing_cue_ball(obj_balls[0], hole_loc)
+		cue_ball_path_clear = shapecast_placing_cue_ball(obj_balls[0], target_pos)
 	
 	#await get_tree().create_timer(1.0).timeout
 	
-	return hole_path_clear and cue_ball_path_clear
+	var poss = hole_path_clear and cue_ball_path_clear
+	return [poss, target_pos]
 	
 func shapecast(origin: Vector3, target_position: Vector3) -> float:
 	shape_cast.global_position = origin
@@ -158,11 +171,10 @@ func shapecast_to_hole(obj_ball: Ball, hole_loc: Vector3):
 	print("shapecast to hole: object ball num=", obj_ball.ball_num, ", hole_loc=", hole_loc, ", safe frac=", safe_frac)
 	return safe_frac > 0.99
 	
-func shapecast_to_cue_ball(cue_ball: Ball, obj_ball: Ball, hole_loc: Vector3) -> bool:
+func shapecast_to_cue_ball(cue_ball: Ball, target_pos: Vector3) -> bool:
 	var cue_ball_pos = cue_ball.global_position
-	var ghost_ball_pos = calc_ghost_ball_pos(obj_ball, hole_loc)
-	var safe_frac = shapecast(cue_ball_pos, ghost_ball_pos - cue_ball_pos)
-	print("shape casting to cue ball: object ball num=", obj_ball.ball_num, ", safe frac=", safe_frac)
+	var safe_frac = shapecast(cue_ball_pos, target_pos - cue_ball_pos)
+	print("shape casting to cue ball: target_pos=", target_pos, ", safe frac=", safe_frac)
 	return safe_frac > 0.99
 	
 func shapecast_placing_cue_ball(obj_ball: Ball, hole_loc: Vector3) -> bool:

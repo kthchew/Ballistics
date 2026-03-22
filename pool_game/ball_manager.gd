@@ -20,6 +20,7 @@ func start_game():
 	place_rack(56, 0)
 	
 	#pot_unused_balls()
+	setup_two_ball_shot()
 	balls_sunk = [0, 0]
 	
 func end_round():
@@ -124,6 +125,19 @@ func pot_unused_balls():
 			process_fallen_ball(ball)
 		if ball.ball_num in range (9, 9 + (7 - Constants.BALLS_BEFORE_EIGHT)):
 			process_fallen_ball(ball)
+			
+func setup_two_ball_shot():
+	for ball in balls:
+		if ball.is_cue_ball():
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 40))
+		elif ball.is_eight_ball():
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
+		elif ball.ball_num == 1:
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, -40))
+		elif ball.ball_num == 2:
+			ball.teleport(Vector3(-15, Constants.BALL_RADIUS, 5))
+		else:
+			ball.pot()
 	
 func find_fallen_balls() -> Array[RigidBody3D]:
 	var fallen_balls: Array[RigidBody3D] = []
