@@ -353,7 +353,7 @@ func start_round(scratched_prev: bool = false) -> void:
 		ball_manager.cue_ball.pot()
 		
 		if is_ai_turn():
-			classical_ai.find_shots(
+			classical_ai.find_shot(
 				ball_manager.cue_ball,
 				ball_manager.get_pottable_balls(player_ind, solids_player, scores),
 				true,
@@ -368,7 +368,7 @@ func start_round(scratched_prev: bool = false) -> void:
 	game_state = GameState.AIMING
 	
 	if is_ai_turn():
-		classical_ai.find_shots(
+		classical_ai.find_shot(
 			ball_manager.cue_ball,
 			ball_manager.get_pottable_balls(player_ind, solids_player, scores),
 			false,

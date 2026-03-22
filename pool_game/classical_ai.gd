@@ -27,11 +27,11 @@ func fill_hole_locs():
 			var z_move = hole_rad * dz[aberration_ind]
 			hole_locs.append(pos + Vector3(x_move, 0, z_move))
 
-func calc_ghost_ball_pos(obj_ball: Ball, target_pos: Vector3) -> Vector3:
+func calc_ghost_ball_pos(obj_ball: Ball, target_pos: Vector3, mult: float = 1.0) -> Vector3:
 	var target_to_obj_dir = obj_ball.global_position - target_pos
 	target_to_obj_dir.y = 0
 	target_to_obj_dir = target_to_obj_dir.normalized()
-	var ghost_ball_pos = obj_ball.global_position + (2 * Constants.BALL_RADIUS * target_to_obj_dir)
+	var ghost_ball_pos = obj_ball.global_position + mult * (2 * Constants.BALL_RADIUS * target_to_obj_dir)
 	return ghost_ball_pos
 	
 func calc_shot(cue_ball: Ball, target_pos: Vector3):
@@ -47,10 +47,10 @@ func highlight_ball(obj_ball: Ball):
 	mesh.material_overlay = highlight_material
 	
 # target_pos = point that cue ball should move toward
-func shoot(cue_ball: Ball, obj_balls: Array[Ball], target_pos: Vector3, scratched: bool):
-	var first_ball = obj_balls[0]
+func shoot(cue_ball: Ball, obj_balls: Array, target_pos: Vector3, scratched: bool):
 	if scratched:
-		var place_pos = first_ball.global_position + 2 * (target_pos - first_ball.global_position)
+		var first_ball = obj_balls[0]
+		var place_pos = calc_ghost_ball_pos(first_ball, target_pos, -2)
 		ai_placed_cue_ball.emit(place_pos)
 	
 	for obj_ball in obj_balls:
@@ -65,8 +65,8 @@ func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
 	var ans = []
 	
 	# comment this loop out to test only 2 ball shots
-	#for i in range(len(obj_balls)):
-		#ans.append([obj_balls[i]])
+	for i in range(len(obj_balls)):
+		ans.append([obj_balls[i]])
 	
 	for i in range(len(obj_balls)):
 		for j in range(len(obj_balls)):
@@ -76,20 +76,20 @@ func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
 	
 	return ans
 	
-func print_shot(obj_balls: Array[Ball], hole_loc: Vector3):
+func print_shot(obj_balls: Array, hole_loc: Vector3):
 	print("Shot:")
 	for i in range(len(obj_balls)):
 		print("\tobj ball num ", i, "=", obj_balls[i].ball_num)
 	print("\thole loc=", hole_loc)
 
-func find_shots(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
+func find_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
 	await get_tree().create_timer(1.0).timeout
 	
 	var perms = generate_ball_perms(obj_balls)
 	for perm in perms:
 		for hole_loc in hole_locs:
 			Draw.clear_all()
-			var shot = await find_shot(cue_ball, perm, hole_loc, scratched)
+			var shot = await test_potting_shot(cue_ball, perm, hole_loc, scratched)
 			var shot_poss = shot[0]
 			var shot_target_pos = shot[1]
 			if shot_poss:
@@ -98,31 +98,34 @@ func find_shots(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
 				return
 	
 	Draw.clear_all()
-				
-	var shot = find_non_potting_shot(cue_ball, obj_balls)
-	var shot_poss = shot[0]
-	var shot_target_pos = shot[1]
-	if shot_poss:
-		shoot(cue_ball, obj_balls, shot_target_pos, scratched)
-		return
+	print("AI couldn't find any potting shots")
+	
+	for obj_ball in obj_balls:
+		var shot = test_non_potting_shot(cue_ball, obj_ball)
+		var shot_poss = shot[0]
+		var shot_target_pos = shot[1]
+		if shot_poss:
+			shoot(cue_ball, [obj_ball], shot_target_pos, scratched)
+			return
 	
 # find a shot just to touch a valid ball so that it's not a scratch
-func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]):
-	for obj_ball in obj_balls:
-		if shapecast_ball(cue_ball, obj_ball.global_position):
-			return [true, obj_ball.global_position]
+func test_non_potting_shot(cue_ball: Ball, obj_ball: Ball):
+	var target_pos = calc_ghost_ball_pos(obj_ball, cue_ball.global_position, -1.0)
+	Draw.circle(camera.unproject_position(target_pos), 10.0, Color.YELLOW)
+	if shapecast_ball(cue_ball, target_pos):
+		return [true, obj_ball.global_position]
 	return [false, Vector3.ZERO]
 
-func find_shot(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scratched: bool) -> Array:
+func test_potting_shot(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scratched: bool) -> Array:
 	var target_pos = hole_loc
-	Draw.circle(camera.unproject_position(target_pos), 10, Color.GREEN)
+	Draw.circle(camera.unproject_position(target_pos), 10.0, Color.PURPLE)
 	for i in range(len(obj_balls) - 1, -1, -1):
 		
 		if not shapecast_ball(obj_balls[i], target_pos):
 			return [false, Vector3.ZERO]
 		
 		target_pos = calc_ghost_ball_pos(obj_balls[i], target_pos)
-		Draw.circle(camera.unproject_position(target_pos), 10, Color.GREEN)
+		Draw.circle(camera.unproject_position(target_pos), 10.0, Color.PURPLE + (i - (len(obj_balls))) * 0.15 * Color(1, 1, 1))
 	
 	var cue_ball_path_clear
 	if not scratched:
@@ -152,7 +155,7 @@ func shapecast_ball(ball: Ball, target_pos: Vector3) -> bool:
 	
 func shapecast_placing_cue_ball(obj_ball: Ball, target_pos: Vector3) -> bool:
 	var ghost_ball_pos = calc_ghost_ball_pos(obj_ball, target_pos)
-	var start_pos = obj_ball.global_position + 2 * (ghost_ball_pos - obj_ball.global_position)
+	var start_pos = calc_ghost_ball_pos(obj_ball, target_pos, 2.0)
 	var safe_frac = shapecast(start_pos, ghost_ball_pos)
 	print("shape casting placing cue ball after scratch: ", obj_ball.ball_num, ", safe frac ", safe_frac)
 	return safe_frac > 0.99
