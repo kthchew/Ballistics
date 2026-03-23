@@ -58,7 +58,8 @@ func _on_aim_changed(touch_pos: Vector2):
 		var ray_normal = camera.project_ray_normal(touch_pos)
 		var drop_plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		place_cue_ball_after_scratch(intersection)
+		if shapecast_point_to_point(intersection, Vector3.ZERO):
+			place_cue_ball_after_scratch(intersection)
 		return
 		
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
@@ -208,19 +209,19 @@ func _on_ball_sunk(ball):
 		if next_solids_player != -1:
 			scores[next_solids_player] = ball_manager.balls_sunk[0]
 			scores[1 - next_solids_player] = ball_manager.balls_sunk[1]
+
+func shapecast_point_to_point(origin: Vector3, rel_target: Vector3) -> bool:
+	shape_cast.global_position = origin
+	shape_cast.max_results = 1
+	shape_cast.target_position = rel_target
+	shape_cast.collision_mask = 1 << 2
+	shape_cast.force_shapecast_update()
+	return not shape_cast.is_colliding()
 	
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
-	
-	shape_cast.global_position = origin
-	shape_cast.max_results = 1
-	shape_cast.target_position = 500 * dir
-	shape_cast.collision_mask = 1 << 2
-	
-	shape_cast.force_shapecast_update()
-	
-	if not shape_cast.is_colliding():
+	if shapecast_point_to_point(origin, 500 * dir):
 		return
 	
 	var collider = shape_cast.get_collider(0)
@@ -335,7 +336,7 @@ func end_game(winner: int) -> void:
 	ball_manager.freeze_balls()
 	
 func is_ai_turn():
-	return true
+	return false
 	#return player_ind == 1
 	
 func ai_play():
