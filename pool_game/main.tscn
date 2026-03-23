@@ -311,6 +311,7 @@ points = PackedVector2Array(0, 0, 0, 0)
 width = 3.0
 
 [node name="CashOut" type="CanvasLayer" parent="." unique_id=276110570]
+visible = false
 script = SubResource("GDScript_yaehf")
 
 [node name="Panel" type="Panel" parent="CashOut" unique_id=1285902101]
