@@ -2,14 +2,16 @@ extends Node
 
 signal ai_aimed(dir: Vector2)
 signal ai_placed_cue_ball(pos: Vector3)
+signal ai_picked_pocket(hole_ind: int)
 
 @onready var camera = $/root/Main/CameraPivot/Camera3D
 
 var hole_locs: Array[Vector3]
-var found_shot: bool = true
+var cached_shot: Shot
 
 func _ready():
 	fill_hole_locs()
+	cached_shot = null
 	Shot.shape_cast = $/root/Main/ShapeCast3D
 			
 func fill_hole_locs():
@@ -52,29 +54,35 @@ func highlight_ball(obj_ball: Ball, color: Color):
 	outline_material.grow_amount = 1
 	mesh.material_overlay = outline_material
 	
-func shoot(shot: Shot):
-	var cue_ball_target = shot.target_positions[0]
-	if shot.scratched:
-		var first_ball = shot.obj_balls[0]
-		var place_pos = Shot.calc_ghost_ball_pos(first_ball, cue_ball_target, -2)
-		ai_placed_cue_ball.emit(place_pos)
+func pick_pocket():
+	if cached_shot.potting:
+		var hole_ind = Main.calc_hole_ind_from_pos(cached_shot.hole_loc)
+		ai_picked_pocket.emit(hole_ind)
+	else:
+		ai_picked_pocket.emit(0)
 	
-	for i in range(len(shot.obj_balls)):
+func place_cue_ball():
+	var cue_ball_target = cached_shot.target_positions[0]
+	var first_ball = cached_shot.obj_balls[0]
+	var place_pos = Shot.calc_ghost_ball_pos(first_ball, cue_ball_target, -2)
+	ai_placed_cue_ball.emit(place_pos)
+	
+func shoot():
+	for i in range(len(cached_shot.obj_balls)):
 		var color = Color.YELLOW
-		if shot.potting:
-			color = calc_ai_color(i, len(shot.obj_balls))
-		highlight_ball(shot.obj_balls[i], color)
+		if cached_shot.potting:
+			color = calc_ai_color(i, len(cached_shot.obj_balls))
+		highlight_ball(cached_shot.obj_balls[i], color)
 	
-	for i in range(len(shot.target_positions)):
+	for i in range(len(cached_shot.target_positions)):
 		var color = Color.YELLOW
-		if shot.potting:
-			color = calc_ai_color(i, len(shot.obj_balls))
-		Draw.circle(camera.unproject_position(shot.target_positions[i]), 10.0, color)
+		if cached_shot.potting:
+			color = calc_ai_color(i, len(cached_shot.obj_balls))
+		Draw.circle(camera.unproject_position(cached_shot.target_positions[i]), 10.0, color)
 	
-	var force = calc_shot(shot.cue_ball, cue_ball_target)
+	var cue_ball_target = cached_shot.target_positions[0]
+	var force = calc_shot(cached_shot.cue_ball, cue_ball_target)
 	ai_aimed.emit(Vector2(-force.x, -force.z))
-	
-	return
 
 func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
 	var ans = []
@@ -97,30 +105,39 @@ func print_shot(obj_balls: Array, hole_loc: Vector3):
 		print("\tobj ball num ", i, "=", obj_balls[i].ball_num)
 	print("\thole loc=", hole_loc)
 
-func find_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool):
-	Draw.clear_all()
-	await get_tree().create_timer(1.0).timeout
+func reset_shot():
+	cached_shot = null
+
+func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	
-	if await find_potting_shot(cue_ball, obj_balls, scratched):
+	if cached_shot != null:
+		return
+		
+	Draw.clear_all()
+	
+	if find_potting_shot(cue_ball, obj_balls):
 		return
 	
-	find_non_potting_shot(cue_ball, obj_balls, scratched)
+	find_non_potting_shot(cue_ball, obj_balls)
 	
-func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool) -> bool:
+	if cached_shot == null:
+		print("I actually straight up did not find any shot for real cus im a chud")
+	
+func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	var perms = generate_ball_perms(obj_balls)
 	for perm in perms:
 		for hole_loc in hole_locs:
-			var shot = Shot.new(cue_ball, perm, hole_loc, scratched)
+			var shot = Shot.new(cue_ball, perm, hole_loc)
 			if shot.poss:
 				print_shot(perm, hole_loc)
-				shoot(shot)
+				cached_shot = shot
 				return true
 	return false
 	
-func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball], scratched: bool) -> bool:
+func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	for obj_ball in obj_balls:
-		var shot = Shot.new(cue_ball, [obj_ball], Vector3.INF, scratched)
+		var shot = Shot.new(cue_ball, [obj_ball], Vector3.INF)
 		if shot.poss:
-			shoot(shot)
+			cached_shot = shot
 			return true
 	return false

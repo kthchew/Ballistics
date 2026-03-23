@@ -1,4 +1,4 @@
-extends Node3D
+class_name Main extends Node3D
 
 @onready var debug_label: Label = $UI/DebugLabel
 @onready var info_label: Label = $UI/InfoLabel
@@ -45,6 +45,7 @@ func _ready() -> void:
 	ball_manager.ball_sunk.connect(_on_ball_sunk)
 	classical_ai.ai_aimed.connect(_on_ai_aimed)
 	classical_ai.ai_placed_cue_ball.connect(_on_ai_placed_cue_ball)
+	classical_ai.ai_picked_pocket.connect(_on_ai_picked_pocket)
 	
 	start_game()
 	
@@ -69,7 +70,7 @@ func _on_aim_changed(touch_pos: Vector2):
 
 func place_cue_ball_after_scratch(pos: Vector3):
 	ball_manager.reset_cue_ball(pos)
-	start_round()
+	update_game_state()
 	
 func _on_ai_aimed(dir: Vector2):
 	aim(dir)
@@ -80,6 +81,9 @@ func _on_ai_aimed(dir: Vector2):
 	
 func _on_ai_placed_cue_ball(pos: Vector3):
 	place_cue_ball_after_scratch(pos)
+	
+func _on_ai_picked_pocket(hole_ind: int):
+	_on_hole_selected(hole_ind)
 	
 func aim(dir: Vector2):
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
@@ -173,7 +177,7 @@ func _on_fire_pressed():
 func _on_hole_selected(hole_ind: int) -> void:
 	target_hole = hole_ind
 	hole_buttons.hide()
-	start_round()
+	update_game_state()
 	
 func _on_reset_button_pressed() -> void:
 	start_game()
@@ -181,14 +185,16 @@ func _on_reset_button_pressed() -> void:
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
 
-func calc_hole_ind_from_pos(pos: Vector3) -> int:
+static func calc_hole_ind_from_pos(pos: Vector3) -> int:
 	var hole_ind = 0
 	if pos.z > 0:
 		hole_ind += 3
+	
 	if pos.x > 50.91:
 		hole_ind += 2
 	elif pos.x > -50.91:
 		hole_ind += 1
+	
 	return hole_ind
 	
 func _on_ball_sunk(ball):
@@ -333,7 +339,7 @@ func start_game() -> void:
 	
 	ball_manager.start_game()
 	
-	start_round()
+	update_game_state()
 	
 func end_game(winner: int) -> void:
 	self.winner = winner
@@ -343,38 +349,40 @@ func end_game(winner: int) -> void:
 func is_ai_turn():
 	return true
 	#return player_ind == 1
+	
+func ai_play():
+	await get_tree().create_timer(1.0).timeout
+	classical_ai.find_shot(
+		ball_manager.cue_ball,
+		ball_manager.get_pottable_balls(player_ind, solids_player, scores)
+	)
+	
+	if game_state == GameState.PLACING:
+		classical_ai.place_cue_ball()
+	elif game_state == GameState.PICKPOCKET:
+		classical_ai.pick_pocket()
+	elif game_state == GameState.AIMING:
+		classical_ai.shoot()
 		
-func start_round(scratched_prev: bool = false) -> void:
+func update_game_state(scratched_prev: bool = false) -> void:
 	if scratched_prev:
 		if ball_manager.check_eight_ball_potted():
 			end_game(player_ind)
 		print("Scratch registered")
 		game_state = GameState.PLACING
 		ball_manager.cue_ball.pot()
-		
-		if is_ai_turn():
-			classical_ai.find_shot(
-				ball_manager.cue_ball,
-				ball_manager.get_pottable_balls(player_ind, solids_player, scores),
-				true,
-			)
-		return
-	
-	if target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
+	elif target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
 		game_state = GameState.PICKPOCKET
 		hole_buttons.show()
-		return
-	
-	game_state = GameState.AIMING
+	else:
+		game_state = GameState.AIMING
 	
 	if is_ai_turn():
-		classical_ai.find_shot(
-			ball_manager.cue_ball,
-			ball_manager.get_pottable_balls(player_ind, solids_player, scores),
-			false,
-		)
+		ai_play()
 	
 func end_round() -> void:
+	classical_ai.reset_shot()
+	
 	round_num += 1
 	
 	target_hole = -1
@@ -386,13 +394,13 @@ func end_round() -> void:
 	
 	if not scratched and play_again:
 		play_again = false
-		start_round()
+		update_game_state()
 		return
 	
 	play_again = false
 	turn_num += 1
 	player_ind = 1 - player_ind
-	start_round(scratched)
+	update_game_state(scratched)
 	
 func process_midturn():
 	ball_manager.process_fallen_balls()

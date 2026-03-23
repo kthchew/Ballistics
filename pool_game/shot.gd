@@ -42,11 +42,11 @@ static func shapecast_placing_cue_ball(obj_ball: Ball, target_pos: Vector3) -> b
 	print("shape casting placing cue ball after scratch: ", obj_ball.ball_num, ", safe frac ", safe_frac)
 	return safe_frac > 0.99
 
-func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, scratched: bool):
+func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3):
 	self.cue_ball = cue_ball
 	self.obj_balls = obj_balls
 	self.hole_loc = hole_loc
-	self.scratched = scratched
+	self.scratched = cue_ball.potted
 	self.potting = hole_loc != Vector3.INF
 	if self.potting:
 		self.poss = check_pot_possible()
