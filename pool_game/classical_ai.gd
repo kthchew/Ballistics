@@ -109,7 +109,6 @@ func reset_shot():
 	cached_shot = null
 
 func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
-	
 	if cached_shot != null:
 		return
 		
@@ -121,7 +120,11 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	if find_non_potting_shot(cue_ball, obj_balls):
 		return
 	
-	return
+	use_random_shot(cue_ball)
+	
+func use_random_shot(cue_ball: Ball):
+	var shot = Shot.new(cue_ball, [], Vector3.INF)
+	shot.target_positions.append(cue_ball.global_position + Vector3(0, 0, -5))
 	
 func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	var perms = generate_ball_perms(obj_balls)

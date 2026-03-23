@@ -62,8 +62,10 @@ func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3):
 	self.potting = hole_loc != Vector3.INF
 	if self.potting:
 		self.poss = check_pot_possible()
-	else:
+	elif len(obj_balls) > 0:
 		self.poss = check_non_pot_possible()
+	else:
+		self.poss = true
 	
 func check_pot_possible() -> bool:
 	var target_pos = hole_loc
