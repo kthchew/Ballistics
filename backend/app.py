@@ -117,8 +117,7 @@ def get_friend_requests():
         if from_username is not None:
             requests.append({
                 'from_user': from_username,
-                'date': f_request['date'],
-                'status': f_request['status']
+                'date': f_request['date']
             })
     return jsonify(requests)
 

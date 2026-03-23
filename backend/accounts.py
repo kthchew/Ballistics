@@ -19,16 +19,10 @@ class Account:
 
 
 class FriendRequest:
-    class Status(Enum):
-        PENDING = 0
-        ACCEPTED = 1
-        REJECTED = 2
-
     # the "to user" is the user in which this request appears in the `friend_requests` field
     def __init__(self, from_user: ObjectId, date: str):
         self.from_user = from_user
         self.date = date
-        self.status = self.Status.PENDING.value
 
 def username_to_id(username: str) -> ObjectId | None:
     users_collection = database.db['users']
@@ -107,7 +101,7 @@ def accept_friend_request(to_user_id: ObjectId, from_user_id: ObjectId) -> bool:
     users_collection = database.db['users']
     result = users_collection.update_one(
         {'_id': to_user_id, 'friend_requests.from_user': from_user_id},
-        {'$set': {'friend_requests.$.status': FriendRequest.Status.ACCEPTED.value}}
+        {'$pull': {'friend_requests': {'from_user': from_user_id}}}
     )
     if result.modified_count > 0:
         users_collection.update_one({'_id': to_user_id}, {'$push': {'friends': from_user_id}})
@@ -119,7 +113,7 @@ def reject_friend_request(to_user_id: ObjectId, from_user_id: ObjectId) -> bool:
     users_collection = database.db['users']
     result = users_collection.update_one(
         {'_id': to_user_id, 'friend_requests.from_user': from_user_id},
-        {'$set': {'friend_requests.$.status': FriendRequest.Status.REJECTED.value}}
+        {'$pull': {'friend_requests': {'from_user': from_user_id}}}
     )
     return result.modified_count > 0
 

@@ -54,7 +54,7 @@ POST localhost:5000/friendRequests/send
 Content-Type: application/json
 
 {
-    "to_user": "testuser456"
+    "to_user": "testuser123"
 }
 
 ###
@@ -63,8 +63,18 @@ POST localhost:5000/friendRequests/accept
 Content-Type: application/json
 
 {
-    "from_user": "testuser123"
+    "from_user": "testuser456"
 }
+
+###
+
+POST localhost:5000/friendRequests/reject
+Content-Type: application/json
+
+{
+    "from_user": "testuser456"
+}
+
 
 ###
 
