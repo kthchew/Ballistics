@@ -102,6 +102,24 @@ def get_friends():
             friends.append(friend['username'])
     return jsonify(friends)
 
+@app.post("/friends/remove")
+def remove_friend():
+    if 'username' not in session:
+        return "Unauthorized"
+    json_data = request.get_json()
+    if 'defriend' not in json_data:
+        return "Bad request", 400
+    friend_username = json_data['defriend']
+    username = session['username']
+    user_id = accounts.username_to_id(username)
+    friend_user_id = accounts.username_to_id(friend_username)
+    if user_id is None or friend_user_id is None:
+        return "User not found", 401
+    if accounts.remove_friend(user_id, friend_user_id):
+        return f"Friend {friend_username} removed successfully", 200
+    else:
+        return "Failed to remove friend", 500
+
 @app.get("/friendRequests")
 def get_friend_requests():
     if 'username' not in session:

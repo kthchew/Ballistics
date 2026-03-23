@@ -80,3 +80,12 @@ Content-Type: application/json
 
 GET localhost:5000/friends/check?other_user=testuser123
 
+###
+
+POST localhost:5000/friends/remove
+Content-Type: application/json
+
+{
+    "defriend": "testuser123"
+}
+

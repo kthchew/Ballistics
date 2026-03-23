@@ -123,6 +123,12 @@ def reject_friend_request(to_user_id: ObjectId, from_user_id: ObjectId) -> bool:
     )
     return result.modified_count > 0
 
+def remove_friend(user_id_1: ObjectId, user_id_2: ObjectId) -> bool:
+    users_collection = database.db['users']
+    result1 = users_collection.update_one({'_id': user_id_1}, {'$pull': {'friends': user_id_2}})
+    result2 = users_collection.update_one({'_id': user_id_2}, {'$pull': {'friends': user_id_1}})
+    return result1.modified_count > 0 and result2.modified_count > 0
+
 def check_friendship(user_id_1: ObjectId, user_id_2: ObjectId) -> bool:
     friends = list_friends_ids(user_id_1)
     return user_id_2 in friends
