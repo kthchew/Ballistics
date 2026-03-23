@@ -85,6 +85,115 @@ def get_game():
     game_instance = game.get_game_state(current_game_id)
     return jsonify(game.game_instance_to_mongo_dict(game_instance))
 
+@app.get("/friends")
+def get_friends():
+    if 'username' not in session:
+        return "Unauthorized"
+    username = session['username']
+    id = accounts.username_to_id(username)
+    if id is None:
+        return "User not found", 401
+    friends_ids = accounts.list_friends_ids(id)
+    users_collection = accounts.database.db['users']
+    friends = []
+    for friend_id in friends_ids:
+        friend = users_collection.find_one({'_id': friend_id})
+        if friend is not None:
+            friends.append(friend['username'])
+    return jsonify(friends)
+
+@app.get("/friendRequests")
+def get_friend_requests():
+    if 'username' not in session:
+        return "Unauthorized"
+    username = session['username']
+    id = accounts.username_to_id(username)
+    if id is None:
+        return "User not found", 401
+    f_requests = accounts.list_friend_requests(id)
+    requests = []
+    for f_request in f_requests:
+        from_username = accounts.id_to_username(f_request['from_user'])
+        if from_username is not None:
+            requests.append({
+                'from_user': from_username,
+                'date': f_request['date'],
+                'status': f_request['status']
+            })
+    return jsonify(requests)
+
+@app.get("/friends/check")
+def check_friendship():
+    if 'username' not in session:
+        return "Unauthorized"
+    other_username = request.args.get('other_user')
+    if other_username is None:
+        return "Bad request", 400
+    username = session['username']
+    user_id = accounts.username_to_id(username)
+    other_user_id = accounts.username_to_id(other_username)
+    if user_id is None:
+        return "User not found", 401
+    if other_user_id is None:
+        return "0", 200
+    if accounts.check_friendship(user_id, other_user_id):
+        return "1", 200
+    else:
+        return "0", 200
+
+@app.post("/friendRequests/send")
+def send_friend_request():
+    if 'username' not in session:
+        return "Unauthorized"
+    json_data = request.get_json()
+    if 'to_user' not in json_data:
+        return "Bad request", 400
+    to_user_name = json_data['to_user']
+    username = session['username']
+    from_user_id = accounts.username_to_id(username)
+    if from_user_id is None:
+        return "User not found", 401
+    if accounts.send_friend_request(from_user_id, to_user_name):
+        return f"Friend request sent to {to_user_name}", 200
+    else:
+        return "Failed to send friend request", 500
+
+@app.post("/friendRequests/accept")
+def accept_friend_request():
+    if 'username' not in session:
+        return "Unauthorized"
+    json_data = request.get_json()
+    if 'from_user' not in json_data:
+        return "Bad request", 400
+    from_user_name = json_data['from_user']
+    username = session['username']
+    to_user_id = accounts.username_to_id(username)
+    from_user_id = accounts.username_to_id(from_user_name)
+    if to_user_id is None or from_user_id is None:
+        return "User not found", 401
+    if accounts.accept_friend_request(to_user_id, from_user_id):
+        return f"Friend request from {from_user_name} accepted", 200
+    else:
+        return "Failed to accept friend request", 500
+
+@app.post("/friendRequests/reject")
+def reject_friend_request():
+    if 'username' not in session:
+        return "Unauthorized"
+    json_data = request.get_json()
+    if 'from_user' not in json_data:
+        return "Bad request", 400
+    from_user_name = json_data['from_user']
+    username = session['username']
+    to_user_id = accounts.username_to_id(username)
+    from_user_id = accounts.username_to_id(from_user_name)
+    if to_user_id is None or from_user_id is None:
+        return "User not found", 401
+    if accounts.reject_friend_request(to_user_id, from_user_id):
+        return f"Friend request from {from_user_name} rejected", 200
+    else:
+        return "Failed to reject friend request", 500
+
 # FIXME: anything below this should be restricted to requests from a trusted Godot game server
 @app.post("/updateGame")
 def update_game_state():
