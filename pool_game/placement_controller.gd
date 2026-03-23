@@ -4,11 +4,23 @@ extends Control
 var preview :Node3D= null
 var dragging := false
 
+func _on_power_1_pressed() -> void:
+	print($"../Panel/HBoxContainer/Power1".text)
+	self.visible = true
+	var power_scene: PackedScene = load("res://Powers/" + $"../Panel/HBoxContainer/Power1".text + ".tscn")
+	start_placement(power_scene)
+
 func _on_power_2_pressed() -> void:
 	print("pressed")
 	self.visible = true
-	var block_scene: PackedScene = preload("res://block.tscn")
-	start_placement(block_scene)
+	var power_scene: PackedScene = load("res://Powers/" + $"../Panel/HBoxContainer/Power2".text + ".tscn")
+	start_placement(power_scene)
+	
+func _on_power_3_pressed() -> void:
+	print("pressed")
+	self.visible = true
+	var power_scene: PackedScene = load("res://Powers/" + $"../Panel/HBoxContainer/Power3".text + ".tscn")
+	start_placement(power_scene)
 
 func start_placement(scene: PackedScene):
 	preview = scene.instantiate()
@@ -47,21 +59,42 @@ func _gui_input(event):
 
 
 func _on_place_button_pressed() -> void:
-	if preview.occupied > 0:
+	print(preview, preview.get_script())
+	var power_type = preview.power_type
+
+	if power_type == "Object" and preview.occupied > 0:
 		print("occupied too big")
 		return
-	if preview is RigidBody3D:
-		preview.freeze = false
-	preview.set_collision_layer_value(1, true)
-	preview.set_collision_layer_value(2, true)
-	preview.set_collision_layer_value(3, true)
-	preview.set_collision_mask_value(1, true)
-	preview.set_collision_mask_value(2, true)
-	preview.set_collision_mask_value(3, true)
-	var parent = get_parent()
-	parent.visible = false
-	parent.get_parent().get_node("UI").visible = true
-	preview = null
+
+	if power_type == "Modifier" and preview.occupied != 1:
+		print(preview.occupied)
+		print("too many modified")
+		return
+
+	if power_type == "Object":
+		print("Object placed")
+		if preview is RigidBody3D:
+			preview.freeze = false
+		preview.set_collision_layer_value(1, true)
+		preview.set_collision_layer_value(2, true)
+		preview.set_collision_layer_value(3, true)
+		preview.set_collision_mask_value(1, true)
+		preview.set_collision_mask_value(2, true)
+		preview.set_collision_mask_value(3, true)
+		preview = null
+		get_node("/root/Main").objects += 1
+		
+	if power_type == "Modifier":
+		if !preview.power():
+			print("Modifier Can't")
+			return
+		print("Modifier placed")
+		preview.queue_free()
+		preview = null
+	
+	self.visible = false
+	get_node("/root/Main").cashout = false
+	get_node("/root/Main").end_round()
 	
 var rotating_left := false
 var rotating_right := false

@@ -311,11 +311,10 @@ points = PackedVector2Array(0, 0, 0, 0)
 width = 3.0
 
 [node name="CashOut" type="CanvasLayer" parent="." unique_id=276110570]
-visible = false
 script = SubResource("GDScript_yaehf")
 
 [node name="Panel" type="Panel" parent="CashOut" unique_id=1285902101]
-anchors_preset = -1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -409,6 +408,7 @@ size_flags_vertical = 3
 theme = ExtResource("8_w48qg")
 theme_override_font_sizes/font_size = 44
 text = "Option 1"
+script = ExtResource("9_vivmo")
 
 [node name="Power2" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=1417258925]
 layout_mode = 2
@@ -424,6 +424,7 @@ size_flags_vertical = 3
 theme = ExtResource("8_w48qg")
 theme_override_font_sizes/font_size = 44
 text = "Option 3"
+script = ExtResource("9_vivmo")
 
 [node name="placementController" type="Control" parent="pUI" unique_id=1682392652]
 visible = false
@@ -548,7 +549,9 @@ size = 130.0
 [connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/Yes" to="CashOut" method="_on_yes_pressed"]
 [connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/No" to="." method="_on_no_pressed"]
 [connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/No" to="CashOut" method="_on_no_pressed"]
+[connection signal="pressed" from="pUI/Panel/HBoxContainer/Power1" to="pUI/placementController" method="_on_power_1_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
+[connection signal="pressed" from="pUI/Panel/HBoxContainer/Power3" to="pUI/placementController" method="_on_power_3_pressed"]
 [connection signal="pressed" from="pUI/placeButton" to="." method="_on_place_button_pressed"]
 [connection signal="pressed" from="pUI/placeButton" to="pUI/placementController" method="_on_place_button_pressed"]
 [connection signal="button_down" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_down"]

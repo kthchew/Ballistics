@@ -11,7 +11,7 @@ extends Node3D
 @onready var aim_visuals = $UI/AimVisuals
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var shape_cast = $ShapeCast3D
-@onready var crazy = true
+@onready var crazy = false
 @onready var cashout = false
 
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY}
@@ -45,6 +45,8 @@ const ball_script = preload("res://ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
+	get_tree().set_meta("crazy", true)
+	#TODO Comment out above line
 	if get_tree().get_meta("crazy"):
 		crazy = true
 
@@ -461,6 +463,9 @@ func end_round() -> void:
 		$UI.visible = false
 		$CashOut.visible = true
 		return
+	if game_state == GameState.CRAZY:
+		$pUI.visible = false
+		$UI.visible = true
 	round_num += 1
 	
 	target_hole = -1
@@ -563,18 +568,23 @@ func fill_info_label() -> void:
 	if game_state == GameState.PLACING:
 		info_label.text += "Your opponent scratched, click to place the cue ball\n"
 
-
 func _on_no_pressed() -> void:
 	$CashOut.visible = false
 	$UI.visible = true
 	cashout = false
 	end_round()
 
+@onready var objects = 0
+
 func _on_yes_pressed() -> void:
+	if objects > 0:
+		var randPower = ["block", "tungsten", "tnt"]
+	else:
+		var randPower = ["block", "tungsten"]
 	game_state = GameState.CRAZY
 	$CashOut.visible = false
 	$pUI.visible = true
-
-func _on_place_button_pressed() -> void:
-	cashout = false
-	end_round()
+	$pUI/Panel.visible = true
+	$pUI/Panel/HBoxContainer.visible = true
+	for button in $pUI/Panel/HBoxContainer.get_children():
+		button.text = randPower.pick_random()
