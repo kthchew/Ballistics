@@ -91,7 +91,13 @@ def list_friend_requests(user_id: ObjectId) -> list:
 def send_friend_request(from_user_id: ObjectId, to_user_name: str) -> bool:
     users_collection = database.db['users']
     from_user = users_collection.find_one({'_id': from_user_id})
-    if from_user is None:
+    if from_user is None or from_user['username'] == to_user_name:
+        return False
+    existing_req = users_collection.find_one({'username': to_user_name, 'friend_requests.from_user': from_user_id})
+    if existing_req is not None:
+        return False
+    existing_friend = users_collection.find_one({'username': to_user_name, 'friends': from_user_id})
+    if existing_friend is not None:
         return False
     friend_request = FriendRequest(from_user['_id'], date=datetime.now().isoformat())
     result = users_collection.update_one({'username': to_user_name}, {'$push': {'friend_requests': friend_request.__dict__}})
