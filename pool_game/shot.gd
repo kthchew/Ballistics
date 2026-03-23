@@ -10,6 +10,18 @@ var poss: bool
 var target_positions: Array[Vector3]
 var potting: bool
 
+static func calc_hole_ind_from_pos(pos: Vector3) -> int:
+	var hole_ind = 0
+	if pos.z > 0:
+		hole_ind += 3
+	
+	if pos.x > 50.91:
+		hole_ind += 2
+	elif pos.x > -50.91:
+		hole_ind += 1
+	
+	return hole_ind
+
 static func calc_ghost_ball_pos(obj_ball: Ball, target_pos: Vector3, mult: float = 1.0) -> Vector3:
 	var target_to_obj_dir = obj_ball.global_position - target_pos
 	target_to_obj_dir.y = 0

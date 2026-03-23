@@ -56,7 +56,7 @@ func highlight_ball(obj_ball: Ball, color: Color):
 	
 func pick_pocket():
 	if cached_shot.potting:
-		var hole_ind = Main.calc_hole_ind_from_pos(cached_shot.hole_loc)
+		var hole_ind = Shot.calc_hole_ind_from_pos(cached_shot.hole_loc)
 		ai_picked_pocket.emit(hole_ind)
 	else:
 		ai_picked_pocket.emit(0)
@@ -118,10 +118,10 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	if find_potting_shot(cue_ball, obj_balls):
 		return
 	
-	find_non_potting_shot(cue_ball, obj_balls)
+	if find_non_potting_shot(cue_ball, obj_balls):
+		return
 	
-	if cached_shot == null:
-		print("I actually straight up did not find any shot for real cus im a chud")
+	return
 	
 func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	var perms = generate_ball_perms(obj_balls)

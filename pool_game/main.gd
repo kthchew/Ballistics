@@ -184,22 +184,10 @@ func _on_reset_button_pressed() -> void:
 
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
-
-static func calc_hole_ind_from_pos(pos: Vector3) -> int:
-	var hole_ind = 0
-	if pos.z > 0:
-		hole_ind += 3
-	
-	if pos.x > 50.91:
-		hole_ind += 2
-	elif pos.x > -50.91:
-		hole_ind += 1
-	
-	return hole_ind
 	
 func _on_ball_sunk(ball):
 	if ball.is_eight_ball():
-		var hole_ind = calc_hole_ind_from_pos(ball.position)
+		var hole_ind = Shot.calc_hole_ind_from_pos(ball.position)
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
 			end_game(player_ind)
 		else:
@@ -352,6 +340,7 @@ func is_ai_turn():
 	
 func ai_play():
 	await get_tree().create_timer(1.0).timeout
+	
 	classical_ai.find_shot(
 		ball_manager.cue_ball,
 		ball_manager.get_pottable_balls(player_ind, solids_player, scores)
