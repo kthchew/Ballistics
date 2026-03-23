@@ -575,12 +575,12 @@ func _on_no_pressed() -> void:
 	end_round()
 
 @onready var objects = 0
-
+var randPower = []
 func _on_yes_pressed() -> void:
 	if objects > 0:
-		var randPower = ["block", "tungsten", "tnt"]
+		randPower = ["block", "tungsten", "tnt"]
 	else:
-		var randPower = ["block", "tungsten"]
+		randPower = ["block", "tungsten"]
 	game_state = GameState.CRAZY
 	$CashOut.visible = false
 	$pUI.visible = true
