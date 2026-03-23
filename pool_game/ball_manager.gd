@@ -172,4 +172,8 @@ func get_pottable_balls(player_ind: int, solids_player: int, scores: Array[int])
 			ans.append(ball)
 		elif ball.is_eight_ball() and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
 			ans.append(ball)
+		# Failsafe if all other balls are sunk on break.
+		# This statement should be contingent on solids_player being -1.
+		elif ball.is_eight_ball() and balls_sunk[0] == balls_sunk[1] and balls_sunk[0] == Constants.BALLS_BEFORE_EIGHT:
+			ans.append(ball)
 	return ans

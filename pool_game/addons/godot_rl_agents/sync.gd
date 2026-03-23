@@ -302,6 +302,8 @@ func _demo_record_process():
 		print("[Sync script][Demo recorder] Recorded episode count: %d" % demo_trajectories.size())
 		current_demo_trajectory[0].clear()
 		current_demo_trajectory[1].clear()
+		#update file contents on each episode
+		_notification(NOTIFICATION_WM_CLOSE_REQUEST)
 
 
 func _heuristic_process():
