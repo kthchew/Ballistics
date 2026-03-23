@@ -92,7 +92,7 @@ func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
 	# comment this loop out to test only 2 ball shots
 	for i in range(len(obj_balls)):
 		ans.append([obj_balls[i]])
-	
+		
 	for i in range(len(obj_balls)):
 		for j in range(len(obj_balls)):
 			if i == j:
@@ -122,11 +122,14 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	if find_non_potting_shot(cue_ball, obj_balls):
 		return
 	
-	straight_up_shot(cue_ball)
+	choose_random_shot(cue_ball)
 	
-func straight_up_shot(cue_ball: Ball):
+func choose_random_shot(cue_ball: Ball):
 	var shot = Shot.new(cue_ball, [], Vector3.INF)
-	shot.target_positions.append(cue_ball.global_position + Vector3(0, 0, -2 * Constants.BALL_RADIUS))
+	var angle = randf_range(0, 2 * 3.14)
+	shot.target_positions.append(
+		cue_ball.global_position + 2 * Constants.BALL_RADIUS * Vector3(cos(angle), 0, -sin(angle))
+	)
 	cached_shot = shot
 	
 func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
