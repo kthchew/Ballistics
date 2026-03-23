@@ -336,7 +336,7 @@ func end_game(winner: int) -> void:
 	ball_manager.freeze_balls()
 	
 func is_ai_turn():
-	return false
+	return true
 	#return player_ind == 1
 	
 func ai_play():

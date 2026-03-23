@@ -102,11 +102,11 @@ func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
 	
 	return ans
 	
-func print_shot(obj_balls: Array, hole_loc: Vector3):
+func print_shot(shot: Shot):
 	print("Shot:")
-	for i in range(len(obj_balls)):
-		print("\tobj ball num ", i, "=", obj_balls[i].ball_num)
-	print("\thole loc=", hole_loc)
+	for i in range(len(shot.obj_balls)):
+		print("\tobj ball num ", i, "=", shot.obj_balls[i].ball_num)
+	print("\thole loc=", shot.hole_loc)
 
 func reset_shot():
 	cached_shot = null
@@ -131,6 +131,7 @@ func choose_random_shot(cue_ball: Ball):
 	shot.target_positions.append(
 		cue_ball.global_position + 2 * Constants.BALL_RADIUS * Vector3(cos(angle), 0, -sin(angle))
 	)
+	print_shot(shot)
 	cached_shot = shot
 	
 func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
@@ -139,7 +140,7 @@ func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 		for hole_loc in hole_locs:
 			var shot = Shot.new(cue_ball, perm, hole_loc)
 			if shot.poss:
-				print_shot(perm, hole_loc)
+				print_shot(shot)
 				cached_shot = shot
 				return true
 	return false
@@ -148,6 +149,7 @@ func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	for obj_ball in obj_balls:
 		var shot = Shot.new(cue_ball, [obj_ball], Vector3.INF)
 		if shot.poss:
+			print_shot(shot)
 			cached_shot = shot
 			return true
 	return false

@@ -40,11 +40,11 @@ static func shapecast(origin: Vector3, abs_target: Vector3) -> float:
 static func shapecast_ball(ball: Ball, target_pos: Vector3) -> bool:
 	var ball_pos = ball.global_position
 	var safe_frac = shapecast(ball_pos, target_pos)
-	print("Shape casting",
-		"\n\tball num=", ball.ball_num, 
-		"\n\tto target_pos=", target_pos, 
-		"\n\tsafe frac=", safe_frac
-	)
+	#print("Shape casting",
+		#"\n\tball num=", ball.ball_num, 
+		#"\n\tto target_pos=", target_pos, 
+		#"\n\tsafe frac=", safe_frac
+	#)
 	return safe_frac > 0.99
 	
 static func shapecast_placing_cue_ball(obj_ball: Ball, target_pos: Vector3) -> bool:
