@@ -24,6 +24,7 @@ func fill_hole_locs():
 		var hole_marker = get_node(path_str)
 		var pos = hole_marker.global_position
 		pos.y = Constants.BALL_RADIUS
+		hole_locs.append(pos)
 		for aberration_ind in range(len(dx)):
 			var x_move = hole_rad * dx[aberration_ind]
 			var z_move = hole_rad * dz[aberration_ind]
