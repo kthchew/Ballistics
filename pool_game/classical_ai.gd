@@ -76,6 +76,8 @@ func shoot():
 	
 	for i in range(len(cached_shot.target_positions)):
 		var color = Color.YELLOW
+		if len(cached_shot.obj_balls) == 0:
+			color = Color.RED
 		if cached_shot.potting:
 			color = calc_ai_color(i, len(cached_shot.obj_balls))
 		Draw.circle(camera.unproject_position(cached_shot.target_positions[i]), 10.0, color)
@@ -120,11 +122,12 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	if find_non_potting_shot(cue_ball, obj_balls):
 		return
 	
-	use_random_shot(cue_ball)
+	straight_up_shot(cue_ball)
 	
-func use_random_shot(cue_ball: Ball):
+func straight_up_shot(cue_ball: Ball):
 	var shot = Shot.new(cue_ball, [], Vector3.INF)
-	shot.target_positions.append(cue_ball.global_position + Vector3(0, 0, -5))
+	shot.target_positions.append(cue_ball.global_position + Vector3(0, 0, -2 * Constants.BALL_RADIUS))
+	cached_shot = shot
 	
 func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	var perms = generate_ball_perms(obj_balls)

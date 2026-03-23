@@ -179,7 +179,7 @@ func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, sco
 	if ball_num == 0:
 		return false
 	if solids_player == -1:
-		return true
+		return ball_num != 8
 	if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
 		return ball_num == 8
 	if player_ind == solids_player:
