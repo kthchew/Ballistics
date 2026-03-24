@@ -52,12 +52,12 @@ var _obs_space_training: Array[Dictionary] = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	add_to_group("SYNC")
 	await get_tree().root.ready
 	get_tree().set_pause(true)
 	_initialize()
 	await get_tree().create_timer(1.0).timeout
 	get_tree().set_pause(false)
-	add_to_group("SYNC")
 
 
 func _initialize():
@@ -190,7 +190,7 @@ func _physics_process(_delta):
 		#if ("cur_static_ticks" in node and "static_ticks_threshold" in node 
 		#and node.cur_static_ticks < node.static_ticks_threshold):
 			#return
-	#if parent.cur_static_ticks < parent.static_ticks_threshold:
+	#if not agent_demo_record and parent.cur_static_ticks < parent.static_ticks_threshold:
 		#return
 
 	# seems like sometimes a delay causes multiple action steps to be sent at once before the last move was processed?
@@ -298,7 +298,7 @@ func _demo_record_process():
 
 	if terminal:
 		#current_demo_trajectory[2].append(true)
-		if len(current_demo_trajectory[1] != 0):
+		if len(current_demo_trajectory[1]) != 0:
 			demo_trajectories.append(current_demo_trajectory.duplicate(true))
 		print("[Sync script][Demo recorder] Recorded episode count: %d" % demo_trajectories.size())
 		current_demo_trajectory[0].clear()

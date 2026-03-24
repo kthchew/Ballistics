@@ -89,19 +89,19 @@ func set_action(action=null) -> void:
 		action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
 		action_posx = clamp(action["ball_pos"][0], -1, 1)
 		action_posy = clamp(action["ball_pos"][1], -1, 1)
+		fire.emit()
 	else:
 		action_angle = cue_stick.angle
 		action_power = (slider.value / 100) ** .5
 		action_posx = aimer.output[0]
 		action_posy = aimer.output[1]
-	#fire.emit()
 
 #-----------------------------------------------------------------------------#
 
 #-- Methods that sometimes need implementing using the "extend script" option in Godot --#
 # Only needed if you are recording expert demos with this AIController
 func get_action() -> Array:
-	return [action_angle, action_power, action_posx, action_posy]
+	return [sin(action_angle), cos(action_angle), action_power, action_posx, action_posy]
 
 # -----------------------------------------------------------------------------#
 

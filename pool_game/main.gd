@@ -161,7 +161,8 @@ func _on_fire_pressed():
 		return
 		
 	var sync = get_tree().get_nodes_in_group("SYNC")
-	sync[0]._demo_record_process()
+	if sync[0].agent_demo_record:
+		sync[0]._demo_record_process()
 	
 	ai_controller.reward -= 0.05
 	var strength: float
@@ -246,9 +247,10 @@ func _on_ball_sunk(ball):
 			end_game(player_ind)
 		else:
 			var sync = get_tree().get_nodes_in_group("SYNC")
-			print("Removing really unsuccessful shot...")
-			sync[0].current_demo_trajectory[0].pop_back()
-			sync[0].current_demo_trajectory[1].pop_back()
+			if sync[0].agent_demo_record:
+				print("Removing really unsuccessful shot...")
+				sync[0].current_demo_trajectory[0].pop_back()
+				sync[0].current_demo_trajectory[1].pop_back()
 			end_game(1 - player_ind)
 	
 	elif not ball.is_cue_ball():
@@ -411,8 +413,9 @@ func start_round(scratched_prev: bool = false) -> void:
 		
 	game_state = GameState.AIMING
 		
-	#if player_ind == 0:
-	classical_ai.find_shots(ball_manager.cue_ball, ball_manager.get_pottable_balls(player_ind, solids_player, scores))
+	var agents = get_tree().get_nodes_in_group("AGENT")
+	if len(agents) == 1 and agents[0].control_mode == agents[0].ControlModes.RECORD_EXPERT_DEMOS:
+		classical_ai.find_shots(ball_manager.cue_ball, ball_manager.get_pottable_balls(player_ind, solids_player, scores))
 
 
 func color_ball(ball_node: RigidBody3D, ball_num, colors) -> void:
@@ -708,9 +711,10 @@ func end_round() -> void:
 	if ((solids_player != -1 and ball_manager.balls_sunk[int(player_ind != solids_player)] == ball_manager.prev_sunk[int(player_ind != solids_player)])
 	or (solids_player == -1 and ball_manager.balls_sunk[0] == ball_manager.prev_sunk[0] and ball_manager.balls_sunk[1] == ball_manager.prev_sunk[1])):
 		var sync = get_tree().get_nodes_in_group("SYNC")
-		print("Removing unsuccessful shot...")
-		sync[0].current_demo_trajectory[0].pop_back()
-		sync[0].current_demo_trajectory[1].pop_back()
+		if sync[0].agent_demo_record:
+			print("Removing unsuccessful shot...")
+			sync[0].current_demo_trajectory[0].pop_back()
+			sync[0].current_demo_trajectory[1].pop_back()
 	ball_manager.prev_sunk = ball_manager.balls_sunk.duplicate()
 	
 	round_num += 1
@@ -739,7 +743,8 @@ func process_midturn():
 	if (ai_controller.needs_reset):
 		ai_controller.done = true #guarantees "terminal" branch in sync node?
 		var sync = get_tree().get_nodes_in_group("SYNC")
-		sync[0]._demo_record_process()
+		if sync[0].agent_demo_record:
+			sync[0]._demo_record_process()
 		
 		ai_controller.reset()
 		start_game()
