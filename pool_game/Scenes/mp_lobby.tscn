@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://b6fdpto356141"]
+
+[ext_resource type="Script" uid="uid://cssnh1u5fgqs3" path="res://Scripts/mp_lobby.gd" id="1_so7ii"]
+
+[node name="MultiplayerLobby" type="Node3D" unique_id=1602364776]
+script = ExtResource("1_so7ii")
+
+[node name="Games" type="Node3D" parent="." unique_id=1468780630]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1760525304]
+_spawnable_scenes = PackedStringArray("uid://wvkvj1pke8gv")
+spawn_path = NodePath("../Games")

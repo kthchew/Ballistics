@@ -12,29 +12,32 @@ extends Node3D
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var shape_cast = $ShapeCast3D
 
-enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
+enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, NOT_STARTED}
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
 const BALLS_BEFORE_EIGHT: int = 7
 
+var init_peer = null
 var has_aimed := false
 var cue_ball: RigidBody3D = null
 var balls: Array[RigidBody3D] = []
 # physics defaults to 60 ticks per second
 var cur_static_ticks = 0
-var player_ind: int = 0
-var scores: Array[int] = [0, 0]
-var balls_sunk: Array[int] = [0, 0]
-var game_state: GameState = GameState.AIMING
-var turn_num: int = 0
-var round_num: int = 0
-var solids_player = -1
-var next_solids_player = -1
-var winner: int = -1
-var play_again: bool = false
-var target_hole: int = -1
+@export var lobby_slot: int = -1
+@export var player_ind: int = 0
+@export var scores: Array[int] = [0, 0]
+@export var balls_sunk: Array[int] = [0, 0]
+@export var game_state: GameState = GameState.NOT_STARTED
+@export var turn_num: int = 0
+@export var round_num: int = 0
+@export var solids_player = -1
+@export var next_solids_player = -1
+@export var winner: int = -1
+@export var play_again: bool = false
+@export var target_hole: int = -1
+@export var connected_peers = [-1, -1] # index is player index, value is peer id
 var first_hit_scratch: bool = false
 
 const ball_scene = preload("res://ball.tscn")
@@ -42,10 +45,11 @@ const ball_script = preload("res://ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
-	
+	if init_peer != null:
+		multiplayer.multiplayer_peer = init_peer
 	create_balls()
+	place_rack(56, 0)
 	cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
-	start_game()
 	
 	aim_visuals.hide()
 	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
@@ -53,14 +57,25 @@ func _ready() -> void:
 	$OverheadLight/Light.light_energy = 1000
 	$UI.visible = true
 	
-	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
-	slider.value_changed.connect(_on_force_changed)
+	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed.rpc)
+	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
-	hole_buttons.hole_selected.connect(_on_hole_selected)
+	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
 	
+	$MultiplayerSynchronizer.set_visibility_for(1, true)
+	if connected_peers[0] != -1 and connected_peers[1] != -1:
+		start_game()
+
+@rpc
+func change_hole_button_visibility(is_visible: bool) -> void:
+	hole_buttons.visible = is_visible
+
+@rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PICKPOCKET:
+		return
 	target_hole = hole_ind
-	hole_buttons.hide()
+	change_hole_button_visibility.rpc_id(multiplayer.get_remote_sender_id(), false)
 	start_round()
 	
 func _on_reset_button_pressed() -> void:
@@ -69,6 +84,7 @@ func _on_reset_button_pressed() -> void:
 func _on_first_hit_ball_changed() -> void:
 	first_hit_scratch = not check_is_ball_valid(cue_ball.first_hit_ball_num)
 	
+@rpc
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = cue_ball.global_position
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
@@ -123,11 +139,12 @@ func create_balls() -> void:
 	ball_scene.instantiate()
 	for i in range(16):
 		var ball: RigidBody3D = ball_scene.instantiate()
-		add_child(ball)
 		ball.ball_num = i
 		ball.name = "Ball%s" % i
+		start_synchronizing_ball.rpc(ball.get_name())
+		add_child(ball)
 		balls.append(ball)
-		color_ball(ball)
+		rpc_color_ball.rpc(ball.get_name())
 		if i == 0:
 			cue_ball = ball
 			cue_ball.body_entered.connect(cue_ball._on_body_entered)
@@ -135,6 +152,14 @@ func create_balls() -> void:
 			cue_ball.max_contacts_reported = 3
 		else:
 			ball.collision_layer += 1 << 2
+
+@rpc("authority", "call_local")
+func set_visibility():
+	print("setting visibility")
+	if connected_peers[0] != -1:
+		$MultiplayerSynchronizer.set_visibility_for(connected_peers[0], true)
+	if connected_peers[1] != -1:
+		$MultiplayerSynchronizer.set_visibility_for(connected_peers[1], true)
 	
 func color_ball(ball_node: RigidBody3D) -> void:
 	var texture_path = "res://ball_textures/Ball" + str(ball_node.ball_num) + ".jpg"
@@ -147,12 +172,18 @@ func color_ball(ball_node: RigidBody3D) -> void:
 	var mesh = ball_node.get_node("MeshInstance3D")
 	mesh.set_surface_override_material(0, material)
 	
+@rpc("authority", "call_local", "reliable")
+func rpc_color_ball(ball_name: String) -> void:
+	var ball_node = get_node(ball_name)
+	color_ball(ball_node)
+	
 func pot_all_solids():
 	for ball in balls:
 		if ball.is_solid():
 			process_fallen_ball(ball)
 	
 func start_game() -> void:
+	set_visibility.rpc()
 	cue_ball.reset(Vector3(-56, ball_script.BALL_RADIUS, 0))
 	
 	aim_visuals.hide()
@@ -174,8 +205,6 @@ func start_game() -> void:
 	round_num = 0
 	play_again = false
 	target_hole = -1
-	
-	hole_buttons.hide()
 	
 	place_rack(56, 0)
 
@@ -202,8 +231,12 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 			balls[ball_ind].rotation = Vector3(PI / 2, 0, PI)
 			
 			ball_ind += 1
-	
+			
+
+@rpc("any_peer", "reliable")
 func _on_aim_changed(touch_pos: Vector2):
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
+		return
 	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
 		return
 		
@@ -227,7 +260,7 @@ func _on_aim_changed(touch_pos: Vector2):
 	var angle = dir.angle()
 	var dir_norm = dir.normalized()
 	
-	cast_aim_ray(dir_norm)
+	cast_aim_ray.rpc_id(multiplayer.get_remote_sender_id(), dir_norm)
 
 	var ball_center_3d = cue_ball.global_position
 	var ball_edge_3d = ball_center_3d + Vector3(5, 0, 0)
@@ -241,7 +274,10 @@ func _on_aim_changed(touch_pos: Vector2):
 	aim_visuals.show()
 	cue_stick.show()
 
+@rpc("any_peer", "reliable")
 func _on_force_changed(value):
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
+		return
 	var normalized = value / $UI/ForceSlider.max_value
 	cue_stick.set_force_strength(normalized)
 	
@@ -288,11 +324,19 @@ func sway_light(amount: float, duration: float) -> void:
 	# return to original rotation
 	tween.tween_property(light, "rotation", original_rot, cycle_time * 0.5)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	
+		
 func _on_fire_pressed():
+	# need to set the strength in case it was changed by other player's turn
+	_on_force_changed.rpc_id(1, slider.value)
+	fire_cue.rpc_id(1)
+	
+@rpc("any_peer", "reliable")
+func fire_cue():
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.AIMING:
+		return
 	if not(has_aimed):
 		return
-	var strength = slider.value
+	var strength = cue_stick.strength * 100
 	var angle = cue_stick.angle
 
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
@@ -352,6 +396,26 @@ func _on_fire_pressed():
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)
 	aimer._reset_knob()
+	
+@rpc("authority", "call_local", "reliable")
+func start_synchronizing_ball(ball_name: String):
+	var rep_config = $MultiplayerSynchronizer.get_replication_config()
+	rep_config.add_property(ball_name + ":position")
+	rep_config.add_property(ball_name + ":rotation")
+	rep_config.add_property(ball_name + ":angular_velocity")
+	rep_config.add_property(ball_name + ":linear_velocity")
+	rep_config.add_property(ball_name + ":ball_num")
+	$MultiplayerSynchronizer.set_replication_config(rep_config)
+	
+@rpc("authority", "call_local", "reliable")
+func stop_synchronizing_ball(ball_name: String):
+	var rep_config = $MultiplayerSynchronizer.get_replication_config()
+	rep_config.remove_property(ball_name + ":position")
+	rep_config.remove_property(ball_name + ":rotation")
+	rep_config.remove_property(ball_name + ":angular_velocity")
+	rep_config.remove_property(ball_name + ":linear_velocity")
+	rep_config.add_property(ball_name + ":ball_num")
+	$MultiplayerSynchronizer.set_replication_config(rep_config)
 	
 func check_all_not_moving() -> bool:
 	for ball in balls:
@@ -473,17 +537,20 @@ func start_round(scratched_prev: bool = false) -> void:
 	
 	if target_hole == -1 and scores[player_ind] >= BALLS_BEFORE_EIGHT:
 		game_state = GameState.PICKPOCKET
-		hole_buttons.show()
+		change_hole_button_visibility.rpc_id(connected_peers[player_ind], true)
 		return
 	
 	game_state = GameState.AIMING
 	
 func process_midturn():
-	if game_state != GameState.MIDTURN:
-		return
-		
-	process_fallen_balls()
-	process_movement()
+	if multiplayer.is_server():
+		if game_state != GameState.MIDTURN:
+			return
+		else:
+			cue_stick.visible = false
+			
+		process_fallen_balls()
+		process_movement()
 
 func process_movement():
 	if check_all_not_moving():
@@ -519,21 +586,31 @@ func fill_debug_label() -> void:
 	debug_label.text = label_txt
 
 func fill_info_label() -> void:
+	var is_your_turn = connected_peers[player_ind] == multiplayer.get_unique_id()
 	info_label.text = ""
+	
+	if game_state == GameState.NOT_STARTED:
+		info_label.text = "Currently waiting for enough players..."
 	
 	if game_state == GameState.ENDED:
 		info_label.text = "Player " + str(winner + 1) + " won the game! Click the 'Reset Game' button to play again"
 	
-	if game_state != GameState.MIDTURN and game_state != GameState.ENDED:
-		info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
-		if scores[player_ind] < BALLS_BEFORE_EIGHT:
-			if player_ind == solids_player:
+	if game_state != GameState.MIDTURN and game_state != GameState.ENDED and game_state != GameState.NOT_STARTED:
+		if multiplayer.is_server():
+			info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
+		elif is_your_turn:
+			info_label.text += "Your turn.\n"
+		else:
+			info_label.text += "Opponent's turn.\n"
+		if solids_player != -1 and scores[player_ind] < BALLS_BEFORE_EIGHT:
+			if connected_peers[solids_player] == multiplayer.get_unique_id():
 				info_label.text += "You are solids\n"
-			elif 1 - player_ind == solids_player:
+			else:
 				info_label.text += "You are stripes\n"
 	
-	if game_state == GameState.PICKPOCKET:
-		info_label.text += "Pick your target pocket for the 8-ball\n"
-			
-	if game_state == GameState.PLACING:
-		info_label.text += "Your opponent scratched, click to place the cue ball\n"
+	if is_your_turn:
+		if game_state == GameState.PICKPOCKET:
+			info_label.text += "Pick your target pocket for the 8-ball\n"
+				
+		if game_state == GameState.PLACING:
+			info_label.text += "Your opponent scratched, click to place the cue ball\n"

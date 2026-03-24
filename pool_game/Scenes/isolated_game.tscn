@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://wvkvj1pke8gv"]
+
+[ext_resource type="PackedScene" uid="uid://comeyp103ci14" path="res://main.tscn" id="1_h0f3o"]
+
+[node name="IsolatedRegGame" type="Node3D" unique_id=2021762876]
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=94782690]
+visible = false
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer" unique_id=1070504112]
+own_world_3d = true
+handle_input_locally = false
+audio_listener_enable_3d = true
+size = Vector2i(1920, 1080)
+render_target_update_mode = 0
+
+[node name="Game" parent="SubViewportContainer/SubViewport" unique_id=1362962675 instance=ExtResource("1_h0f3o")]
+visible = false
