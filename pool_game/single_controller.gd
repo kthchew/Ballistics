@@ -89,6 +89,7 @@ func set_action(action=null) -> void:
 		action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
 		action_posx = clamp(action["ball_pos"][0], -1, 1)
 		action_posy = clamp(action["ball_pos"][1], -1, 1)
+		$"..".has_aimed = true
 		fire.emit()
 	else:
 		action_angle = cue_stick.angle
