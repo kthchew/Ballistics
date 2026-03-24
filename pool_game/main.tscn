@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://comeyp103ci14"]
 
 [ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
+[ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="3_ycdy4"]
 [ext_resource type="Script" uid="uid://b3yvxs7qw3v2u" path="res://hole_buttons.gd" id="7_5vw27"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
@@ -12,7 +13,6 @@
 [ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://aim_guide_circle.gd" id="10_ycdy4"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_074og"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
-[ext_resource type="Script" uid="uid://857861wloa56" path="res://fire_button.gd" id="11_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
 [ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="12_dg77c"]
@@ -28,7 +28,7 @@ fog_enabled = true
 fog_light_energy = 0.01
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
-texture = ExtResource("9_efxa6")
+texture = ExtResource("3_ycdy4")
 texture_margin_left = 40.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg77c"]
@@ -131,6 +131,53 @@ albedo_texture = ExtResource("11_w48qg")
 [sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
 material = SubResource("StandardMaterial3D_vivmo")
 top_radius = 300.0
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_efxa6"]
+properties/0/path = NodePath(".:player_ind")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+properties/1/path = NodePath(".:scores")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath(".:balls_sunk")
+properties/2/spawn = true
+properties/2/replication_mode = 2
+properties/3/path = NodePath(".:game_state")
+properties/3/spawn = true
+properties/3/replication_mode = 2
+properties/4/path = NodePath(".:turn_num")
+properties/4/spawn = true
+properties/4/replication_mode = 2
+properties/5/path = NodePath(".:solids_player")
+properties/5/spawn = true
+properties/5/replication_mode = 2
+properties/6/path = NodePath(".:next_solids_player")
+properties/6/spawn = true
+properties/6/replication_mode = 2
+properties/7/path = NodePath(".:winner")
+properties/7/spawn = true
+properties/7/replication_mode = 2
+properties/8/path = NodePath(".:play_again")
+properties/8/spawn = true
+properties/8/replication_mode = 2
+properties/9/path = NodePath(".:target_hole")
+properties/9/spawn = true
+properties/9/replication_mode = 2
+properties/10/path = NodePath(".:connected_peers")
+properties/10/spawn = true
+properties/10/replication_mode = 2
+properties/11/path = NodePath("UI/AimVisuals/CueStick:position")
+properties/11/spawn = true
+properties/11/replication_mode = 2
+properties/12/path = NodePath("UI/AimVisuals/CueStick:visible")
+properties/12/spawn = true
+properties/12/replication_mode = 2
+properties/13/path = NodePath("UI/AimVisuals/CueStick:rotation")
+properties/13/spawn = true
+properties/13/replication_mode = 2
+properties/14/path = NodePath("UI/AimVisuals:visible")
+properties/14/spawn = true
+properties/14/replication_mode = 2
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
@@ -237,7 +284,6 @@ offset_right = -50.0
 offset_bottom = -50.0
 grow_horizontal = 0
 grow_vertical = 0
-script = ExtResource("11_efxa6")
 
 [node name="Background" type="Panel" parent="UI/FireButton" unique_id=1662154618]
 layout_mode = 1
@@ -277,6 +323,7 @@ label_settings = SubResource("LabelSettings_5vw27")
 horizontal_alignment = 1
 
 [node name="HoleButtons" type="Control" parent="UI" unique_id=760296245]
+visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
@@ -544,6 +591,14 @@ transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.910
 visible = false
 projection = 1
 size = 130.0
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1196634560]
+replication_config = SubResource("SceneReplicationConfig_efxa6")
+public_visibility = false
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=2118392177]
+_spawnable_scenes = PackedStringArray("uid://cjgh3own5ppcr")
+spawn_path = NodePath("..")
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/Yes" to="." method="_on_yes_pressed"]

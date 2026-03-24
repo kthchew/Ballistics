@@ -9,7 +9,7 @@ signal first_hit_ball_changed
 const BALL_RADIUS = 2.85
 
 var last_vel: Vector3 = Vector3(0, 0, 0)
-var ball_num: int = 0
+@export var ball_num: int = 0
 var first_hit_ball_num: int = -1
 var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
