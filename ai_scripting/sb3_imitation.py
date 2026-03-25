@@ -11,6 +11,7 @@ from imitation.algorithms.adversarial.gail import GAIL
 from imitation.rewards.reward_nets import BasicRewardNet
 from imitation.util import logger as imit_logger
 from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env.vec_monitor import VecMonitor
 
@@ -28,13 +29,17 @@ parser.add_argument(
     "--demo_files",
     nargs="+",
     type=str,
-    default=["C:\\Users\\maxim\\OneDrive\\Documents\\GitHub\\Ballistics\\pool_game\\demos\\demo2.json"],
+    default=[
+            "C:\\Users\\maxim\\OneDrive\\Documents\\GitHub\\Ballistics\\pool_game\\demos\\demo3.json",
+            "C:\\Users\\maxim\\OneDrive\\Documents\\GitHub\\Ballistics\\pool_game\\demos\\demo4.json",
+            "C:\\Users\\maxim\\OneDrive\\Documents\\GitHub\\Ballistics\\pool_game\\demos\\demo5.json"
+        ],
     help="""One or more files with recorded expert demos, with a space in between, e.g. --demo_files demo1.json
     demo2.json""",
 )
 parser.add_argument(
     "--experiment_name",
-    default=None,
+    default="imitation_ex",
     type=str,
     help="The name of the experiment, which will be displayed in tensorboard, logs will be stored in logs/["
     "experiment_name], if set. You should use a unique name for every experiment for the tensorboard log to "
@@ -42,11 +47,29 @@ parser.add_argument(
 )
 parser.add_argument("--seed", type=int, default=0, help="seed of the experiment")
 parser.add_argument(
-    "--save_model_path",
+    "--resume_model_path",
     # default=None,
-    default="imitation.zip",
+    default="imitation_3_24-6.zip",
+    type=str,
+    help="The path to a model file previously saved using --save_model_path or a checkpoint saved using "
+    "--save_checkpoints_frequency. Use this to resume training or infer from a saved model.",
+)
+parser.add_argument(
+    "--save_model_path",
+    default=None,
+    # default="imitation_3_24-6.zip",
     type=str,
     help="The path to use for saving the trained sb3 model after training is complete. Extension will be set to .zip",
+)
+parser.add_argument(
+    "--save_checkpoint_frequency",
+    default=100,
+    type=int,
+    help=(
+        "If set, will save checkpoints every 'frequency' environment steps. "
+        "Requires a unique --experiment_name or --experiment_dir for each run. "
+        "Does not need --save_model_path to be set. "
+    ),
 )
 parser.add_argument(
     "--onnx_export_path",
@@ -105,6 +128,17 @@ parser.add_argument(
 
 args, extras = parser.parse_known_args()
 
+path_checkpoint = os.path.join("/checkpoints", args.experiment_name + "_checkpoints")
+abs_path_checkpoint = os.path.abspath(path_checkpoint)
+
+# Prevent overwriting existing checkpoints when starting a new experiment if checkpoint saving is enabled
+if args.save_checkpoint_frequency is not None and os.path.isdir(path_checkpoint):
+    raise RuntimeError(
+        abs_path_checkpoint + " folder already exists. "
+        "Use a different --experiment_dir, or --experiment_name,"
+        "or if previous checkpoints are not needed anymore, "
+        "remove the folder containing the checkpoints. "
+    )
 
 def handle_onnx_export():
     # Enforce the extension of onnx and zip when saving model to avoid potential conflicts in case of same name
@@ -168,23 +202,26 @@ logger = None
 if args.experiment_name:
     logger = imit_logger.configure(f"logs/{args.experiment_name}", format_strs=["tensorboard", "stdout"])
 
-# The hyperparams are set for IL tutorial env where BC > GAIL training is used. Feel free to customize for
-# your usage.
-learner = PPO(
-    env=env,
-    policy="MlpPolicy",
-    batch_size=256,
-    ent_coef=0.007,
-    learning_rate=0.0002,
-    n_steps=64,
-    target_kl=0.02,
-    n_epochs=5,
-    policy_kwargs=policy_kwargs,
-    verbose=2,
-    tensorboard_log=f"logs/{args.experiment_name}",
-    device="cpu",
-    # seed=args.seed // Not currently supported as stable_baselines_wrapper.py seed() method is not yet implemented.
-)
+if args.resume_model_path is None:
+    learner = PPO(
+        env=env,
+        policy="MlpPolicy",
+        batch_size=256,
+        ent_coef=0.007,
+        learning_rate=0.0002,
+        n_steps=64,
+        target_kl=0.02,
+        n_epochs=5,
+        policy_kwargs=policy_kwargs,
+        verbose=2,
+        tensorboard_log=f"logs/{args.experiment_name}",
+        device="cpu",
+        # seed=args.seed // Not currently supported as stable_baselines_wrapper.py seed() method is not yet implemented.
+    )              
+else:
+    path_zip = pathlib.Path(args.resume_model_path)
+    print("Loading model: " + os.path.abspath(path_zip))
+    learner = PPO.load(path_zip, env=env, tensorboard_log=args.experiment_name)
 
 try:
     if args.bc_epochs > 0:
@@ -220,6 +257,17 @@ try:
             init_tensorboard_graph=True,
             custom_logger=logger,
         )
+
+        # learn_arguments = dict(total_timesteps=args.gail_timesteps)
+        # if args.save_checkpoint_frequency:
+        #     print("Checkpoint saving enabled. Checkpoints will be saved to: " + abs_path_checkpoint)
+        #     checkpoint_callback = CheckpointCallback(
+        #         save_freq=(args.save_checkpoint_frequency // env.num_envs),
+        #         save_path=path_checkpoint,
+        #         name_prefix=args.experiment_name,
+        #     )
+        #     learn_arguments["callback"] = checkpoint_callback
+        # gail_trainer.train(**learn_arguments)
         gail_trainer.train(args.gail_timesteps)
 
     if args.rl_timesteps > 0:
