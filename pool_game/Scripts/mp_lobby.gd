@@ -23,10 +23,6 @@ const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
 const reg_game_scene = preload("res://main.tscn")
 const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
-const WORDS_A = ["BLUE", "GOLD", "MINT", "RUST", "SILK", "SNOW", "WILD", "CALM", "QUICK", "NOVA"]
-const WORDS_B = ["RIVER", "TIGER", "MAPLE", "CLOUD", "SPARK", "BLADE", "CANYON", "ORBIT", "PHOTON", "CEDAR"]
-const WORDS_C = ["TABLE", "CUE", "STRIKE", "POCKET", "SPIN", "ANGLE", "RAIL", "CHALK", "BREAK", "SHOT"]
-
 @onready var info_label = $ClientUI/VBoxContainer/InfoLabel
 @onready var exit_button = $ClientUI/VBoxContainer/ExitButton
 
@@ -300,10 +296,10 @@ func _normalize_room_code(raw_code: String) -> String:
 
 func _generate_unique_room_code() -> String:
 	for i in range(64):
-		var code = "%s-%s-%s" % [
-			WORDS_A[randi() % WORDS_A.size()],
-			WORDS_B[randi() % WORDS_B.size()],
-			WORDS_C[randi() % WORDS_C.size()]
+		var code := "%s-%s-%s" % [
+			Utils.word_list[randi() % Utils.word_list.size()],
+			Utils.word_list[randi() % Utils.word_list.size()],
+			Utils.word_list[randi() % Utils.word_list.size()]
 		]
 		if not private_rooms.has(code):
 			return code

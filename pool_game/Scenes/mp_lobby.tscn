@@ -5,6 +5,8 @@
 
 [node name="MultiplayerLobby" type="Node3D" unique_id=1602364776]
 script = ExtResource("1_so7ii")
+matchmaking_mode = null
+pending_room_code = null
 
 [node name="Games" type="Node3D" parent="." unique_id=1468780630]
 
