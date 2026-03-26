@@ -13,8 +13,8 @@ func set_angle(a: float) -> void:
 	angle = a
 	aim_direction = Vector3(cos(a), 0, sin(a)).normalized()
 
-	look_at(cue_ball_position, Vector3.UP)
 	_update_absolute_position()
+	look_at(cue_ball_position, Vector3.UP)
 
 func set_force_strength(strength: float) -> void:
 	strength = clamp(strength, 0.0, 1.0)
