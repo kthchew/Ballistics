@@ -27,6 +27,8 @@ const WORDS_A = ["BLUE", "GOLD", "MINT", "RUST", "SILK", "SNOW", "WILD", "CALM",
 const WORDS_B = ["RIVER", "TIGER", "MAPLE", "CLOUD", "SPARK", "BLADE", "CANYON", "ORBIT", "PHOTON", "CEDAR"]
 const WORDS_C = ["TABLE", "CUE", "STRIKE", "POCKET", "SPIN", "ANGLE", "RAIL", "CHALK", "BREAK", "SHOT"]
 
+@onready var info_label = $ClientUI/VBoxContainer/InfoLabel
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	if init_mp != null and init_slot != null and init_peers != null:
@@ -132,6 +134,7 @@ func _request_selected_matchmaking() -> void:
 			request_join_private_room.rpc(pending_room_code)
 		_:
 			enter_random_regular_queue.rpc()
+	$ClientUI.show()
 
 @rpc("any_peer")
 func enter_random_regular_queue():
@@ -212,6 +215,7 @@ func request_leave_matchmaking():
 @rpc("authority", "call_remote", "reliable")
 func private_room_created(code: String):
 	print("Private room created: %s" % code)
+	info_label.text = code
 	emit_signal("private_room_code_ready", code)
 
 @rpc("authority", "call_remote", "reliable")
@@ -221,6 +225,7 @@ func private_room_joined(code: String):
 @rpc("authority", "call_remote", "reliable")
 func private_room_join_failed(reason: String):
 	print("Private room join failed: %s" % reason)
+	info_label.text = "Private room join failed: %s" % reason
 	emit_signal("private_room_error", reason)
 
 @rpc("authority", "call_remote", "reliable")
@@ -237,6 +242,7 @@ func send_to_game(slot: int, peers: Array):
 	game.connected_peers = peers
 	var camera = game.get_node("CameraPivot/Camera3D")
 	camera.make_current()
+	$ClientUI.hide()
 
 func _try_match_random_queue() -> void:
 	while regular_queue.size() >= 2:

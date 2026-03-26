@@ -3,12 +3,16 @@
 [ext_resource type="Script" uid="uid://c6lwa1r4iieqm" path="res://Scripts/menu_private_game_panel.gd" id="1_f7d3v"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="2_2lfyo"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f7d3v"]
+bg_color = Color(0.6, 0.6, 0.6, 0.6627451)
+
 [sub_resource type="LabelSettings" id="LabelSettings_ktlje"]
 font_size = 80
 
 [node name="PrivateGamePanel" type="Panel" unique_id=725213517]
 offset_right = 1920.0
 offset_bottom = 1064.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_f7d3v")
 script = ExtResource("1_f7d3v")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=994321267]

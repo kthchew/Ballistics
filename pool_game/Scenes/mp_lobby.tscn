@@ -10,3 +10,43 @@ script = ExtResource("1_so7ii")
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1760525304]
 _spawnable_scenes = PackedStringArray("uid://wvkvj1pke8gv")
 spawn_path = NodePath("../Games")
+
+[node name="ClientUI" type="Panel" parent="." unique_id=2002990612]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ClientUI" unique_id=2099020088]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="ClientUI/VBoxContainer" unique_id=2120607784]
+layout_mode = 2
+theme_override_font_sizes/font_size = 96
+text = "Waiting for game..."
+horizontal_alignment = 1
+
+[node name="InfoLabel" type="RichTextLabel" parent="ClientUI/VBoxContainer" unique_id=418551038]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 64
+theme_override_font_sizes/bold_font_size = 64
+theme_override_font_sizes/bold_italics_font_size = 64
+theme_override_font_sizes/italics_font_size = 64
+theme_override_font_sizes/mono_font_size = 64
+text = "In random queue"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
