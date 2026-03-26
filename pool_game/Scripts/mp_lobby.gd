@@ -28,9 +28,12 @@ const WORDS_B = ["RIVER", "TIGER", "MAPLE", "CLOUD", "SPARK", "BLADE", "CANYON",
 const WORDS_C = ["TABLE", "CUE", "STRIKE", "POCKET", "SPIN", "ANGLE", "RAIL", "CHALK", "BREAK", "SHOT"]
 
 @onready var info_label = $ClientUI/VBoxContainer/InfoLabel
+@onready var exit_button = $ClientUI/VBoxContainer/ExitButton
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	exit_button.pressed.connect(_on_exit_clicked)
+	
 	if init_mp != null and init_slot != null and init_peers != null:
 		get_tree().set_multiplayer(init_mp)
 		var container = Node3D.new()
@@ -65,6 +68,10 @@ func _ready() -> void:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	pass
+	
+func _on_exit_clicked() -> void:
+	request_leave_matchmaking.rpc_id(1)
+	get_tree().change_scene_to_file("res://Menu.tscn")
 
 func queue_random_match() -> void:
 	matchmaking_mode = "random"
