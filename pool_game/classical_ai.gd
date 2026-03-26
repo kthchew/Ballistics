@@ -112,10 +112,9 @@ func reset_shot():
 	cached_shot = null
 
 func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
+	Draw.clear_all()
 	if cached_shot != null:
 		return
-		
-	Draw.clear_all()
 	
 	if find_potting_shot(cue_ball, obj_balls):
 		return
@@ -126,7 +125,7 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	choose_random_shot(cue_ball)
 	
 func choose_random_shot(cue_ball: Ball):
-	var shot = Shot.new(cue_ball, [], Vector3.INF)
+	var shot = Shot.new(cue_ball, [], Vector3.INF, camera)
 	var angle = randf_range(0, 2 * 3.14)
 	shot.target_positions.append(
 		cue_ball.global_position + 2 * Constants.BALL_RADIUS * Vector3(cos(angle), 0, -sin(angle))
@@ -138,7 +137,7 @@ func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	var perms = generate_ball_perms(obj_balls)
 	for perm in perms:
 		for hole_loc in hole_locs:
-			var shot = Shot.new(cue_ball, perm, hole_loc)
+			var shot = Shot.new(cue_ball, perm, hole_loc, camera)
 			if shot.poss:
 				print_shot(shot)
 				cached_shot = shot
@@ -147,7 +146,7 @@ func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	
 func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	for obj_ball in obj_balls:
-		var shot = Shot.new(cue_ball, [obj_ball], Vector3.INF)
+		var shot = Shot.new(cue_ball, [obj_ball], Vector3.INF, camera)
 		if shot.poss:
 			print_shot(shot)
 			cached_shot = shot

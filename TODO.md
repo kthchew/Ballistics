@@ -2,7 +2,6 @@ General
 - Improve model of pool table (add bottom to pockets)
 
 Classical AI
-- Visual for ai pick pocket
 - Add collision check to placing ball
 - Select shot based on clearance and loss of momentum
 - Select power based on loss of momentum
