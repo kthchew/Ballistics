@@ -58,7 +58,10 @@ func _on_aim_changed(touch_pos: Vector2):
 		var ray_normal = camera.project_ray_normal(touch_pos)
 		var drop_plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		if shapecast_point_to_point(intersection, Vector3.ZERO):
+		print(intersection)
+		if shapecast_point_to_point(intersection, Vector3.ZERO) \
+			and abs(intersection.x) < 96 \
+			and abs(intersection.z) < 44.5:
 			place_cue_ball_after_scratch(intersection)
 		return
 		
@@ -336,7 +339,7 @@ func end_game(winner: int) -> void:
 	ball_manager.freeze_balls()
 	
 func is_ai_turn():
-	return true
+	return false
 	#return player_ind == 1
 	
 func ai_play():
