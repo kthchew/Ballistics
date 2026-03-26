@@ -81,7 +81,7 @@ func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 	var ball_perm = range(16)
 	ball_perm.erase(0)
 	ball_perm.erase(8)
-	#ball_perm.shuffle()
+	ball_perm.shuffle()
 	ball_perm.insert(0, 0)
 	ball_perm.insert(5, 8)
 	

@@ -338,7 +338,7 @@ func start_game() -> void:
 	
 	ball_manager.start_game()
 	
-	#classical_ai.reset_shot()
+	classical_ai.reset_shot()
 	
 	update_game_state(true)
 	
