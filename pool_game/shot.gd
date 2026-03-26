@@ -42,14 +42,26 @@ func shapecast(origin: Vector3, abs_target: Vector3) -> bool:
 		return true
 	
 	var collision_point = shape_cast.get_collision_point(0)
-	print("collision point = ", collision_point)
+	#print("collision point = ", collision_point)
 	# TODO this is wrong bro
 	var manual_safe_frac = origin.distance_to(collision_point) / origin.distance_to(abs_target)
-	print("manual_safe_frac=", manual_safe_frac)
+	#print("collision dist=", origin.distance_to(collision_point))
+	#print("manual_safe_frac=", manual_safe_frac)
 	
 	Draw.circle(camera.unproject_position(collision_point), 10, Color.BLACK)
 
-	return manual_safe_frac > 0.99
+	var safe_frac = shape_cast.get_closest_collision_safe_fraction()
+	return safe_frac > 0.99 and origin.distance_to(collision_point) > Constants.BALL_RADIUS
+	
+func shapecast_in_place(pos: Vector3):
+	shape_cast.global_position = pos
+	shape_cast.max_results = 1
+	shape_cast.target_position = Vector3.ZERO
+	shape_cast.collision_mask = 1 << 2
+	shape_cast.force_shapecast_update()
+	Draw.circle(camera.unproject_position(pos), 10, Color.BLUE)
+	var colliding = not shape_cast.is_colliding()
+	return colliding
 	
 func shapecast_ball(ball: Ball, target_pos: Vector3) -> bool:
 	var ball_pos = ball.global_position
@@ -69,8 +81,10 @@ func shapecast_ball(ball: Ball, target_pos: Vector3) -> bool:
 	
 func shapecast_placing_cue_ball(obj_ball: Ball, target_pos: Vector3) -> bool:
 	var start_pos = calc_ghost_ball_pos(obj_ball, target_pos, -2.0)
-	var path_is_clear = shapecast(start_pos, target_pos)
+	var path_is_clear = shapecast(start_pos, target_pos) and shapecast_in_place(start_pos)
 	print("shape casting placing cue ball after scratch: obj ball num=", obj_ball.ball_num, ", path_is_clear=", path_is_clear)
+	Draw.circle(camera.unproject_position(start_pos), 5, Color.RED)
+	Draw.circle(camera.unproject_position(target_pos), 5, Color.RED)
 	return path_is_clear
 
 func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, camera):
