@@ -15,13 +15,10 @@ const BACKEND_URL: String = "http://127.0.0.1:5000"
 
 var session: String
 
-enum PlayerRole {STRIPES = 1, SOLIDS}
-enum GameType {EIGHT_BALL_MULTIPLAYER = 1, EIGHT_BALL_SINGLEPLAYER, CRAZY_EIGHT_BALL_MULTIPLAYER, CRAZY_EIGHT_BALL_SINGLEPLAYER}
-
 class GameInstance:
 	var game_id: String
 	var player_roles: Dictionary # dict[ObjectId, PlayerRole]
-	var game_type: GameType = GameType.EIGHT_BALL_MULTIPLAYER
+	var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 	var player_points: Dictionary # dict[ObjectId, int]
 	var current_turn: int
 	var ball_positions: Dictionary # dict[int, tuple[float, float, float]]

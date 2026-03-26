@@ -15,7 +15,7 @@ var init_mp = null
 var init_slot = null
 var init_peers = null
 
-@export var matchmaking_mode := "random"
+@export var matchmaking_mode := Utils.MatchmakingMode.RANDOM
 @export var pending_room_code := ""
 
 @onready var games = $Games
@@ -74,17 +74,17 @@ func _on_exit_clicked() -> void:
 	get_tree().change_scene_to_file("res://Menu.tscn")
 
 func queue_random_match() -> void:
-	matchmaking_mode = "random"
+	matchmaking_mode = Utils.MatchmakingMode.RANDOM
 	pending_room_code = ""
 	_request_selected_matchmaking()
 
 func create_private_room() -> void:
-	matchmaking_mode = "private_create"
+	matchmaking_mode = Utils.MatchmakingMode.PRIVATE_CREATE
 	pending_room_code = ""
 	_request_selected_matchmaking()
 
 func join_private_room(code: String) -> void:
-	matchmaking_mode = "private_join"
+	matchmaking_mode = Utils.MatchmakingMode.PRIVATE_JOIN
 	pending_room_code = _normalize_room_code(code)
 	_request_selected_matchmaking()
 
@@ -135,9 +135,9 @@ func _request_selected_matchmaking() -> void:
 		return
 
 	match matchmaking_mode:
-		"private_create":
+		Utils.MatchmakingMode.PRIVATE_CREATE:
 			request_create_private_room.rpc()
-		"private_join":
+		Utils.MatchmakingMode.PRIVATE_JOIN:
 			request_join_private_room.rpc(pending_room_code)
 		_:
 			enter_random_regular_queue.rpc()

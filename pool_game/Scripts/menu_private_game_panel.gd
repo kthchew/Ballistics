@@ -21,8 +21,8 @@ func _process(delta: float) -> void:
 	pass
 	
 func _on_pool_create() -> void:
-	var lobby = mp_lobby_scene.instantiate()
-	lobby.matchmaking_mode = "private_create"
+	var lobby := mp_lobby_scene.instantiate()
+	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_CREATE
 	get_tree().change_scene_to_node(lobby)
 	
 func _on_crazy_create() -> void:
@@ -32,10 +32,10 @@ func _on_knockout_create() -> void:
 	pass
 
 func _on_join() -> void:
-	var code = join_code_input.text
+	var code: String = join_code_input.text
 	if code == "":
 		return
-	var lobby = mp_lobby_scene.instantiate()
-	lobby.matchmaking_mode = "private_join"
+	var lobby := mp_lobby_scene.instantiate()
+	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_JOIN
 	lobby.pending_room_code = code
 	get_tree().change_scene_to_node(lobby)
