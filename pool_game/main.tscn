@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://force_slider.gd" id="11_ycdy4"]
 [ext_resource type="Script" uid="uid://b8a4li8lvbc73" path="res://single_controller.gd" id="12_dg77c"]
 [ext_resource type="Script" path="res://cue_stick.gd" id="12_ycdy4"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="13_yaehf"]
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="14_w48qg"]
 [ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://classical_ai.gd" id="15_vivmo"]
 [ext_resource type="Script" uid="uid://dw43wplnt70pi" path="res://addons/godot_rl_agents/sync.gd" id="16_2cqfq"]
@@ -290,6 +291,7 @@ spot_range = 270.72592
 spot_angle = 72.564
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
+shape = ExtResource("13_yaehf")
 collision_mask = 0
 
 [node name="BallManager" type="Node" parent="." unique_id=1345349029]

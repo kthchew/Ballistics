@@ -51,9 +51,9 @@ func get_obs() -> Dictionary:
 		var x_diff = ball.position.x - cue_pos.x
 		var z_diff = ball.position.z - cue_pos.z
 		obs.append_array([
-			1.0 if ball.is_visible() else 0.0,
-			x_diff / 218 if ball.is_visible() else 0.0,
-			z_diff / 106 if ball.is_visible() else 0.0
+			1.0 if not ball.potted else 0.0,
+			x_diff / 218 if not ball.potted else 0.0,
+			z_diff / 106 if not ball.potted else 0.0
 		])
 		
 	#print(obs)
