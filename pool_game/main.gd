@@ -400,9 +400,12 @@ func end_game(winner: int) -> void:
 
 func is_ai_turn():
 	var agents = get_tree().get_nodes_in_group("AGENT")
-	return len(agents) == 1 and agents[0].control_mode == agents[0].ControlModes.RECORD_EXPERT_DEMOS
-	#return true
-	#return player_ind == 1
+	if len(agents) != 1: return false
+	if agents[0].control_mode == agents[0].ControlModes.RECORD_EXPERT_DEMOS:
+		return true
+	if agents[0].control_mode == agents[0].ControlModes.HUMAN:
+		return player_ind == 1
+	return false
 	
 func ai_play():
 	await get_tree().create_timer(1.0).timeout
@@ -424,7 +427,7 @@ func update_game_state(scratched_prev: bool = false) -> void:
 		if ball_manager.check_eight_ball_potted():
 			end_game(player_ind)
 		print("Scratch registered")
-		#game_state = GameState.PLACING
+		game_state = GameState.PLACING
 		
 		ball_manager.cue_ball.pot()
 	elif target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:

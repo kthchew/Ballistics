@@ -5,6 +5,8 @@ signal ai_placed_cue_ball(pos: Vector3)
 signal ai_picked_pocket(hole_ind: int)
 
 @onready var camera = $/root/Main/CameraPivot/Camera3D
+@onready var shape_cast = $"../ShapeCast3D"
+@onready var holes = $"../TableGroup/Table/Holes"
 
 var hole_locs: Array[Vector3]
 var cached_shot: Shot
