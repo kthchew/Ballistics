@@ -2,7 +2,6 @@ extends Node
 
 signal ball_sunk(ball: RigidBody3D)
 
-
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
@@ -20,7 +19,11 @@ func init():
 func start_game():
 	cue_ball.reset(Vector3(-56, Constants.BALL_RADIUS, 0))
 	place_rack(56, 0)
-	pot_unused_balls()
+	remove_material_overlays()
+	
+	#pot_unused_balls()
+	#setup_two_ball_shot()
+	#setup_scratch()
 	balls_sunk = [0, 0]
 	prev_sunk = [0, 0]
 	
@@ -71,7 +74,7 @@ func create_balls() -> void:
 			cue_ball.contact_monitor = true
 			cue_ball.max_contacts_reported = 3
 		else:
-			ball.collision_layer += 1 << 2
+			ball.collision_layer += Constants.SHAPECAST_LAYER
 
 func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 	balls.sort_custom(func(a, b): return a.ball_num < b.ball_num)
@@ -126,6 +129,31 @@ func pot_unused_balls():
 			process_fallen_ball(ball)
 		if ball.ball_num in range (9, 9 + (7 - Constants.BALLS_BEFORE_EIGHT)):
 			process_fallen_ball(ball)
+			
+func setup_two_ball_shot():
+	for ball in balls:
+		if ball.is_cue_ball():
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 40))
+		elif ball.is_eight_ball():
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
+		elif ball.ball_num == 1:
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, -30))
+		elif ball.ball_num == 2:
+			ball.teleport(Vector3(20, Constants.BALL_RADIUS, 0))
+		else:
+			ball.pot()
+			
+func setup_scratch():
+	for ball in balls:
+		if ball.is_eight_ball():
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
+		elif ball.ball_num == 1:
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, -30))
+		elif ball.ball_num == 2:
+			ball.teleport(Vector3(20, Constants.BALL_RADIUS, -5))
+		else:
+			ball.pot()
+	
 	
 func find_fallen_balls() -> Array[RigidBody3D]:
 	var fallen_balls: Array[RigidBody3D] = []
@@ -153,7 +181,7 @@ func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, sco
 	if ball_num == 0:
 		return false
 	if solids_player == -1:
-		return true
+		return ball_num != 8
 	if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
 		return ball_num == 8
 	if player_ind == solids_player:
@@ -164,13 +192,9 @@ func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, sco
 func get_pottable_balls(player_ind: int, solids_player: int, scores: Array[int]):
 	var ans: Array[Ball] = []
 	for ball in balls:
-		if ball.potted or ball.is_cue_ball():
+		if ball.potted:
 			continue
-		elif ball.is_solid() and (solids_player == -1 or player_ind == solids_player):
-			ans.append(ball)
-		elif ball.is_stripe() and (solids_player == -1 or player_ind == 1 - solids_player):
-			ans.append(ball)
-		elif ball.is_eight_ball() and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
+		if check_is_ball_valid(ball.ball_num, player_ind, solids_player, scores):
 			ans.append(ball)
 		# Failsafe if all other balls are sunk on break.
 		# This statement should be contingent on solids_player being -1.

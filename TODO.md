@@ -1,14 +1,14 @@
 Pool Logic
 - Add more scratch rules (not hitting a rail)
 - Improve model of pool table (add bottom to pockets)
-- Improve collision bodies of pool table (angled parts)
+- Add check for human to not place cue ball in hole after scratch
 
 * Classical AI
-- Diagnose bug, collision of shapecast not found if there is a ball close to the origin
-- Aim at edges of holes
-- Pick pocket and place ball
-- No adjustment of power
-- Guidelines are slightly inaccurate sometimes. Helped by increasing tick rate?
+- Visual for ai pick pocket
+- Add collision check to placing ball
+- Select shot based on clearance and loss of momentum
+- Select power based on loss of momentum
 - Bank off walls
-- What to do if no potting shot found
-
+- Old bug that I forgot about: collision of shapecast not found if there is a ball close to the origin. Like cue ball thinks it can hit through object ball if it's close?
+- Why are ball positions y != 2.85 (ball radius)
+- Add more cases for scratched non-potting shot

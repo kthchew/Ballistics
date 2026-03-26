@@ -57,6 +57,7 @@ func _physics_process(delta):
 
 	linear_velocity = linear_velocity.move_toward(Vector3.ZERO, friction_accel * delta)
 	angular_velocity = angular_velocity.move_toward(Vector3.ZERO, friction_accel * delta)
+	#angular_velocity = -linear_velocity.cross(Vector3.UP) / Constants.BALL_RADIUS
 
 	if linear_velocity.length() < 0.05:
 		linear_velocity = Vector3.ZERO
