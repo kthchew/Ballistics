@@ -338,6 +338,8 @@ func start_game() -> void:
 	
 	ball_manager.start_game()
 	
+	#classical_ai.reset_shot()
+	
 	update_game_state(true)
 	
 func end_game(winner: int) -> void:
@@ -346,8 +348,8 @@ func end_game(winner: int) -> void:
 	ball_manager.freeze_balls()
 	
 func is_ai_turn():
-	#return true
-	return player_ind == 1
+	return true
+	#return player_ind == 1
 	
 func ai_play():
 	await get_tree().create_timer(1.0).timeout

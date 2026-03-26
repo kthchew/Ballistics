@@ -37,39 +37,25 @@ func shapecast(origin: Vector3, abs_target: Vector3) -> bool:
 	shape_cast.target_position = abs_target - origin
 	shape_cast.collision_mask = 1 << 2
 	shape_cast.force_shapecast_update()
-	
-	if not shape_cast.is_colliding():
-		return true
-	
-	var collision_point = shape_cast.get_collision_point(0)
-	#print("collision point = ", collision_point)
-	# TODO this is wrong bro
-	var manual_safe_frac = origin.distance_to(collision_point) / origin.distance_to(abs_target)
-	#print("collision dist=", origin.distance_to(collision_point))
-	#print("manual_safe_frac=", manual_safe_frac)
-	
-	Draw.circle(camera.unproject_position(collision_point), 10, Color.BLACK)
 
 	var safe_frac = shape_cast.get_closest_collision_safe_fraction()
-	return safe_frac > 0.99 and origin.distance_to(collision_point) > Constants.BALL_RADIUS
+	return safe_frac > 0.99
 	
-func shapecast_in_place(pos: Vector3):
+func shapecast_in_place(pos: Vector3) -> bool:
 	shape_cast.global_position = pos
 	shape_cast.max_results = 1
 	shape_cast.target_position = Vector3.ZERO
 	shape_cast.collision_mask = 1 << 2
 	shape_cast.force_shapecast_update()
+	
 	Draw.circle(camera.unproject_position(pos), 10, Color.BLUE)
-	var colliding = not shape_cast.is_colliding()
-	return colliding
+	
+	var colliding = shape_cast.is_colliding()
+	return not colliding
 	
 func shapecast_ball(ball: Ball, target_pos: Vector3) -> bool:
 	var ball_pos = ball.global_position
-	if ball.ball_num != 0:
-		ball.collision_layer -= Constants.SHAPECAST_LAYER
 	var path_is_clear = shapecast(ball_pos, target_pos)
-	if ball.ball_num != 0:
-		ball.collision_layer += Constants.SHAPECAST_LAYER
 	
 	#print("Shape casting",
 		#"\n\tball num=", ball.ball_num, 

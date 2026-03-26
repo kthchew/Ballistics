@@ -22,8 +22,8 @@ func start_game():
 	
 	#pot_unused_balls()
 	#setup_two_ball_shot()
-	#setup_scratch()
-	cue_ball.pot()
+	setup_scratch()
+	#cue_ball.pot()
 	
 	balls_sunk = [0, 0]
 	
