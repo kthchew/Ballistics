@@ -7,6 +7,8 @@ extends Panel
 @onready var join_code_input := $HBoxContainer/JoinGameContainer/RoomCodeInput
 @onready var join_btn := $HBoxContainer/JoinGameContainer/JoinRoomButton
 
+@onready var close_btn := $CloseButton
+
 const mp_lobby_scene: PackedScene = preload("res://Scenes/mp_lobby.tscn")
 
 # Called when the node enters the scene tree for the first time.
@@ -15,6 +17,7 @@ func _ready() -> void:
 	crazy_btn.pressed.connect(_on_crazy_create)
 	knockout_btn.pressed.connect(_on_knockout_create)
 	join_btn.pressed.connect(_on_join)
+	close_btn.pressed.connect(_on_close)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -39,3 +42,6 @@ func _on_join() -> void:
 	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_JOIN
 	lobby.pending_room_code = code
 	get_tree().change_scene_to_node(lobby)
+	
+func _on_close() -> void:
+	hide()
