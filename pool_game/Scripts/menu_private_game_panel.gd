@@ -4,20 +4,26 @@ extends Panel
 @onready var crazy_btn := $HBoxContainer/CreateGameContainer/CrazyPoolButton
 @onready var knockout_btn := $HBoxContainer/CreateGameContainer/KnockoutButton
 
-@onready var join_code_input = $HBoxContainer/JoinGameContainer/RoomCodeInput
+@onready var join_code_input := $HBoxContainer/JoinGameContainer/RoomCodeInput
 @onready var join_btn := $HBoxContainer/JoinGameContainer/JoinRoomButton
+
+const mp_lobby_scene: PackedScene = preload("res://Scenes/mp_lobby.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	pool_btn.pressed.connect(_on_pool_create)
-
+	crazy_btn.pressed.connect(_on_crazy_create)
+	knockout_btn.pressed.connect(_on_knockout_create)
+	join_btn.pressed.connect(_on_join)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
 	
 func _on_pool_create() -> void:
-	pass
+	var lobby = mp_lobby_scene.instantiate()
+	lobby.matchmaking_mode = "private_create"
+	get_tree().change_scene_to_node(lobby)
 	
 func _on_crazy_create() -> void:
 	pass
@@ -26,4 +32,10 @@ func _on_knockout_create() -> void:
 	pass
 
 func _on_join() -> void:
-	pass
+	var code = join_code_input.text
+	if code == "":
+		return
+	var lobby = mp_lobby_scene.instantiate()
+	lobby.matchmaking_mode = "private_join"
+	lobby.pending_room_code = code
+	get_tree().change_scene_to_node(lobby)

@@ -15,8 +15,8 @@ var init_mp = null
 var init_slot = null
 var init_peers = null
 
-var matchmaking_mode := "random"
-var pending_room_code := ""
+@export var matchmaking_mode := "random"
+@export var pending_room_code := ""
 
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
@@ -45,13 +45,6 @@ func _ready() -> void:
 		return
 
 	var args := OS.get_cmdline_args()
-	for a in args:
-		if a == "--create-room":
-			matchmaking_mode = "private_create"
-		elif a.begins_with("--join-room="):
-			matchmaking_mode = "private_join"
-			pending_room_code = _normalize_room_code(a.get_slice("=", 1))
-
 	var arg_seen = false
 	for a in args:
 		if a == "--server":

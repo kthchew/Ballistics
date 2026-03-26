@@ -14,7 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="6_v0s1l"]
 [ext_resource type="Script" uid="uid://q787dwlweys4" path="res://Scripts/random_knockout_button.gd" id="7_xucoo"]
 [ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="9_5qkn8"]
-[ext_resource type="Script" uid="uid://c6lwa1r4iieqm" path="res://Scripts/menu_private_game_panel.gd" id="11_mnkgh"]
+[ext_resource type="PackedScene" uid="uid://l3mdu1f62vct" path="res://Scenes/menu_private_game_panel.tscn" id="11_mnkgh"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -26,9 +26,6 @@ fog_light_energy = 0.01
 
 [sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
 font_size = 18
-
-[sub_resource type="LabelSettings" id="LabelSettings_ktlje"]
-font_size = 80
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vivmo"]
 albedo_texture = ExtResource("6_v0s1l")
@@ -181,83 +178,9 @@ text = "Private Game"
 visible = false
 layout_mode = 1
 
-[node name="PrivateGamePanel" type="Panel" parent="MainMenu/MenuUI" unique_id=213071002]
+[node name="PrivateGamePanel" parent="MainMenu/MenuUI" unique_id=725213517 instance=ExtResource("11_mnkgh")]
+visible = false
 layout_mode = 0
-offset_right = 1920.0
-offset_bottom = 1064.0
-script = ExtResource("11_mnkgh")
-
-[node name="HBoxContainer" type="HBoxContainer" parent="MainMenu/MenuUI/PrivateGamePanel" unique_id=2031128570]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 40
-alignment = 1
-
-[node name="CreateGameContainer" type="VBoxContainer" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer" unique_id=278460505]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 16
-
-[node name="Label" type="Label" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer/CreateGameContainer" unique_id=1956684949]
-layout_mode = 2
-text = "Create Game"
-label_settings = SubResource("LabelSettings_ktlje")
-horizontal_alignment = 1
-
-[node name="PoolButton" type="Button" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer/CreateGameContainer" unique_id=2114105836]
-custom_minimum_size = Vector2(500, 100)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme = ExtResource("2_n4eug")
-theme_override_font_sizes/font_size = 44
-text = "Pool"
-
-[node name="CrazyPoolButton" type="Button" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer/CreateGameContainer" unique_id=1848325499]
-custom_minimum_size = Vector2(500, 100)
-layout_mode = 2
-size_flags_horizontal = 4
-theme = ExtResource("2_n4eug")
-theme_override_font_sizes/font_size = 44
-text = "Crazy Pool"
-
-[node name="KnockoutButton" type="Button" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer/CreateGameContainer" unique_id=1592793722]
-custom_minimum_size = Vector2(500, 100)
-layout_mode = 2
-size_flags_horizontal = 4
-theme = ExtResource("2_n4eug")
-theme_override_font_sizes/font_size = 44
-text = "Knockout"
-
-[node name="JoinGameContainer" type="VBoxContainer" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer" unique_id=2136999877]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 16
-
-[node name="Label" type="Label" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer/JoinGameContainer" unique_id=838121381]
-layout_mode = 2
-text = "Join Game"
-label_settings = SubResource("LabelSettings_ktlje")
-horizontal_alignment = 1
-
-[node name="RoomCodeInput" type="LineEdit" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer/JoinGameContainer" unique_id=347411804]
-custom_minimum_size = Vector2(600, 100)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 36
-placeholder_text = "Room Code"
-
-[node name="JoinRoomButton" type="Button" parent="MainMenu/MenuUI/PrivateGamePanel/HBoxContainer/JoinGameContainer" unique_id=1556418450]
-custom_minimum_size = Vector2(500, 100)
-layout_mode = 2
-size_flags_horizontal = 4
-theme = ExtResource("2_n4eug")
-theme_override_font_sizes/font_size = 44
-text = "Join Room"
 
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("3_hcwhg")]
 
