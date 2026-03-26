@@ -11,6 +11,7 @@ func _ready() -> void:
 func place_hole_buttons() -> void:
 	for i in range(6):
 		var hole_btn = hole_btn_scene.instantiate()
+		hole_btn.name = "HoleButton" + str(i + 1)
 		add_child(hole_btn)
 		var path_str = "/root/Main/TableGroup/Table/Holes/Hole" + str(i + 1) + "/HoleMarker"
 		var hole_marker = get_node(path_str)

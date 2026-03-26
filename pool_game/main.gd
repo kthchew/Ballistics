@@ -87,6 +87,13 @@ func _on_ai_placed_cue_ball(pos: Vector3):
 	place_cue_ball_after_scratch(pos)
 	
 func _on_ai_picked_pocket(hole_ind: int):
+	var path_str = "UI/HoleButtons/HoleButton" + str(hole_ind + 1)
+	var hole_btn = get_node(path_str)
+	hole_btn.toggle_mode = true
+	hole_btn.button_pressed = true
+	await get_tree().create_timer(0.5).timeout
+	hole_btn.toggle_mode = false
+	hole_btn.button_pressed = false
 	_on_hole_selected(hole_ind)
 	
 func aim(dir: Vector2):
@@ -339,7 +346,7 @@ func end_game(winner: int) -> void:
 	ball_manager.freeze_balls()
 	
 func is_ai_turn():
-	return false
+	return true
 	#return player_ind == 1
 	
 func ai_play():
