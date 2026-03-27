@@ -10,6 +10,16 @@ class Account:
         self.password = password
         self.current_game_id = None
 
+def get_info(username: str) -> dict:
+    users_collection = database.db['users']
+    user_doc = users_collection.find_one({'username': username})
+    if user_doc is None:
+        raise ValueError("User not found")
+    return {
+        'username': user_doc['username'],
+        'current_game_id': user_doc.get('current_game_id')
+    }
+
 def check_user_exists(username: str) -> bool:
     users_collection = database.db['users']
     user = users_collection.find_one({'username': username})

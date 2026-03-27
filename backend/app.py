@@ -43,8 +43,11 @@ def login_with_password():
 def profile():
     if 'username' not in session:
         return "Unauthorized", 401
-    return f"Profile of {session['username']}", 200
-
+    try:
+        account = accounts.get_info(session['username'])
+        return jsonify(account), 200
+    except ValueError:
+        return "Unauthorized", 401
 
 @app.post("/joinGame")
 def join_game():

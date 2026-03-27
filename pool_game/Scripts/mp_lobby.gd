@@ -9,6 +9,9 @@ var init_mp = null
 var init_slot = null
 var init_peers = null
 
+var player_tokens: Dictionary[int, String] = {}
+var player_info: Dictionary[int, Dictionary] = {}
+
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
 const reg_game_scene = preload("res://main.tscn")
@@ -79,6 +82,10 @@ func start_client(host: String, port: int = 18361) -> void:
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 	
 func _on_connected_to_server():
+	var config := ConfigFile.new()
+	if config.load("user://account.cfg") == OK:
+		var token = config.get_value("account", "session", "")
+		auth.rpc_id(1, token)
 	enter_random_regular_queue.rpc()
 	pass
 	
@@ -108,6 +115,18 @@ func send_to_game(slot: int, peers: Array):
 	game.visible = true
 	var camera = game.get_node("CameraPivot/Camera3D")
 	camera.make_current()
+
+@rpc("any_peer", "call_remote", "reliable")
+func auth(token: String):
+	if not multiplayer.is_server():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	player_tokens[sender_id] = token
+	if token != "":
+		print("got token from peer %d" % sender_id)
+		var info = await $BackendRequests.info_for_account(token)
+		player_info[sender_id] = info
+		print("got player info for peer %d: %s" % [sender_id, str(info)])
 
 func spawn_new_regular_game() -> Node:
 	var spot = free_spots[0]
