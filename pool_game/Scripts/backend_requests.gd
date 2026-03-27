@@ -1,22 +1,26 @@
 extends HTTPRequest
 
 
+var config := ConfigFile.new()
+# TODO: use env var or config
+const BACKEND_URL := "http://127.0.0.1:5000"
+
+var session: String
+
+enum PlayerRole {STRIPES = 1, SOLIDS}
+enum GameType {EIGHT_BALL_MULTIPLAYER = 1, EIGHT_BALL_SINGLEPLAYER, CRAZY_EIGHT_BALL_MULTIPLAYER, CRAZY_EIGHT_BALL_SINGLEPLAYER}
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	# TODO: probably should not be stored in plaintext in a config file
+	if config.load("user://account.cfg") == OK:
+		session = config.get_value("account", "session", "")
 	request_completed.connect(_on_request_completed)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
-
-# TODO: use env var or config
-const BACKEND_URL: String = "http://127.0.0.1:5000"
-
-var session: String
-
-enum PlayerRole {STRIPES = 1, SOLIDS}
-enum GameType {EIGHT_BALL_MULTIPLAYER = 1, EIGHT_BALL_SINGLEPLAYER, CRAZY_EIGHT_BALL_MULTIPLAYER, CRAZY_EIGHT_BALL_SINGLEPLAYER}
 
 class GameInstance:
 	var game_id: String
@@ -81,6 +85,8 @@ func login(username: String, password: String) -> Dictionary:
 				for part in cookie_value:
 					if part.begins_with("session="):
 						session = part.substr("session=".length()).strip_edges()
+						config.set_value("account", "session", session)
+						config.save("user://account.cfg")
 						break
 	else:
 		print("Login failed with response code: " + str(response["response_code"]))
