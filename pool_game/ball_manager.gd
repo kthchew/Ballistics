@@ -173,8 +173,9 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 		balls_sunk[0] += 1
 	elif ball.is_stripe():
 		balls_sunk[1] += 1
+	var old_pos = ball.position
 	ball.pot()
-	ball_sunk.emit(ball)
+	ball_sunk.emit(ball, old_pos)
 	
 # valid meaning allowed to hit the ball first and it's not a scratch
 func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, scores: Array[int]) -> bool:

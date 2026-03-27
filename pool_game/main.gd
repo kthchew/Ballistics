@@ -242,9 +242,9 @@ func _on_reset_button_pressed() -> void:
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
 	
-func _on_ball_sunk(ball):
+func _on_ball_sunk(ball, old_pos):
 	if ball.is_eight_ball():
-		var hole_ind = Shot.calc_hole_ind_from_pos(ball.position)
+		var hole_ind = Shot.calc_hole_ind_from_pos(old_pos)
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
 			end_game(player_ind)
 		else:
