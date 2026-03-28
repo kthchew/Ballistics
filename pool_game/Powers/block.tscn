@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://2uo67aipwap1"]
 
-[ext_resource type="Script" path="res://block.gd" id="1_im0tn"]
+[ext_resource type="Script" uid="uid://dchsaukcs1crx" path="res://block.gd" id="1_im0tn"]
 [ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://wall.tres" id="1_xfwl5"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_dg77c"]

@@ -11,16 +11,16 @@ extends Node3D
 @onready var aim_visuals = $UI/AimVisuals
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var shape_cast = $ShapeCast3D
-@onready var crazy = false
 @onready var cashout = false
+var crazy
 
-enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED}
+enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
+var cashout_owner_ind: int = -1
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
 const BALLS_BEFORE_EIGHT: int = 7
-
 var init_peer = null
 var has_aimed := false
 var cue_ball: RigidBody3D = null
@@ -48,10 +48,10 @@ const ball_script = preload("res://ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
-	get_tree().set_meta("crazy", true)
-	#TODO Comment out above line
-	if get_tree().get_meta("crazy"):
-		crazy = true
+	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
+	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
+	print(crazy)
+	print("MAIN READY PATH:", get_path(), "CRAZY:", crazy)
 	if init_peer != null:
 		multiplayer.multiplayer_peer = init_peer
 	create_balls()
@@ -190,7 +190,9 @@ func pot_all_solids():
 			process_fallen_ball(ball)
 	
 func start_game() -> void:
-	set_visibility.rpc()
+	print("START GAME CRAZY:", crazy)
+	if multiplayer.is_server():
+		set_visibility.rpc()
 	cue_ball.reset(Vector3(-56, ball_script.BALL_RADIUS, 0))
 	
 	aim_visuals.hide()
@@ -467,9 +469,6 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 			scores[1 - next_solids_player] = balls_sunk[1]
 			
 			
-		if crazy:
-			print("ball fall CASHOUT")
-			cashout = true	
 	ball.pot()
 	
 func process_fallen_balls() -> void:
@@ -520,15 +519,35 @@ func check_is_ball_valid(ball_num: int) -> bool:
 func check_for_scratch():
 	return cue_ball.potted or first_hit_scratch
 
+@rpc("authority", "call_local")
+func show_cashout_menu() -> void:
+	$UI.visible = false
+	$CashOut.visible = true
+	
+@rpc("authority", "call_local")
+func exit_crazy_mode():
+	$pUI.visible = false
+	$UI.visible = true
+	crazy = false
+
 func end_round() -> void:
 	if cashout:
 		print("end_round CASHOUT")
-		$UI.visible = false
-		$CashOut.visible = true
+		cashout_owner_ind = 1 - player_ind
+		game_state = GameState.CASHOUT
+
+		var cashout_peer_id = connected_peers[cashout_owner_ind]
+		if cashout_peer_id != -1:
+			show_cashout_menu.rpc_id(cashout_peer_id)
 		return
 	if game_state == GameState.CRAZY:
 		$pUI.visible = false
 		$UI.visible = true
+		exit_crazy_mode.rpc()
+		# After power-ups are placed, give the current player their extra turn
+		play_again = false
+		start_round(false)
+		return
 	round_num += 1
 	
 	target_hole = -1
@@ -540,9 +559,14 @@ func end_round() -> void:
 	cue_ball.first_hit_ball_num = -1
 	
 	if not scratched and play_again:
-		play_again = false
-		start_round()
-		return
+		# Trigger cashout for the opponent before extra turn
+		cashout = true
+		cashout_owner_ind = 1 - player_ind
+		game_state = GameState.CASHOUT
+		var cashout_peer_id = connected_peers[cashout_owner_ind]
+		if cashout_peer_id != -1:
+			show_cashout_menu.rpc_id(cashout_peer_id)
+		return  # Wait for opponent decision before starting extra turn
 	
 	play_again = false
 	turn_num += 1
@@ -615,7 +639,10 @@ func fill_debug_label() -> void:
 	debug_label.text = label_txt
 
 func fill_info_label() -> void:
-	var is_your_turn = connected_peers[player_ind] == multiplayer.get_unique_id()
+	var is_your_turn := false
+	if connected_peers and connected_peers.size() > player_ind:
+		is_your_turn = connected_peers[player_ind] == multiplayer.get_unique_id()
+		
 	info_label.text = ""
 	
 	if game_state == GameState.NOT_STARTED:
@@ -623,6 +650,12 @@ func fill_info_label() -> void:
 	
 	if game_state == GameState.ENDED:
 		info_label.text = "Player " + str(winner + 1) + " won the game! Click the 'Reset Game' button to play again"
+	
+	if game_state == GameState.CASHOUT:
+		if connected_peers[cashout_owner_ind] == multiplayer.get_unique_id():
+			info_label.text += "Decide whether to cash out and use power ups.\n"
+		else:
+			info_label.text += "Opponent is deciding whether to cash out.\n"
 	
 	if game_state != GameState.MIDTURN and game_state != GameState.ENDED and game_state != GameState.NOT_STARTED:
 		if multiplayer.is_server():
@@ -662,5 +695,65 @@ func _on_yes_pressed() -> void:
 	$pUI.visible = true
 	$pUI/Panel.visible = true
 	$pUI/Panel/HBoxContainer.visible = true
+	for button in $pUI/Panel/HBoxContainer.get_children():
+		button.text = randPower.pick_random()
+
+func _on_no_pressed_local() -> void:
+	request_cashout_no.rpc()
+
+func _on_yes_pressed_local() -> void:
+	request_cashout_yes.rpc()
+	
+@rpc("any_peer", "reliable")
+func request_cashout_no() -> void:
+	if not multiplayer.is_server():
+		return
+
+	var sender_id = multiplayer.get_remote_sender_id()
+	if cashout_owner_ind == -1 or sender_id != connected_peers[cashout_owner_ind]:
+		return
+
+	hide_cashout_menu.rpc_id(sender_id)
+	cashout = false
+	if play_again:
+		play_again = false
+		start_round()
+	else:
+		end_round()
+
+@rpc("any_peer", "reliable")
+func request_cashout_yes() -> void:
+	if not multiplayer.is_server():
+		return
+
+	var sender_id = multiplayer.get_remote_sender_id()
+	if cashout_owner_ind == -1 or sender_id != connected_peers[cashout_owner_ind]:
+		return
+
+	var shooter_ind = player_ind
+	var non_shooter_ind = 1 - shooter_ind
+	var owner_peer_id = connected_peers[non_shooter_ind]
+
+	$pUI/placementController.set_cashout_owner.rpc(owner_peer_id)
+	start_crazy_mode.rpc_id(sender_id)
+	game_state = GameState.CRAZY
+
+@rpc("authority", "call_local")
+func hide_cashout_menu() -> void:
+	$CashOut.visible = false
+	$UI.visible = true
+
+@rpc("authority", "call_local")
+func start_crazy_mode() -> void:
+	$CashOut.visible = false
+	$pUI.visible = true
+	$pUI/Panel.visible = true
+	$pUI/Panel/HBoxContainer.visible = true
+
+	if objects > 0:
+		randPower = ["block", "tungsten", "tnt"]
+	else:
+		randPower = ["block", "tungsten"]
+
 	for button in $pUI/Panel/HBoxContainer.get_children():
 		button.text = randPower.pick_random()

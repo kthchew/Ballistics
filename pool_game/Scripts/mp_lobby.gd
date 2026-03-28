@@ -2,8 +2,9 @@ extends Node3D
 
 var free_spots = [0]
 var regular_games = {}
-
 var regular_queue = []
+var crazy_queue = []
+var crazy_games = {}
 
 var init_mp = null
 var init_slot = null
@@ -16,21 +17,6 @@ const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	if init_mp != null and init_slot != null and init_peers != null:
-		get_tree().set_multiplayer(init_mp)
-		var container = Node3D.new()
-		container.name = "GameContainer%s" % init_slot
-		var subview = Node3D.new()
-		subview.name = "SubViewport"
-		var game = reg_game_scene.instantiate()
-		game.name = "Game"
-		game.connected_peers = init_peers
-		subview.add_child(game)
-		container.add_child(subview)
-		$"Games".add_child(container)
-		game.start_game()
-		return
-		
 	var args := OS.get_cmdline_args()
 	var arg_seen = false
 	for a in args:
@@ -79,8 +65,14 @@ func start_client(host: String, port: int = 18361) -> void:
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 	
 func _on_connected_to_server():
-	enter_random_regular_queue.rpc()
-	pass
+	var is_crazy := false
+	if get_tree().has_meta("crazy"):
+		is_crazy = get_tree().get_meta("crazy")
+
+	if is_crazy:
+		enter_random_crazy_queue.rpc()
+	else:
+		enter_random_regular_queue.rpc()
 	
 func _on_connection_failed():
 	pass
@@ -95,16 +87,33 @@ func enter_random_regular_queue():
 		var first = regular_queue.pop_front()
 		var second = regular_queue.pop_front()
 		var game = spawn_new_regular_game()
-		send_to_game.rpc_id(first, game.lobby_slot, [first, second])
-		send_to_game.rpc_id(second, game.lobby_slot, [first, second])
+		send_to_game.rpc_id(first, game.lobby_slot, [first, second], false)
+		send_to_game.rpc_id(second, game.lobby_slot, [first, second], false)
+		game.connected_peers = [first, second]
+		game.start_game()
+
+		
+@rpc("any_peer")
+func enter_random_crazy_queue():
+	if not multiplayer.is_server():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	crazy_queue.append(sender_id)
+	if crazy_queue.size() >= 2:
+		var first = crazy_queue.pop_front()
+		var second = crazy_queue.pop_front()
+		var game = spawn_new_crazy_game()
+		send_to_game.rpc_id(first, game.lobby_slot, [first, second], true)
+		send_to_game.rpc_id(second, game.lobby_slot, [first, second], true)
 		game.connected_peers = [first, second]
 		game.start_game()
 		
 @rpc("authority", "call_remote", "reliable")
-func send_to_game(slot: int, peers: Array):
+func send_to_game(slot: int, peers: Array, crazy: bool):
 	var container = games.get_node("GameContainer%s/SubViewportContainer" % slot)
 	container.visible = true
 	var game = container.get_node("SubViewport/Game")
+	game.crazy = crazy
 	game.visible = true
 	var camera = game.get_node("CameraPivot/Camera3D")
 	camera.make_current()
@@ -118,9 +127,27 @@ func spawn_new_regular_game() -> Node:
 	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
 	regular_games[spot] = game
 	game.lobby_slot = spot
+	game.crazy = false
 	games.add_child(isolated)
 	
 	print("putting game in spot " + str(spot))
+	if free_spots.size() == 0:
+		free_spots.append(spot + 1)
+	return game
+	
+func spawn_new_crazy_game() -> Node:
+	var spot = free_spots[0]
+	free_spots.remove_at(0)
+
+	var isolated: Node3D = isolated_game.instantiate()
+	isolated.name = "GameContainer%s" % spot
+	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
+	crazy_games[spot] = game
+	game.lobby_slot = spot
+	game.crazy = true
+	games.add_child(isolated)
+
+	print("putting CRAZY game in spot " + str(spot))
 	if free_spots.size() == 0:
 		free_spots.append(spot + 1)
 	return game
