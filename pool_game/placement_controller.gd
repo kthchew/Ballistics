@@ -20,22 +20,34 @@ func set_cashout_owner(owner_peer_id: int):
 func _on_power_1_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
+	var button = $"../Panel/HBoxContainer/Power1"
+	var selected_power = button.get_meta("power_name")
+	if selected_power == null:
+		return
 	self.visible = true
-	power_name = $"../Panel/HBoxContainer/Power1".text
+	power_name = selected_power
 	start_placement(load("res://Powers/%s.tscn" % power_name))
 
 func _on_power_2_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
+	var button = $"../Panel/HBoxContainer/Power2"
+	var selected_power = button.get_meta("power_name")
+	if selected_power == null:
+		return
 	self.visible = true
-	power_name = $"../Panel/HBoxContainer/Power2".text
+	power_name = selected_power
 	start_placement(load("res://Powers/%s.tscn" % power_name))
 
 func _on_power_3_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
+	var button = $"../Panel/HBoxContainer/Power3"
+	var selected_power = button.get_meta("power_name")
+	if selected_power == null:
+		return
 	self.visible = true
-	power_name = $"../Panel/HBoxContainer/Power3".text
+	power_name = selected_power
 	start_placement(load("res://Powers/%s.tscn" % power_name))
 
 
@@ -97,6 +109,19 @@ func _on_place_button_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
 	if not preview:
+		return
+
+	var power_cost = 0
+	for name in ["Power1", "Power2", "Power3"]:
+		var path = "../Panel/HBoxContainer/%s" % name
+		var button = get_node(path)
+
+		if button.get_meta("power_name") == power_name:
+			power_cost = button.get_meta("power_cost")
+			break
+	if power_cost <= 0:
+		return
+	if not game_root or not game_root.purchase_power(power_name, power_cost):
 		return
 
 	var target_path := ""
@@ -211,9 +236,6 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, occupie
 			_apply_modifier(pName, target.get_path())
 			rpc("rpc_apply_modifier", pName, target.get_path())
 
-	game_root.cashout = false
-	game_root.end_round()
-
 	finish_placement.rpc_id(sender)
 
 
@@ -223,6 +245,8 @@ func finish_placement():
 	if preview:
 		preview.queue_free()
 		preview = null
+	if game_root and game_root.has_method("update_powerup_shop"):
+		game_root.update_powerup_shop()
 	rpc("rpc_clear_preview")
 	rpc("rpc_exit_powerup_ui")
 
@@ -237,10 +261,8 @@ func rpc_clear_preview():
 func rpc_exit_powerup_ui():
 	if not game_root:
 		return
-	if game_root.has_node("pUI"):
-		game_root.get_node("pUI").visible = false
-	if game_root.has_node("UI"):
-		game_root.get_node("UI").visible = true
+	if game_root.has_node("pUI/placementController"):
+		game_root.get_node("pUI/placementController").visible = false
 	if game_root.has_method("set_visibility"):
 		game_root.set_visibility()
 

@@ -42,31 +42,116 @@ corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_efxa6"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0, 0, 0, 1)
+bg_color = Color(1, 1, 1, 0.92156863)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.92, 0.58, 0.22, 1)
 corner_radius_top_left = 100
 corner_radius_top_right = 100
 corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dg77c"]
-bg_color = Color(1, 0, 0, 1)
+bg_color = Color(1, 0.58, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.16, 0.04, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_82xsv"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.1, 0.1, 0.07, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.92, 0.68, 0.32, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_getpj"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.07, 0.07, 0.05, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.95, 0.75, 0.35, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ryguw"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.08, 0.08, 0.05, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.56, 0.18, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d13ii"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.05, 0.05, 0.04, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76, 0.42, 0.1, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1u8w0"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.05, 0.05, 0.04, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.56, 0.18, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ycdy4"]
-bg_color = Color(1, 0.33175027, 0.26607275, 1)
+bg_color = Color(0.18, 0.14, 0.1, 0.95)
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
-border_color = Color(0, 0, 0, 1)
+border_color = Color(0.92, 0.58, 0.22, 1)
 corner_radius_top_left = 100
 corner_radius_top_right = 100
 corner_radius_bottom_right = 100
@@ -79,7 +164,12 @@ font_size = 18
 font_size = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cegan"]
-bg_color = Color(0.15686275, 0.15686275, 0.15686275, 0.78431374)
+bg_color = Color(0.06, 0.05, 0.04, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.92, 0.58, 0.22, 1)
 
 [sub_resource type="Theme" id="Theme_cegan"]
 default_font = ExtResource("11_074og")
@@ -172,7 +262,6 @@ size = 200.0
 environment = SubResource("Environment_4c57u")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1888597792]
-visible = false
 
 [node name="AimInputRegion" type="Control" parent="UI" unique_id=944627298]
 layout_mode = 3
@@ -261,6 +350,12 @@ offset_right = -50.0
 offset_bottom = -50.0
 grow_horizontal = 0
 grow_vertical = 0
+theme = ExtResource("8_w48qg")
+theme_override_styles/normal = SubResource("StyleBoxFlat_82xsv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_getpj")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ryguw")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_d13ii")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_1u8w0")
 
 [node name="Background" type="Panel" parent="UI/FireButton" unique_id=1662154618]
 layout_mode = 1
@@ -281,6 +376,7 @@ offset_left = 1752.0
 offset_top = 15.0
 offset_right = 1905.0
 offset_bottom = 87.0
+theme = ExtResource("8_w48qg")
 text = "Reset Game
 "
 
@@ -410,6 +506,34 @@ grow_vertical = 2
 size_flags_stretch_ratio = 0.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_cegan")
 
+[node name="MoneyLabel" type="Label" parent="pUI/Panel" unique_id=1234567890]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 10.0
+offset_right = 150.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Money: 0"
+label_settings = SubResource("LabelSettings_5vw27")
+
+[node name="NoticeLabel" type="Label" parent="pUI/Panel" unique_id=1122334455]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 50.0
+offset_right = 150.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_h2yge")
+
 [node name="HBoxContainer" type="HBoxContainer" parent="pUI/Panel" unique_id=1034607390]
 layout_mode = 1
 anchors_preset = 8
@@ -450,6 +574,23 @@ theme_override_font_sizes/font_size = 44
 text = "Option 3"
 script = ExtResource("9_vivmo")
 
+[node name="DoneButton" type="Button" parent="pUI/Panel" unique_id=1286608618]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -100.0
+offset_right = -50.0
+offset_bottom = -50.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = ExtResource("8_w48qg")
+theme_override_font_sizes/font_size = 24
+text = "Done"
+
 [node name="placementController" type="Control" parent="pUI" unique_id=1682392652]
 visible = false
 layout_mode = 3
@@ -474,6 +615,8 @@ offset_right = -50.0
 offset_bottom = -50.0
 grow_horizontal = 0
 grow_vertical = 0
+theme = ExtResource("8_w48qg")
+text = "Place"
 
 [node name="Background" type="Panel" parent="pUI/placeButton" unique_id=323250726]
 layout_mode = 1
@@ -584,6 +727,7 @@ spawn_path = NodePath("..")
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power1" to="pUI/placementController" method="_on_power_1_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power3" to="pUI/placementController" method="_on_power_3_pressed"]
+[connection signal="pressed" from="pUI/Panel/DoneButton" to="." method="_on_done_powerup_pressed"]
 [connection signal="pressed" from="pUI/placeButton" to="." method="_on_place_button_pressed"]
 [connection signal="pressed" from="pUI/placeButton" to="pUI/placementController" method="_on_place_button_pressed"]
 [connection signal="button_down" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_down"]

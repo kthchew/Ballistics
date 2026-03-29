@@ -107,9 +107,10 @@ offset_top = 78.0
 offset_right = 400.0
 offset_bottom = 378.0
 grow_horizontal = 2
-color = Color(0.50271857, 0.50271857, 0.5027185, 1)
+grow_vertical = 2
+color = Color(0.08, 0.06, 0.05, 0.95)
 
-[node name="TextEdit" type="TextEdit" parent="MainMenu/MenuUI/Logo" unique_id=1353032068]
+[node name="TextEdit" type="Label" parent="MainMenu/MenuUI/Logo" unique_id=1933955017]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -123,8 +124,8 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_dlksc")
 theme_override_font_sizes/font_size = 69
-text = "Bogstandard* Billiards"
-editable = false
+text = "BALL-ISTICS"
+horizontal_alignment = 1
 
 [node name="BottomButtons" type="VBoxContainer" parent="MainMenu/MenuUI" unique_id=860984698]
 layout_mode = 1
@@ -159,6 +160,7 @@ text = "Random Crazy Pool"
 script = ExtResource("6_5qkn8")
 
 [node name="RandomKnockoutButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1786141284]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("2_n4eug")
