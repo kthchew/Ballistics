@@ -87,11 +87,11 @@ psx_snap_distance={
 "type": "float",
 "value": 0.025
 }
-psx_bit_depth={
-"type": "float",
-"value": 8.0
-}
 psx_fog_color={
 "type": "color",
 "value": Color(0, 0, 0, 0)
+}
+psx_bit_depth={
+"type": "float",
+"value": 8.0
 }
