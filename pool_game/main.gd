@@ -101,6 +101,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	shape_cast.max_results = 1
 	shape_cast.target_position = 500 * dir
 	shape_cast.collision_mask = (1 << 2) | (1 << 3)
+	shape_cast.collide_with_areas = true
 	shape_cast.force_shapecast_update()
 	if not shape_cast.is_colliding():
 		return
