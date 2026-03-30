@@ -395,31 +395,37 @@ func end_game(winner: int) -> void:
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
 	#start_game()
-	ai_controller.needs_reset = true
-	process_midturn() #this is jank but should work
+	#ai_controller.needs_reset = true
+	#process_midturn() #this is jank but should work
+	start_game()
 
 func is_ai_turn():
 	var agents = get_tree().get_nodes_in_group("AGENT")
 	if len(agents) != 1: return false
-	if agents[0].control_mode == agents[0].ControlModes.RECORD_EXPERT_DEMOS:
+	if (agents[0].control_mode == agents[0].ControlModes.RECORD_EXPERT_DEMOS
+		or agents[0].control_mode == agents[0].ControlModes.TRAINING):
 		return true
 	if agents[0].control_mode == agents[0].ControlModes.HUMAN:
 		return player_ind == 1
 	return false
 	
-func ai_play():
-	await get_tree().create_timer(1.0).timeout
-	
+func ai_calc():
 	classical_ai.find_shot(
 		ball_manager.cue_ball,
 		ball_manager.get_pottable_balls(player_ind, solids_player, scores)
 	)
 	
+func ai_play():
+	await get_tree().create_timer(1.0).timeout
+	ai_calc()
+
+	var agents = get_tree().get_nodes_in_group("AGENT")
+	
 	if game_state == GameState.PLACING:
 		classical_ai.place_cue_ball()
 	elif game_state == GameState.PICKPOCKET:
 		classical_ai.pick_pocket()
-	elif game_state == GameState.AIMING:
+	elif game_state == GameState.AIMING and agents[0].control_mode != agents[0].ControlModes.TRAINING:
 		classical_ai.shoot()
 		
 func update_game_state(scratched_prev: bool = false) -> void:
@@ -446,6 +452,7 @@ func add_to_ewma(won: bool):
 	_ai_games_played_current_stage += 1
 
 func end_round() -> void:
+	cur_static_ticks = 0
 	ai_controller.increment_n_steps()
 	if ((solids_player != -1 and ball_manager.balls_sunk[int(player_ind != solids_player)] == ball_manager.prev_sunk[int(player_ind != solids_player)])
 	or (solids_player == -1 and ball_manager.balls_sunk[0] == ball_manager.prev_sunk[0] and ball_manager.balls_sunk[1] == ball_manager.prev_sunk[1])):
@@ -480,15 +487,15 @@ func process_midturn():
 	ball_manager.process_fallen_balls()
 	process_movement()
 	
-	if (ai_controller.needs_reset):
-		ai_controller.done = true #guarantees "terminal" branch in sync node?
-		var sync = get_tree().get_nodes_in_group("SYNC")
-		if sync[0].agent_demo_record:
-			sync[0]._demo_record_process()
-		
-		ai_controller.reset()
-		start_game()
-		return
+	#if (ai_controller.needs_reset):
+		#ai_controller.done = true #guarantees "terminal" branch in sync node?
+		#var sync = get_tree().get_nodes_in_group("SYNC")
+		#if sync[0].agent_demo_record:
+			#sync[0]._demo_record_process()
+		#
+		#ai_controller.reset()
+		#start_game()
+		#return
 	
 
 func process_movement():
@@ -497,7 +504,7 @@ func process_movement():
 	else:
 		cur_static_ticks = 0
 		
-	if cur_static_ticks == STATIC_TICKS_THRESHOLD:
+	if cur_static_ticks >= STATIC_TICKS_THRESHOLD:
 		#if cue_ball.first_hit_ball_num <= 0:
 			#ai_controller.reward -= 0.2	
 		end_round()

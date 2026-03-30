@@ -65,6 +65,9 @@ func pick_pocket():
 	
 func place_cue_ball():
 	var cue_ball_target = cached_shot.target_positions[0]
+	if len(cached_shot.obj_balls) == 0:
+		ai_placed_cue_ball.emit(Vector3(-56, Constants.BALL_RADIUS, 0))
+		return
 	var first_ball = cached_shot.obj_balls[0]
 	var place_pos = Shot.calc_ghost_ball_pos(first_ball, cue_ball_target, -2)
 	ai_placed_cue_ball.emit(place_pos)

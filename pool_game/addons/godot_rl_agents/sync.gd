@@ -183,7 +183,7 @@ func _physics_process(_delta):
 		games = parent.get_children()
 		
 	for node in games:
-		if ("game_state" in node and node.game_state == node.GameState.MIDTURN):
+		if ("game_state" in node and node.game_state != node.GameState.AIMING):
 			candidate_ticks_in_a_row = 0
 			return
 	#for node in parent.get_children():

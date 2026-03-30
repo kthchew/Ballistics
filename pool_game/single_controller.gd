@@ -34,28 +34,48 @@ func sort_balls_by_num(a, b):
 
 #-- Methods that need implementing using the "extend script" option in Godot --#
 func get_obs() -> Dictionary:
-	var balls = _player.ball_manager.balls.duplicate()
-	balls.sort_custom(sort_balls_by_num)
 	var obs = []
 	
-	var cue_pos = _player.ball_manager.cue_ball.position
+	#var balls = _player.ball_manager.balls.duplicate()
+	#balls.sort_custom(sort_balls_by_num)
+	#var cue_pos = _player.ball_manager.cue_ball.position
+	#obs.append_array([
+		#cue_pos.x / 109, #-1->1 
+		##clamp(((cue_pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
+		#(cue_pos.z + 53) / (2 * 53) #0->1
+	#])
+	#for i in range(1, len(balls)):
+		#var ball = balls[i]
+		#if ($"..".player_ind != $"..".solids_player): #recorded demo always "aims for" solids
+			#ball = balls[16 - i]
+		#var x_diff = ball.position.x - cue_pos.x
+		#var z_diff = ball.position.z - cue_pos.z
+		#obs.append_array([
+			#1.0 if not ball.potted else 0.0,
+			#x_diff / 218 if not ball.potted else 0.0,
+			#z_diff / 106 if not ball.potted else 0.0
+		#])
+		
+	$"..".ai_calc()
+	var shot = $"..".classical_ai.cached_shot
+	#we just pray random shots get removed from the data
+	if shot == null or len(shot.obj_balls) == 0: return {"obs": [-1, -1, -1, -1, -1, -1]}
+	var cue_pos = shot.cue_ball.position
 	obs.append_array([
 		cue_pos.x / 109, #-1->1 
-		#clamp(((cue_pos.y / 2.85) - 1) / 2, -1, 1), #0 on table, 1 above, -1 below
 		(cue_pos.z + 53) / (2 * 53) #0->1
 	])
-	for i in range(1, len(balls)):
-		var ball = balls[i]
-		if ($"..".player_ind != $"..".solids_player): #recorded demo always "aims for" solids
-			ball = balls[16 - i]
-		var x_diff = ball.position.x - cue_pos.x
-		var z_diff = ball.position.z - cue_pos.z
-		obs.append_array([
-			1.0 if not ball.potted else 0.0,
-			x_diff / 218 if not ball.potted else 0.0,
-			z_diff / 106 if not ball.potted else 0.0
-		])
-		
+	var ball_pos = shot.obj_balls[0].position
+	obs.append_array([
+		ball_pos.x / 109, #-1->1 
+		(ball_pos.z + 53) / (2 * 53) #0->1
+	])
+	var hole_pos = shot.hole_loc
+	obs.append_array([
+		1 if hole_pos.x > 50 else (0 if hole_pos.x > -50 else -1),
+		1 if hole_pos.z > 0 else 0
+	])
+	
 	#print(obs)
 	return {"obs": obs}
 
@@ -86,7 +106,8 @@ func set_action(action=null) -> void:
 	if (action):
 		var ang_mag = sqrt((action["angle-topdown"][0] ** 2) + (action["angle-topdown"][1] ** 2) + 1e-8)
 		action_angle = atan2(action["angle-topdown"][0] / ang_mag, action["angle-topdown"][1] / ang_mag)
-		action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
+		#action_power = clamp(((action["power"][0] + 1) / 2.105) + 0.05, 0, 1)
+		action_power = clamp(action["power"][0], 0, 1) 
 		action_posx = clamp(action["ball_pos"][0], -1, 1)
 		action_posy = clamp(action["ball_pos"][1], -1, 1)
 		$"..".has_aimed = true
