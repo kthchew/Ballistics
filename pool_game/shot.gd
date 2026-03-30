@@ -48,7 +48,7 @@ func shapecast_in_place(pos: Vector3) -> bool:
 	shape_cast.collision_mask = 1 << 2
 	shape_cast.force_shapecast_update()
 	
-	Draw.circle(camera.unproject_position(pos), 10, Color.BLUE)
+	#Draw.circle(camera.unproject_position(pos), 10, Color.BLUE)
 	
 	var colliding = shape_cast.is_colliding()
 	return not colliding
@@ -62,6 +62,8 @@ func shapecast_ball(ball: Ball, target_pos: Vector3) -> bool:
 		#"\n\tto target_pos=", target_pos, 
 		#"\n\tsafe frac=", safe_frac
 	#)
+	#Draw.circle(camera.unproject_position(shape_cast.get_collision_point(0)), 5, Color.TOMATO)
+	#Draw.circle(camera.unproject_position(target_pos), 5, Color.BLUE)
 	
 	return path_is_clear
 	
@@ -69,8 +71,8 @@ func shapecast_placing_cue_ball(obj_ball: Ball, target_pos: Vector3) -> bool:
 	var start_pos = calc_ghost_ball_pos(obj_ball, target_pos, -2.0)
 	var path_is_clear = shapecast(start_pos, target_pos) and shapecast_in_place(start_pos)
 	print("shape casting placing cue ball after scratch: obj ball num=", obj_ball.ball_num, ", path_is_clear=", path_is_clear)
-	Draw.circle(camera.unproject_position(start_pos), 5, Color.RED)
-	Draw.circle(camera.unproject_position(target_pos), 5, Color.RED)
+	#Draw.circle(camera.unproject_position(start_pos), 5, Color.RED)
+	#Draw.circle(camera.unproject_position(target_pos), 5, Color.RED)
 	return path_is_clear
 
 func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, camera):

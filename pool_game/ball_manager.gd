@@ -22,7 +22,9 @@ func start_game():
 	
 	#pot_unused_balls()
 	#setup_two_ball_shot()
-	setup_scratch()
+	#setup_scratch()
+	#setup_two_ball_scratch()
+	
 	#cue_ball.pot()
 	
 	balls_sunk = [0, 0]
@@ -143,7 +145,7 @@ func setup_two_ball_shot():
 		else:
 			ball.pot()
 			
-func setup_scratch():
+func setup_two_ball_scratch():
 	for ball in balls:
 		if ball.is_eight_ball():
 			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
@@ -151,6 +153,15 @@ func setup_scratch():
 			ball.teleport(Vector3(-75, Constants.BALL_RADIUS, -25))
 		elif ball.ball_num == 11:
 			ball.teleport(Vector3(-70, Constants.BALL_RADIUS, -20))
+		else:
+			ball.pot()
+			
+func setup_scratch():
+	for ball in balls:
+		if ball.is_eight_ball():
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
+		elif ball.ball_num == 13:
+			ball.teleport(Vector3(30, Constants.BALL_RADIUS, -20))
 		else:
 			ball.pot()
 	

@@ -76,10 +76,9 @@ func place_cue_ball_after_scratch(pos: Vector3):
 	ball_manager.reset_cue_ball(pos)
 	update_game_state()
 	
-func _on_ai_aimed(dir: Vector2):
+func _on_ai_aimed(dir: Vector2, force_value: float):
 	aim(dir)
-	slider.value = 50
-	_on_force_changed(slider.value)
+	_on_force_changed(force_value)
 	await get_tree().create_timer(1.0).timeout
 	_on_fire_pressed()
 	
@@ -117,9 +116,11 @@ func aim(dir: Vector2):
 	cue_stick.update_position(ball_center_3d)
 	cue_stick.set_angle(angle)
 
+# value is float ranging from 0 (min power) to 100 (max power)
 func _on_force_changed(value):
-	var normalized = value / $UI/ForceSlider.max_value
-	cue_stick.set_force_strength(normalized)
+	slider.value = value
+	var normalized = value / slider.max_value
+	cue_stick.set_force_strength(normalized)	
 	
 func calc_offset_3d(dir: Vector3):
 	var up = Vector3.UP
@@ -340,7 +341,7 @@ func start_game() -> void:
 	
 	classical_ai.reset_shot()
 	
-	update_game_state(true)
+	update_game_state()
 	
 func end_game(winner: int) -> void:
 	self.winner = winner
