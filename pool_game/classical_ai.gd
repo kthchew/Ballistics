@@ -174,13 +174,14 @@ func calc_power(shot: Shot) -> float:
 		cur_vec = (target_pos - cur_pos).normalized()
 		if prev_vec != Vector3.INF:
 			var mom_trans = cur_vec.dot(prev_vec)
+			# TODO: mom_trans was negative once??
 			cum_mom_trans *= mom_trans
 		prev_vec = cur_vec
 		cur_pos = target_pos
 		
 	print("total_dist = ", total_dist)
 	print("cum_mom_trans = ", cum_mom_trans)
-	var power = lerp(5, 100, total_dist / (200 * cum_mom_trans))
+	var power = lerp(20, 100, total_dist / (500 * cum_mom_trans))
 	print("power = ", power)
-	var clamped_power = clamp(power, 5, 100)
+	var clamped_power = clamp(power, 10, 100)
 	return clamped_power

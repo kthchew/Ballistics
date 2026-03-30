@@ -24,8 +24,7 @@ func start_game():
 	#setup_two_ball_shot()
 	#setup_scratch()
 	#setup_two_ball_scratch()
-	
-	#cue_ball.pot()
+	#pot_all_but_cue_ball()
 	
 	balls_sunk = [0, 0]
 	
@@ -131,6 +130,11 @@ func pot_unused_balls():
 			process_fallen_ball(ball)
 		if ball.ball_num in range (9, 9 + (7 - Constants.BALLS_BEFORE_EIGHT)):
 			process_fallen_ball(ball)
+			
+func pot_all_but_cue_ball():
+	for ball in balls:
+		if not ball.is_cue_ball():
+			ball.pot()
 			
 func setup_two_ball_shot():
 	for ball in balls:

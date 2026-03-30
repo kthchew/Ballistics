@@ -8,6 +8,8 @@ var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
 var potted: bool = false
 
+var printed_cnt: int = 0
+
 func _ready() -> void:
 	self.body_entered.connect(self._on_body_entered)
 
@@ -42,8 +44,33 @@ func pot():
 	position = pos
 	teleport(pos)
 	potted = true
+	
+func measure_velocity_decay():
+	#STRENGTH:50.0
+	#-56.0
+	#250.0
+	#50.4178352355957
+	#201.3793640136723
+	
+	# STRENGTH:100.0
+	#-56.0
+	#500.0
+	#50.5656967163086
+	#471.693389892578
+
+	if ball_num == 0 and printed_cnt == 0 and linear_velocity.length() > 0.05:
+		print(global_position.x)
+		print(linear_velocity.x)
+		printed_cnt += 1
+	if ball_num == 0 and printed_cnt == 1 and global_position.x > 50 and linear_velocity.length() > 0.01:
+		print(global_position.x)
+		print(linear_velocity.x)
+		printed_cnt += 1
+	
 
 func _physics_process(delta):
+	#measure_velocity_decay()
+	
 	var friction_accel := 2
 
 	linear_velocity = linear_velocity.move_toward(Vector3.ZERO, friction_accel * delta)
