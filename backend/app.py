@@ -1,4 +1,8 @@
 import os
+
+import bson.errors
+from bson import ObjectId
+
 import accounts
 import game
 import json
@@ -89,19 +93,36 @@ def get_game():
     return jsonify(game.game_instance_to_mongo_dict(game_instance))
 
 # FIXME: anything below this should be restricted to requests from a trusted Godot game server
-@app.post("/updateGame")
-def update_game_state():
+@app.post("/newGame")
+def new_game():
     json_req = request.get_json()
     if 'game_state' not in json_req:
         return "Bad request", 400
     try:
-        loaded = json_req['game_state']
-        game_state = GameInstance(**loaded)
+        game_state = json_req['game_state']
+        result = game.create_game(game_state)
+        return {
+            'result': 'Game created successfully',
+            'game_id': result,
+        }, 200
+    except json.JSONDecodeError:
+        return {'result': "Invalid JSON"}, 400
+    except (TypeError, bson.errors.InvalidId) as e:
+        return {'result': "Invalid request"}, 400
+
+@app.post("/updateGame")
+def update_game_state():
+    json_req = request.get_json()
+    if 'game_state' not in json_req or 'game_id' not in json_req:
+        return "Bad request", 400
+    try:
+        game_state = json_req['game_state']
+        game_id = ObjectId(json_req['game_id'])
     except json.JSONDecodeError:
         return "Invalid JSON", 400
-    except TypeError:
+    except (TypeError, bson.errors.InvalidId) as e:
         return "Invalid request", 400
-    result = game.update_game_state(game_state)
+    result = game.update_game_state(game_id, game_state)
     if result:
         return "Game state updated successfully", 200
     else:

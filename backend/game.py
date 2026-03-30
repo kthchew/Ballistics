@@ -38,19 +38,22 @@ def mongo_dict_to_game_instance(mongo_dict: dict) -> GameInstance:
         ball_rotations={int(ball_id): rotation for ball_id, rotation in mongo_dict['ball_rotations']}
     )
 
-def get_game_state(game_id: str) -> GameInstance:
+def get_game_state(game_id: ObjectId) -> GameInstance:
     games_collection = database.db['games']
-    game_doc = games_collection.find_one({'game_id': game_id})
+    game_doc = games_collection.find_one({'_id': game_id})
     if game_doc is None:
         raise ValueError("Game not found")
     return mongo_dict_to_game_instance(game_doc)
 
-def update_game_state(game_state: GameInstance) -> bool:
+def create_game(game_state: dict) -> ObjectId:
     games_collection = database.db['games']
-    test_state = GameInstance("123", {ObjectId(): PlayerRole.STRIPES}, GameType.EIGHT_BALL_MULTIPLAYER, {ObjectId(): 123}, 0, {0: (0.0, 0.0)}, {0: (0.0, 0.0)})
+    result = games_collection.insert_one(game_state)
+    return result.inserted_id
+
+def update_game_state(game_id: ObjectId, game_state: dict) -> bool:
+    games_collection = database.db['games']
     result = games_collection.update_one(
-        {'game_id': game_state.game_id},
-        {'$set': game_instance_to_mongo_dict(test_state)},
-        upsert=True
+        {'_id': game_id},
+        {'$set': game_state}
     )
     return result.acknowledged
