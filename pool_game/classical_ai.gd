@@ -70,6 +70,8 @@ func place_cue_ball():
 	ai_placed_cue_ball.emit(place_pos)
 	
 func shoot():
+	print("Shooting shot: ")
+	print_shot(cached_shot)
 	for i in range(len(cached_shot.obj_balls)):
 		var color = Color.YELLOW
 		if cached_shot.potting:
@@ -87,12 +89,10 @@ func shoot():
 	var cue_ball_target = cached_shot.target_positions[0]
 	var shot_dir = calc_shot_dir(cached_shot.cue_ball, cue_ball_target)
 	var shot_dir_2d = Vector2(-shot_dir.x, -shot_dir.z)
-	var power = calc_power(cached_shot)
-	ai_aimed.emit(shot_dir_2d, power)
+	ai_aimed.emit(shot_dir_2d, cached_shot.power)
 
 func generate_ball_perms(obj_balls: Array[Ball]) -> Array:
 	var ans = []
-	
 	# comment this loop out to test only 2 ball shots
 	for i in range(len(obj_balls)):
 		ans.append([obj_balls[i]])
@@ -110,6 +110,7 @@ func print_shot(shot: Shot):
 	for i in range(len(shot.obj_balls)):
 		print("\tobj ball num ", i, "=", shot.obj_balls[i].ball_num)
 	print("\thole loc=", shot.hole_loc)
+	print("\tpower=", shot.power)
 
 func reset_shot():
 	cached_shot = null
@@ -125,6 +126,7 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	if find_non_potting_shot(cue_ball, obj_balls):
 		return
 	
+	print("Choosing random shot")
 	choose_random_shot(cue_ball)
 	
 func choose_random_shot(cue_ball: Ball):
@@ -136,52 +138,25 @@ func choose_random_shot(cue_ball: Ball):
 	print_shot(shot)
 	cached_shot = shot
 	
+func prefers_alt_shot(alt_shot: Shot, cached_shot: Shot) -> bool:
+	return alt_shot.poss and (cached_shot == null or alt_shot.goodness > cached_shot.goodness)
+	
 func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	var perms = generate_ball_perms(obj_balls)
 	for perm in perms:
 		for hole_loc in hole_locs:
-			var shot = Shot.new(cue_ball, perm, hole_loc, camera)
-			if shot.poss:
-				print_shot(shot)
-				cached_shot = shot
-				return true
-	return false
+			var alt_shot = Shot.new(cue_ball, perm, hole_loc, camera)
+			if prefers_alt_shot(alt_shot, cached_shot):
+				print("Prefer alternative shot: ")
+				print_shot(alt_shot)
+				cached_shot = alt_shot
+	return cached_shot != null
 	
 func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	for obj_ball in obj_balls:
-		var shot = Shot.new(cue_ball, [obj_ball], Vector3.INF, camera)
-		if shot.poss:
-			print_shot(shot)
-			cached_shot = shot
-			return true
-	return false
-	
-func calc_power(shot: Shot) -> float:
-	if shot.obj_balls.is_empty():
-		return 50
-		
-	var cur_pos = shot.cue_ball.global_position
-	var total_dist = 0
-	
-	var cum_mom_trans = 1
-	var prev_vec: Vector3 = Vector3.INF
-	var cur_vec: Vector3 = Vector3.INF
-	
-	for target_pos in shot.target_positions:
-		var dist = cur_pos.distance_to(target_pos)
-		total_dist += dist
-		
-		cur_vec = (target_pos - cur_pos).normalized()
-		if prev_vec != Vector3.INF:
-			var mom_trans = cur_vec.dot(prev_vec)
-			# TODO: mom_trans was negative once??
-			cum_mom_trans *= mom_trans
-		prev_vec = cur_vec
-		cur_pos = target_pos
-		
-	print("total_dist = ", total_dist)
-	print("cum_mom_trans = ", cum_mom_trans)
-	var power = lerp(20, 100, total_dist / (500 * cum_mom_trans))
-	print("power = ", power)
-	var clamped_power = clamp(power, 10, 100)
-	return clamped_power
+		var alt_shot = Shot.new(cue_ball, [obj_ball], Vector3.INF, camera)
+		if prefers_alt_shot(alt_shot, cached_shot):
+			print("Prefer alternative shot: ")
+			print_shot(alt_shot)
+			cached_shot = alt_shot
+	return cached_shot != null

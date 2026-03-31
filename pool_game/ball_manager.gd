@@ -25,6 +25,7 @@ func start_game():
 	#setup_scratch()
 	#setup_two_ball_scratch()
 	#pot_all_but_cue_ball()
+	test_ai_prioritization()
 	
 	balls_sunk = [0, 0]
 	
@@ -134,6 +135,17 @@ func pot_unused_balls():
 func pot_all_but_cue_ball():
 	for ball in balls:
 		if not ball.is_cue_ball():
+			ball.pot()
+			
+func test_ai_prioritization():
+	for ball in balls:
+		if ball.is_cue_ball():
+			ball.teleport(Vector3(10, Constants.BALL_RADIUS, 0))
+		elif ball.is_eight_ball():
+			ball.teleport(Vector3(90, Constants.BALL_RADIUS, 0))
+		elif ball.ball_num == 5:
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, -25))
+		else:
 			ball.pot()
 			
 func setup_two_ball_shot():
