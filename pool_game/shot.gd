@@ -91,6 +91,8 @@ func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, camera):
 	else:
 		self.poss = true
 	self.power = calc_power()
+	if self.power == -1:
+		self.poss = false
 	self.goodness = 1 / self.power
 	
 func check_pot_possible() -> bool:
@@ -145,7 +147,9 @@ func calc_power() -> float:
 		cur_vec = (target_pos - cur_pos).normalized()
 		if prev_vec != Vector3.INF:
 			var mom_trans = cur_vec.dot(prev_vec)
-			# TODO: mom_trans was negative once??
+			# TODO: mom_trans can be negative
+			if mom_trans < 0:
+				return -1
 			cum_mom_trans *= mom_trans
 		prev_vec = cur_vec
 		cur_pos = target_pos
