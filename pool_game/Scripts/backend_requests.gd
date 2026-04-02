@@ -25,7 +25,7 @@ func _process(delta: float) -> void:
 class GameInstance:
 	var game_id: String
 	var player_roles: Dictionary # dict[ObjectId, PlayerRole]
-	var game_type: GameType = GameType.EIGHT_BALL_MULTIPLAYER
+	var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 	var player_points: Dictionary # dict[ObjectId, int]
 	var current_turn: int
 	var ball_positions: Dictionary # dict[int, tuple[float, float, float]]
