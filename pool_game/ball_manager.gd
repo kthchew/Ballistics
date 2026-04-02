@@ -19,6 +19,7 @@ func init():
 func start_game():
 	cue_ball.reset(Vector3(-56, Constants.BALL_RADIUS, 0))
 	place_rack(56, 0)
+	pot_unused_balls()
 	remove_material_overlays()
 	
 	#pot_unused_balls()

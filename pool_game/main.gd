@@ -218,8 +218,9 @@ func _on_fire_pressed():
 		#aim_visuals.hide()
 		cue_stick.hide()
 		cue_stick.striking = false
-		ball_manager.hit_cue_ball(force, offset_3d)
 	)
+	ball_manager.hit_cue_ball(force, offset_3d)
+	
 	print("STRENGTH:", strength)
 	
 	if strength > 95.0:
@@ -395,7 +396,8 @@ func end_game(winner: int) -> void:
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
 	#start_game()
-	#ai_controller.needs_reset = true
+	ai_controller.needs_reset = true
+	ai_controller.done = true
 	#process_midturn() #this is jank but should work
 	start_game()
 
@@ -425,8 +427,12 @@ func ai_play():
 		classical_ai.place_cue_ball()
 	elif game_state == GameState.PICKPOCKET:
 		classical_ai.pick_pocket()
-	elif game_state == GameState.AIMING and agents[0].control_mode != agents[0].ControlModes.TRAINING:
-		classical_ai.shoot()
+	elif game_state == GameState.AIMING:
+		#var sync = get_tree().get_nodes_in_group("SYNC")
+		#if not sync[0].agent_demo_record:
+			#sync[0]._training_process()
+		if agents[0].control_mode != agents[0].ControlModes.TRAINING:
+			classical_ai.shoot()
 		
 func update_game_state(scratched_prev: bool = false) -> void:
 	if scratched_prev:
@@ -454,9 +460,12 @@ func add_to_ewma(won: bool):
 func end_round() -> void:
 	cur_static_ticks = 0
 	ai_controller.increment_n_steps()
+	var sync = get_tree().get_nodes_in_group("SYNC")
+	#if not sync[0].agent_demo_record:
+		#sync[0]._training_process()
+	
 	if ((solids_player != -1 and ball_manager.balls_sunk[int(player_ind != solids_player)] == ball_manager.prev_sunk[int(player_ind != solids_player)])
 	or (solids_player == -1 and ball_manager.balls_sunk[0] == ball_manager.prev_sunk[0] and ball_manager.balls_sunk[1] == ball_manager.prev_sunk[1])):
-		var sync = get_tree().get_nodes_in_group("SYNC")
 		if sync[0].agent_demo_record:
 			print("Removing unsuccessful shot...")
 			sync[0].current_demo_trajectory[0].pop_back()

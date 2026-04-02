@@ -209,8 +209,8 @@ func _physics_process(_delta):
 	_inference_process()
 	_heuristic_process()
 	
-	if n_action_steps > 2:
-		candidate_ticks_in_a_row += 1
+	#if n_action_steps > 2:
+	candidate_ticks_in_a_row += 1
 	if candidate_ticks_in_a_row >= 500:
 		candidate_ticks_in_a_row = 1
 
