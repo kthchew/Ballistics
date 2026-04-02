@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://crp3xms5diqvq"
 path.s3tc="res://.godot/imported/Billiard-CueHZ.png-b3065a3a11d6885939b9086449039efc.s3tc.ctex"
+path.etc2="res://.godot/imported/Billiard-CueHZ.png-b3065a3a11d6885939b9086449039efc.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Art/Billiard-CueHZ.png"
-dest_files=["res://.godot/imported/Billiard-CueHZ.png-b3065a3a11d6885939b9086449039efc.s3tc.ctex"]
+dest_files=["res://.godot/imported/Billiard-CueHZ.png-b3065a3a11d6885939b9086449039efc.s3tc.ctex", "res://.godot/imported/Billiard-CueHZ.png-b3065a3a11d6885939b9086449039efc.etc2.ctex"]
 
 [params]
 

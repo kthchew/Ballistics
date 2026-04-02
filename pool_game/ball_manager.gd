@@ -64,11 +64,15 @@ func create_balls() -> void:
 	ball_scene.instantiate()
 	for i in range(16):
 		var ball: RigidBody3D = ball_scene.instantiate()
-		add_child(ball)
 		ball.ball_num = i
 		ball.name = "Ball%s" % i
+		
+		start_synchronizing_ball.rpc(ball.get_name())
+		rpc_color_ball.rpc(ball.get_name())
+		
+		add_child(ball)
 		balls.append(ball)
-		color_ball(ball)
+		
 		if i == 0:
 			cue_ball = ball
 			cue_ball.body_entered.connect(cue_ball._on_body_entered)
@@ -157,3 +161,29 @@ func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, sco
 		return 1 <= ball_num and ball_num <= 7
 	else:
 		return 9 <= ball_num and ball_num <= 15
+
+@rpc("authority", "call_local", "reliable")
+func start_synchronizing_ball(ball_name: String):
+	var rep_config = $MultiplayerSynchronizer.get_replication_config()
+	rep_config.add_property(ball_name + ":position")
+	rep_config.add_property(ball_name + ":rotation")
+	rep_config.add_property(ball_name + ":angular_velocity")
+	rep_config.add_property(ball_name + ":linear_velocity")
+	rep_config.add_property(ball_name + ":ball_num")
+	$MultiplayerSynchronizer.set_replication_config(rep_config)
+	
+@rpc("authority", "call_local", "reliable")
+func stop_synchronizing_ball(ball_name: String):
+	var rep_config = $MultiplayerSynchronizer.get_replication_config()
+	rep_config.remove_property(ball_name + ":position")
+	rep_config.remove_property(ball_name + ":rotation")
+	rep_config.remove_property(ball_name + ":angular_velocity")
+	rep_config.remove_property(ball_name + ":linear_velocity")
+	rep_config.add_property(ball_name + ":ball_num")
+	$MultiplayerSynchronizer.set_replication_config(rep_config)
+
+@rpc("authority", "call_local", "reliable")
+func rpc_color_ball(ball_name: String) -> void:
+	var ball_node = get_node(ball_name)
+	color_ball(ball_node)
+	

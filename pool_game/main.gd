@@ -12,83 +12,54 @@ extends Node3D
 @onready var shape_cast = $ShapeCast3D
 @onready var ball_manager = $BallManager
 
-enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
+enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, NOT_STARTED}
 const STATIC_TICKS_THRESHOLD: int = 60
 
+var init_peer = null
 var has_aimed := false
 # physics defaults to 60 ticks per second
 var cur_static_ticks = 0
-var player_ind: int = 0
-# TODO: score is unnecessary, just calculate as needed from balls_sunk[] and whether teams have been assigned
-var scores: Array[int] = [0, 0]
-var game_state: GameState = GameState.AIMING
-var turn_num: int = 0
-var round_num: int = 0
-var solids_player = -1
-var next_solids_player = -1
-var winner: int = -1
-var play_again: bool = false
-var target_hole: int = -1
+
+@export var lobby_slot: int = -1
+@export var player_ind: int = 0
+@export var scores: Array[int] = [0, 0]
+@export var game_state: GameState = GameState.NOT_STARTED
+@export var turn_num: int = 0
+@export var round_num: int = 0
+@export var solids_player = -1
+@export var next_solids_player = -1
+@export var winner: int = -1
+@export var play_again: bool = false
+@export var target_hole: int = -1
+@export var connected_peers = [-1, -1] # index is player index, value is peer id
+
+const ball_scene = preload("res://ball.tscn")
+const ball_script = preload("res://ball.gd")
+const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
+	if init_peer != null:
+		multiplayer.multiplayer_peer = init_peer
 	
-	ball_manager.init()
 	aim_visuals.hide()
 	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
 	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
 	$UI.visible = true
 	
-	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed)
-	slider.value_changed.connect(_on_force_changed)
+	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed.rpc)
+	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
-	hole_buttons.hole_selected.connect(_on_hole_selected)
+	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
+		
 	ball_manager.cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
 	ball_manager.ball_sunk.connect(_on_ball_sunk)
 	
-	start_game()
+	ball_manager.init()
 	
-func _on_aim_changed(touch_pos: Vector2):
-	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
-		return
-		
-	if game_state == GameState.PLACING:
-		var ray_origin = camera.project_ray_origin(touch_pos)
-		var ray_normal = camera.project_ray_normal(touch_pos)
-		var drop_plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
-		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		ball_manager.reset_cue_ball(intersection)
-		start_round()
-		return
-		
-	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
-	var ball_screen_pos = camera.unproject_position(ball_center_3d)
-	var dir = ball_screen_pos - touch_pos
-	
-	if dir.length() < 20 or ball_manager.check_cue_ball_potted_by_pos():
-		return
-		
-	has_aimed = true
-
-	var angle = dir.angle()
-	var dir_norm = dir.normalized()
-	
-	cast_aim_ray(dir_norm)
-
-	var ball_edge_3d = ball_center_3d + Vector3(5, 0, 0)
-	var center_screen = camera.unproject_position(ball_center_3d)
-	var edge_screen = camera.unproject_position(ball_edge_3d)
-	var ball_radius_px = (edge_screen - center_screen).length()
-	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
-	
-	cue_stick.update_position(ball_center_3d)
-	cue_stick.set_angle(angle)
-	aim_visuals.show()
-	cue_stick.show()
-
-func _on_force_changed(value):
-	var normalized = value / $UI/ForceSlider.max_value
-	cue_stick.set_force_strength(normalized)
+	$MultiplayerSynchronizer.set_visibility_for(1, true)
+	if connected_peers[0] != -1 and connected_peers[1] != -1:
+		start_game()
 	
 func calc_offset_3d(dir: Vector3):
 	var up = Vector3.UP
@@ -107,58 +78,17 @@ func calc_dir():
 	var angle = cue_stick.angle
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
 	return dir
-	
-func _on_fire_pressed():
-	if game_state != GameState.AIMING or not has_aimed:
-		return
-	
-	var dir = calc_dir()
-	var offset_3d = calc_offset_3d(dir)
-	var strength = slider.value
-	var force = dir * (strength * 5)
 
-	cue_stick.striking = true
+@rpc
+func change_hole_button_visibility(is_visible: bool) -> void:
+	hole_buttons.visible = is_visible
 
-	game_state = GameState.MIDTURN
-	
-	var tween := create_tween()
-
-	var target_pos = ball_manager.get_cue_ball_global_pos() - cue_stick.aim_direction * Constants.BALL_RADIUS
-
-	var distance = cue_stick.global_position.distance_to(target_pos)
-
-	var base_speed = 20.0
-	var scaled = pow(strength, 0.6)
-	var speed = base_speed * (0.4 + 0.6 * scaled)
-
-	var duration = distance / speed
-
-	tween.tween_property(cue_stick, "global_position", target_pos, duration)\
-		.set_trans(Tween.TRANS_CUBIC)\
-		.set_ease(Tween.EASE_IN_OUT)
-
-	tween.tween_callback(func():
-		aim_visuals.hide()
-		cue_stick.hide()
-		cue_stick.striking = false
-		ball_manager.hit_cue_ball(force, offset_3d)
-	)
-	print("STRENGTH:", strength)
-	
-	ball_manager.play_cue_ball_sound(strength)
-
-	if strength > 95.0:
-		shake_camera(0.5, 0.1)
-		sway_light(7, 7)
-	
-	has_aimed = false
-	slider.value = 0
-	cue_stick.set_force_strength(0.0)
-	aimer._reset_knob()
-	
+@rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PICKPOCKET:
+		return
 	target_hole = hole_ind
-	hole_buttons.hide()
+	change_hole_button_visibility.rpc_id(multiplayer.get_remote_sender_id(), false)
 	start_round()
 	
 func _on_reset_button_pressed() -> void:
@@ -201,6 +131,7 @@ func _on_ball_sunk(ball):
 			scores[next_solids_player] = ball_manager.balls_sunk[0]
 			scores[1 - next_solids_player] = ball_manager.balls_sunk[1]
 	
+@rpc
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
@@ -209,6 +140,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	shape_cast.max_results = 1
 	shape_cast.target_position = 500 * dir
 	shape_cast.collision_mask = 1 << 2
+	shape_cast.collide_with_areas = true
 	
 	shape_cast.force_shapecast_update()
 	
@@ -248,6 +180,89 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 		
 	aim_guide_line.set_point_position(2, camera.unproject_position(cue_ball_endpoint))
 	aim_guide_line2.set_point_position(1, camera.unproject_position(object_ball_endpoint))
+
+@rpc("authority", "call_local")
+func set_visibility():
+	print("setting visibility")
+	if connected_peers[0] != -1:
+		$MultiplayerSynchronizer.set_visibility_for(connected_peers[0], true)
+	if connected_peers[1] != -1:
+		$MultiplayerSynchronizer.set_visibility_for(connected_peers[1], true)
+	
+func start_game() -> void:
+	set_visibility.rpc()
+	
+	aim_visuals.hide()
+	cue_stick.hide()
+	hole_buttons.hide()
+	
+	has_aimed = false
+	slider.value = 0
+	cue_stick.set_force_strength(0.0)
+	aimer._reset_knob()
+	
+	game_state = GameState.AIMING
+	
+	player_ind = 0
+	cur_static_ticks = 0
+	solids_player = -1
+	next_solids_player = -1
+	scores = [0, 0]
+	turn_num = 0
+	round_num = 0
+	play_again = false
+	target_hole = -1
+	
+	ball_manager.start_game()
+			
+
+@rpc("any_peer", "reliable")
+func _on_aim_changed(touch_pos: Vector2):
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
+		return
+	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
+		return
+		
+	if game_state == GameState.PLACING:
+		var ray_origin = camera.project_ray_origin(touch_pos)
+		var ray_normal = camera.project_ray_normal(touch_pos)
+		var drop_plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
+		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
+		ball_manager.reset_cue_ball(intersection)
+		start_round()
+		return
+
+	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
+	var ball_screen_pos = camera.unproject_position(ball_center_3d)
+	var dir = ball_screen_pos - touch_pos
+	
+	if dir.length() < 20 or ball_manager.check_cue_ball_potted_by_pos():
+		return
+		
+	has_aimed = true
+
+	var angle = dir.angle()
+	var dir_norm = dir.normalized()
+	
+	cast_aim_ray.rpc_id(multiplayer.get_remote_sender_id(), dir_norm)
+
+	var ball_edge_3d = ball_center_3d + Vector3(5, 0, 0)
+	var center_screen = camera.unproject_position(ball_center_3d)
+	var edge_screen = camera.unproject_position(ball_edge_3d)
+	var ball_radius_px = (edge_screen - center_screen).length()
+	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
+	
+	cue_stick.update_position(ball_center_3d)
+	cue_stick.set_angle(angle)
+	aim_visuals.show()
+	cue_stick.show()
+
+@rpc("any_peer", "reliable")
+func _on_force_changed(value):
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
+		return
+	var normalized = value / $UI/ForceSlider.max_value
+	cue_stick.set_force_strength(normalized)
 	
 func shake_camera(intensity: float, duration: float) -> void:
 	print("Shake Camera")
@@ -292,31 +307,62 @@ func sway_light(amount: float, duration: float) -> void:
 	# return to original rotation
 	tween.tween_property(light, "rotation", original_rot, cycle_time * 0.5)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		
-func start_game() -> void:
 	
-	aim_visuals.hide()
-	cue_stick.hide()
+func _on_fire_pressed():
+	# need to set the strength in case it was changed by other player's turn
+	_on_force_changed.rpc_id(1, slider.value)
+	fire_cue.rpc_id(1)
+	
+@rpc("any_peer", "reliable")
+func fire_cue():
+	if not multiplayer.is_server() \
+	   or connected_peers[player_ind] != multiplayer.get_remote_sender_id() \
+	   or game_state != GameState.AIMING \
+	   or not has_aimed:
+		return
+	
+	var dir = calc_dir()
+	var offset_3d = calc_offset_3d(dir)
+	var strength = slider.value
+	var force = dir * (strength * 5)
+
+	cue_stick.striking = true
+
+	game_state = GameState.MIDTURN
+	
+	var tween := create_tween()
+
+	var target_pos = ball_manager.get_cue_ball_global_pos() - cue_stick.aim_direction * Constants.BALL_RADIUS
+
+	var distance = cue_stick.global_position.distance_to(target_pos)
+
+	var base_speed = 20.0
+	var scaled = pow(strength, 0.6)
+	var speed = base_speed * (0.4 + 0.6 * scaled)
+
+	var duration = distance / speed
+
+	tween.tween_property(cue_stick, "global_position", target_pos, duration)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_IN_OUT)
+
+	tween.tween_callback(func():
+		aim_visuals.hide()
+		cue_stick.hide()
+		cue_stick.striking = false
+		ball_manager.hit_cue_ball(force, offset_3d)
+	)
+	print("STRENGTH:", strength)
+	ball_manager.play_cue_ball_sound(strength)
+
+	if strength > 95.0:
+		shake_camera(0.5, 0.1)
+		sway_light(7, 7)
+
 	has_aimed = false
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)
 	aimer._reset_knob()
-	
-	game_state = GameState.AIMING
-	
-	player_ind = 0
-	cur_static_ticks = 0
-	solids_player = -1
-	next_solids_player = -1
-	scores = [0, 0]
-	turn_num = 0
-	round_num = 0
-	play_again = false
-	target_hole = -1
-	
-	hole_buttons.hide()
-	
-	ball_manager.start_game()
 	
 func end_game(winner: int) -> void:
 	self.winner = winner
@@ -334,7 +380,7 @@ func start_round(scratched_prev: bool = false) -> void:
 	
 	if target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
 		game_state = GameState.PICKPOCKET
-		hole_buttons.show()
+		change_hole_button_visibility.rpc_id(connected_peers[player_ind], true)
 		return
 	
 	game_state = GameState.AIMING
@@ -360,8 +406,14 @@ func end_round() -> void:
 	start_round(scratched)
 	
 func process_midturn():
-	ball_manager.process_fallen_balls()
-	process_movement()
+	if multiplayer.is_server():
+		if game_state != GameState.MIDTURN:
+			return
+		else:
+			cue_stick.visible = false
+			
+		ball_manager.process_fallen_balls()
+		process_movement()
 
 func process_movement():
 	if ball_manager.check_all_not_moving():
@@ -403,21 +455,31 @@ func fill_debug_label() -> void:
 	debug_label.text = label_txt
 
 func fill_info_label() -> void:
+	var is_your_turn = connected_peers[player_ind] == multiplayer.get_unique_id()
 	info_label.text = ""
+	
+	if game_state == GameState.NOT_STARTED:
+		info_label.text = "Currently waiting for enough players..."
 	
 	if game_state == GameState.ENDED:
 		info_label.text = "Player " + str(winner + 1) + " won the game! Click the 'Reset Game' button to play again"
 	
-	if game_state != GameState.MIDTURN and game_state != GameState.ENDED:
-		info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
-		if scores[player_ind] < Constants.BALLS_BEFORE_EIGHT:
-			if player_ind == solids_player:
+	if game_state != GameState.MIDTURN and game_state != GameState.ENDED and game_state != GameState.NOT_STARTED:
+		if multiplayer.is_server():
+			info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
+		elif is_your_turn:
+			info_label.text += "Your turn.\n"
+		else:
+			info_label.text += "Opponent's turn.\n"
+		if solids_player != -1 and scores[player_ind] < Constants.BALLS_BEFORE_EIGHT:
+			if connected_peers[solids_player] == multiplayer.get_unique_id():
 				info_label.text += "You are solids\n"
-			elif 1 - player_ind == solids_player:
+			else:
 				info_label.text += "You are stripes\n"
 	
-	if game_state == GameState.PICKPOCKET:
-		info_label.text += "Pick your target pocket for the 8-ball\n"
-			
-	if game_state == GameState.PLACING:
-		info_label.text += "Your opponent scratched, click to place the cue ball\n"
+	if is_your_turn:
+		if game_state == GameState.PICKPOCKET:
+			info_label.text += "Pick your target pocket for the 8-ball\n"
+				
+		if game_state == GameState.PLACING:
+			info_label.text += "Your opponent scratched, click to place the cue ball\n"

@@ -2,6 +2,7 @@ extends Node3D
 
 @export var max_pullback: float = 10.0
 @export var start_offset: float = 2.85
+@export var strength: float = 0.0
 
 var angle: float = 0.0
 var aim_direction: Vector3 = Vector3.FORWARD
@@ -17,7 +18,7 @@ func set_angle(a: float) -> void:
 	_update_absolute_position()
 
 func set_force_strength(strength: float) -> void:
-	strength = clamp(strength, 0.0, 1.0)
+	self.strength = clamp(strength, 0.0, 1.0)
 	pull_amount = max_pullback * strength
 	_update_absolute_position()
 
