@@ -317,6 +317,11 @@ func _on_fire_pressed():
 	_on_force_changed.rpc_id(1, slider.value)
 	fire_cue.rpc_id(1)
 	
+	has_aimed = false
+	slider.value = 0
+	cue_stick.set_force_strength(0.0)
+	aimer._reset_knob()
+	
 @rpc("any_peer", "reliable")
 func fire_cue():
 	if not multiplayer.is_server() \
@@ -327,7 +332,7 @@ func fire_cue():
 	
 	var dir = calc_dir()
 	var offset_3d = calc_offset_3d(dir)
-	var strength = slider.value
+	var strength = cue_stick.strength * 100
 	var force = dir * (strength * 5)
 
 	cue_stick.striking = true
@@ -362,11 +367,6 @@ func fire_cue():
 	if strength > 95.0:
 		shake_camera(0.5, 0.1)
 		sway_light(7, 7)
-
-	has_aimed = false
-	slider.value = 0
-	cue_stick.set_force_strength(0.0)
-	aimer._reset_knob()
 	
 func end_game(winner: int) -> void:
 	self.winner = winner

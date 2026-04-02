@@ -14,7 +14,6 @@ var teleport_pos: Vector3 = Vector3.ZERO
 var potted: bool = false
 
 func _ready() -> void:
-	self.body_entered.connect(self._on_body_entered)
 	HoleSound.max_db = 80.0
 	BallCollide.max_db = 80.0
 

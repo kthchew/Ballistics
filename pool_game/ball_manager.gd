@@ -2,7 +2,6 @@ extends Node
 
 signal ball_sunk(ball: RigidBody3D)
 
-
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
@@ -164,11 +163,11 @@ func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, sco
 @rpc("authority", "call_local", "reliable")
 func start_synchronizing_ball(ball_name: String):
 	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
-	rep_config.add_property(ball_name + ":position")
-	rep_config.add_property(ball_name + ":rotation")
-	rep_config.add_property(ball_name + ":angular_velocity")
-	rep_config.add_property(ball_name + ":linear_velocity")
-	rep_config.add_property(ball_name + ":ball_num")
+	rep_config.add_property("BallManager/" + ball_name + ":position")
+	rep_config.add_property("BallManager/" + ball_name + ":rotation")
+	rep_config.add_property("BallManager/" + ball_name + ":angular_velocity")
+	rep_config.add_property("BallManager/" + ball_name + ":linear_velocity")
+	rep_config.add_property("BallManager/" + ball_name + ":ball_num")
 	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
 	
 @rpc("authority", "call_local", "reliable")
