@@ -18,7 +18,7 @@ var init_peers = null
 var config := ConfigFile.new()
 const CONFIG_PATH := "user://settings.cfg"
 
-@export var matchmaking_mode := Utils.MatchmakingMode.RANDOM
+@export var matchmaking_mode = Utils.MatchmakingMode.RANDOM
 @export var pending_room_code := ""
 
 @onready var games = $Games
