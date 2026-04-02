@@ -65,6 +65,17 @@ func _ready() -> void:
 	$MultiplayerSynchronizer.set_visibility_for(1, true)
 	if connected_peers[0] != -1 and connected_peers[1] != -1:
 		start_game()
+		
+func save() -> Dictionary:
+	var save_dict := {
+		"current_player_index": player_ind,
+		"turn_num": turn_num,
+		"round_num": round_num,
+		"scores": scores,
+		"balls_sunk": balls_sunk,
+		"solids_player": solids_player,
+	}
+	return save_dict
 
 @rpc
 func change_hole_button_visibility(is_visible: bool) -> void:

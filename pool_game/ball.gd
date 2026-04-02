@@ -19,6 +19,18 @@ func _ready() -> void:
 	self.body_entered.connect(self._on_body_entered)
 	HoleSound.max_db = 80.0
 	BallCollide.max_db = 80.0
+	
+func save() -> Dictionary:
+	var save_dict = {
+		"pos_x": position.x,
+		"pos_y": position.y,
+		"pos_z": position.z,
+		"rot_x": rotation.x,
+		"rot_y": rotation.y,
+		"rot_z": rotation.z,
+		"potted": potted
+	}
+	return save_dict
 
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true

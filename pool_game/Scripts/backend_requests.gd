@@ -7,9 +7,6 @@ const BACKEND_URL := "http://127.0.0.1:5000"
 
 var session: String
 
-enum PlayerRole {STRIPES = 1, SOLIDS}
-enum GameType {EIGHT_BALL_MULTIPLAYER = 1, EIGHT_BALL_SINGLEPLAYER, CRAZY_EIGHT_BALL_MULTIPLAYER, CRAZY_EIGHT_BALL_SINGLEPLAYER}
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	# TODO: probably should not be stored in plaintext in a config file
@@ -26,8 +23,9 @@ class GameInstance:
 	var game_id: String
 	var player_roles: Dictionary # dict[ObjectId, PlayerRole]
 	var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
+	var game_state: Utils.GameState
 	var player_points: Dictionary # dict[ObjectId, int]
-	var current_turn: int
+	var current_turn_number: int
 	var ball_positions: Dictionary # dict[int, tuple[float, float, float]]
 	var ball_rotations: Dictionary # dict[int, tuple[float, float, float]]
 	
