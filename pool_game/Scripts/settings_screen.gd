@@ -1,9 +1,9 @@
 extends Control
 
-@onready var server_address_edit: LineEdit = $VBoxContainer/ServerAddress/LineEdit
-@onready var server_port_edit: LineEdit = $VBoxContainer/ServerPort/LineEdit
+@onready var server_address_edit: LineEdit = $MarginContainer/VBoxContainer/ServerAddress/LineEdit
+@onready var server_port_edit: LineEdit = $MarginContainer/VBoxContainer/ServerPort/LineEdit
 
-@onready var save_button: Button = $VBoxContainer/SaveButton
+@onready var save_button: Button = $MarginContainer/VBoxContainer/SaveButton
 
 var config := ConfigFile.new()
 
