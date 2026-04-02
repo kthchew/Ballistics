@@ -42,24 +42,28 @@ func _ready() -> void:
 		multiplayer.multiplayer_peer = init_peer
 	
 	aim_visuals.hide()
-	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
-	await get_tree().create_timer(0.25).timeout
-	$OverheadLight/Light.light_energy = 1000
-	$UI.visible = true
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed.rpc)
 	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
-		
-	ball_manager.cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
-	ball_manager.ball_sunk.connect(_on_ball_sunk)
 	
 	ball_manager.init()
+	
+	ball_manager.cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
+	ball_manager.ball_sunk.connect(_on_ball_sunk)
 	
 	$MultiplayerSynchronizer.set_visibility_for(1, true)
 	if connected_peers[0] != -1 and connected_peers[1] != -1:
 		start_game()
+		
+	turn_on_light()
+	
+func turn_on_light():
+	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
+	await get_tree().create_timer(0.25).timeout
+	$OverheadLight/Light.light_energy = 1000
+	$UI.visible = true
 	
 func calc_offset_3d(dir: Vector3):
 	var up = Vector3.UP

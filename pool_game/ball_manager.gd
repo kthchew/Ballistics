@@ -61,17 +61,16 @@ func check_cue_ball_first_hit(player_ind: int, solids_player: int, scores: Array
 
 func create_balls() -> void:
 	balls = []
-	ball_scene.instantiate()
 	for i in range(16):
 		var ball: RigidBody3D = ball_scene.instantiate()
 		ball.ball_num = i
 		ball.name = "Ball%s" % i
 		
-		start_synchronizing_ball.rpc(ball.get_name())
-		rpc_color_ball.rpc(ball.get_name())
-		
 		add_child(ball)
 		balls.append(ball)
+		
+		start_synchronizing_ball.rpc(ball.get_name())
+		rpc_color_ball.rpc(ball.get_name())
 		
 		if i == 0:
 			cue_ball = ball
@@ -164,23 +163,23 @@ func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, sco
 
 @rpc("authority", "call_local", "reliable")
 func start_synchronizing_ball(ball_name: String):
-	var rep_config = $MultiplayerSynchronizer.get_replication_config()
+	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
 	rep_config.add_property(ball_name + ":position")
 	rep_config.add_property(ball_name + ":rotation")
 	rep_config.add_property(ball_name + ":angular_velocity")
 	rep_config.add_property(ball_name + ":linear_velocity")
 	rep_config.add_property(ball_name + ":ball_num")
-	$MultiplayerSynchronizer.set_replication_config(rep_config)
+	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
 	
 @rpc("authority", "call_local", "reliable")
 func stop_synchronizing_ball(ball_name: String):
-	var rep_config = $MultiplayerSynchronizer.get_replication_config()
+	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
 	rep_config.remove_property(ball_name + ":position")
 	rep_config.remove_property(ball_name + ":rotation")
 	rep_config.remove_property(ball_name + ":angular_velocity")
 	rep_config.remove_property(ball_name + ":linear_velocity")
 	rep_config.add_property(ball_name + ":ball_num")
-	$MultiplayerSynchronizer.set_replication_config(rep_config)
+	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
 
 @rpc("authority", "call_local", "reliable")
 func rpc_color_ball(ball_name: String) -> void:
