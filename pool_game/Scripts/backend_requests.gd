@@ -122,7 +122,7 @@ func info_for_account(token: String) -> Dictionary:
 
 ## Saves a new game to the backend and returns the game ID. This should only be called from the game server.
 func create_new_game(game_state: Dictionary) -> String:
-	var url = BACKEND_URL + "/createGame"
+	var url = BACKEND_URL + "/newGame"
 	var body = {"game_state": game_state}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
 	if "result" in response:

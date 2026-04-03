@@ -10,6 +10,7 @@ var regular_games = {}
 var regular_queue = []
 var private_rooms = {}
 var room_by_peer = {}
+var game_id_by_player_pair: Dictionary = {}
 
 var init_mp = null
 var init_slot = null
@@ -18,8 +19,8 @@ var init_peers = null
 var player_tokens: Dictionary[int, String] = {}
 var player_info: Dictionary[int, Dictionary] = {}
 
-@export var matchmaking_mode := Utils.MatchmakingMode.RANDOM
-@export var pending_room_code := ""
+@export var matchmaking_mode: int = Utils.MatchmakingMode.RANDOM
+@export var pending_room_code: String = ""
 
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
@@ -28,6 +29,7 @@ const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
 @onready var info_label = $ClientUI/VBoxContainer/InfoLabel
 @onready var exit_button = $ClientUI/VBoxContainer/ExitButton
+@onready var backend_requests = $BackendRequests
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -122,10 +124,11 @@ func start_client(host: String, port: int = 18361) -> void:
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 
 func _on_connected_to_server():
+	var token := ""
 	var config := ConfigFile.new()
 	if config.load("user://account.cfg") == OK:
-		var token = config.get_value("account", "session", "")
-		auth.rpc_id(1, token)
+		token = config.get_value("account", "session", "")
+	auth.rpc_id(1, token)
 	_request_selected_matchmaking()
 	
 func _on_connection_failed():
@@ -262,10 +265,80 @@ func _try_match_random_queue() -> void:
 
 func _start_game_for_peers(peers: Array) -> void:
 	var game = spawn_new_regular_game()
+	var persistence_context := await _build_persistence_context(peers)
+	game.persistence_enabled = bool(persistence_context["enabled"])
+	game.persistence_usernames = persistence_context["usernames"]
+	game.persistence_tokens = persistence_context["tokens"]
+	game.persistence_pair_key = str(persistence_context["pair_key"])
+	game.persisted_game_id = str(persistence_context["game_id"])
+	game.connected_peers = peers
 	for peer_id in peers:
 		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers)
-	game.connected_peers = peers
-	game.start_game()
+
+	if game.persistence_enabled and game.persisted_game_id != "":
+		var load_token: String = str(persistence_context["load_token"])
+		var state: Dictionary = await backend_requests.get_game_state(load_token, game.persisted_game_id)
+		if state.is_empty():
+			game.start_game()
+		else:
+			game.load(state)
+	else:
+		game.start_game()
+
+func _build_persistence_context(peers: Array) -> Dictionary:
+	var usernames: Array[String] = []
+	var tokens: Array[String] = []
+	for peer in peers:
+		var peer_id := int(peer)
+		var token := _token_for_peer(peer_id)
+		var username := _username_for_peer(peer_id)
+
+		if username == "" and token != "":
+			var info: Dictionary = await backend_requests.info_for_account(token)
+			if info.has("username"):
+				player_info[peer_id] = info
+				username = str(info["username"])
+
+		usernames.append(username)
+		tokens.append(token)
+
+	var enabled := usernames.size() == 2 and usernames[0] != "" and usernames[1] != ""
+	var pair_key := ""
+	var game_id := ""
+	var load_token := ""
+	if enabled:
+		pair_key = _pair_key_for_usernames(usernames)
+		game_id = str(game_id_by_player_pair.get(pair_key, ""))
+		load_token = tokens[0] if tokens[0] != "" else tokens[1]
+
+	return {
+		"enabled": enabled,
+		"usernames": usernames,
+		"tokens": tokens,
+		"pair_key": pair_key,
+		"game_id": game_id,
+		"load_token": load_token,
+	}
+
+func _username_for_peer(peer_id: int) -> String:
+	if not player_info.has(peer_id):
+		return ""
+	var info = player_info[peer_id]
+	if typeof(info) != TYPE_DICTIONARY:
+		return ""
+	if not info.has("username"):
+		return ""
+	return str(info["username"])
+
+func _token_for_peer(peer_id: int) -> String:
+	if not player_tokens.has(peer_id):
+		return ""
+	return str(player_tokens[peer_id])
+
+func _pair_key_for_usernames(usernames: Array[String]) -> String:
+	var sorted_names := usernames.duplicate()
+	sorted_names.sort()
+	return "%s|%s" % [sorted_names[0], sorted_names[1]]
 
 func _remove_from_random_queue(peer_id: int) -> void:
 	while regular_queue.has(peer_id):
@@ -318,11 +391,17 @@ func auth(token: String):
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	player_tokens[sender_id] = token
-	if token != "":
-		print("got token from peer %d" % sender_id)
-		var info = await $BackendRequests.info_for_account(token)
+	if token == "":
+		player_info.erase(sender_id)
+		return
+
+	print("got token from peer %d" % sender_id)
+	var info = await backend_requests.info_for_account(token)
+	if info.has("username"):
 		player_info[sender_id] = info
 		print("got player info for peer %d: %s" % [sender_id, str(info)])
+	else:
+		player_info.erase(sender_id)
 
 func spawn_new_regular_game() -> Node:
 	var spot = free_spots[0]

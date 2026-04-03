@@ -103,7 +103,7 @@ def new_game():
         result = game.create_game(game_state)
         return {
             'result': 'Game created successfully',
-            'game_id': result,
+            'game_id': str(result),
         }, 200
     except json.JSONDecodeError:
         return {'result': "Invalid JSON"}, 400

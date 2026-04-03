@@ -33,6 +33,13 @@ var cur_static_ticks = 0
 @export var target_hole: int = -1
 @export var connected_peers = [-1, -1] # index is player index, value is peer id
 
+var persisted_game_id: String = ""
+var persistence_enabled: bool = false
+var persistence_usernames: Array[String] = ["", ""]
+var persistence_tokens: Array[String] = ["", ""]
+var persistence_pair_key: String = ""
+var persist_in_flight: bool = false
+
 const ball_scene = preload("res://ball.tscn")
 const ball_script = preload("res://ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
@@ -84,19 +91,158 @@ func calc_dir():
 	return dir
 	
 func save() -> Dictionary:
+	var ball_states: Array = []
+	for ball in ball_manager.balls:
+		ball_states.append(ball.save())
+
+	var current_username := ""
+	var solids_username := ""
+	var winner_username := ""
+	if persistence_usernames.size() == 2:
+		if player_ind >= 0 and player_ind < persistence_usernames.size():
+			current_username = persistence_usernames[player_ind]
+		if solids_player >= 0 and solids_player < persistence_usernames.size():
+			solids_username = persistence_usernames[solids_player]
+		if winner >= 0 and winner < persistence_usernames.size():
+			winner_username = persistence_usernames[winner]
+
 	var save_dict := {
 		"current_player_index": player_ind,
+		"current_player_username": current_username,
 		"turn_num": turn_num,
 		"round_num": round_num,
-		"scores": scores,
-		"balls_sunk": balls_sunk,
+		"scores": scores.duplicate(),
+		"balls_sunk": ball_manager.balls_sunk.duplicate(),
 		"solids_player": solids_player,
+		"solids_player_username": solids_username,
+		"winner": winner,
+		"winner_username": winner_username,
+		"game_state": int(game_state),
+		"player_usernames": persistence_usernames.duplicate(),
+		"balls": ball_states,
 	}
 	return save_dict
 
+func load(save_dict: Dictionary) -> void:
+	has_aimed = false
+	aim_visuals.hide()
+	cue_stick.hide()
+	slider.value = 0
+	cue_stick.set_force_strength(0.0)
+	aimer._reset_knob()
+
+	player_ind = int(save_dict.get("current_player_index", 0))
+	turn_num = int(save_dict.get("turn_num", 0))
+	round_num = int(save_dict.get("round_num", 0))
+	solids_player = int(save_dict.get("solids_player", -1))
+	winner = int(save_dict.get("winner", -1))
+	game_state = int(save_dict.get("game_state", GameState.AIMING)) as GameState
+
+	var saved_scores = save_dict.get("scores", [0, 0])
+	if saved_scores is Array and saved_scores.size() == 2:
+		scores = [int(saved_scores[0]), int(saved_scores[1])]
+
+	var saved_sunk = save_dict.get("balls_sunk", [0, 0])
+	if saved_sunk is Array and saved_sunk.size() == 2:
+		ball_manager.balls_sunk = [int(saved_sunk[0]), int(saved_sunk[1])]
+
+	var saved_usernames = save_dict.get("player_usernames", [])
+	if saved_usernames is Array and saved_usernames.size() == 2:
+		persistence_usernames = [str(saved_usernames[0]), str(saved_usernames[1])]
+
+	# Prefer username references when available, then keep index fallback behavior.
+	var current_username := str(save_dict.get("current_player_username", ""))
+	if current_username != "" and persistence_usernames.size() == 2:
+		var username_idx := persistence_usernames.find(current_username)
+		if username_idx != -1:
+			player_ind = username_idx
+
+	var solids_username := str(save_dict.get("solids_player_username", ""))
+	if solids_username != "" and persistence_usernames.size() == 2:
+		var solids_idx := persistence_usernames.find(solids_username)
+		if solids_idx != -1:
+			solids_player = solids_idx
+
+	var winner_username := str(save_dict.get("winner_username", ""))
+	if winner_username != "" and persistence_usernames.size() == 2:
+		var winner_idx := persistence_usernames.find(winner_username)
+		if winner_idx != -1:
+			winner = winner_idx
+
+	var ball_lookup := {}
+	for ball in ball_manager.balls:
+		ball_lookup[ball.ball_num] = ball
+
+	var saved_balls = save_dict.get("balls", [])
+	if saved_balls is Array:
+		for state in saved_balls:
+			if not (state is Dictionary):
+				continue
+			var ball_num = int(state.get("ball_num", -1))
+			if not ball_lookup.has(ball_num):
+				continue
+			var ball: Ball = ball_lookup[ball_num]
+			var pos := Vector3(
+				float(state.get("pos_x", ball.position.x)),
+				float(state.get("pos_y", ball.position.y)),
+				float(state.get("pos_z", ball.position.z))
+			)
+			ball.position = pos
+			ball.teleport(pos)
+			ball.rotation = Vector3(
+				float(state.get("rot_x", ball.rotation.x)),
+				float(state.get("rot_y", ball.rotation.y)),
+				float(state.get("rot_z", ball.rotation.z))
+			)
+			ball.potted = bool(state.get("potted", false))
+			if ball.potted:
+				ball.freeze = true
+			ball.show()
+
+	cur_static_ticks = 0
+
+	if game_state == GameState.ENDED:
+		ball_manager.freeze_balls()
+
+func _get_persistence_token() -> String:
+	for token in persistence_tokens:
+		if token != "":
+			return token
+	return ""
+
+func _persist_game_state() -> void:
+	if not multiplayer.is_server() or not persistence_enabled or persist_in_flight:
+		return
+
+	var backend = $/root/MultiplayerLobby/BackendRequests
+	if backend == null:
+		return
+
+	var token := _get_persistence_token()
+	if token == "":
+		return
+
+	persist_in_flight = true
+	var state := save()
+
+	if persisted_game_id == "":
+		var created_game_id: String = await backend.create_new_game(state, token)
+		if created_game_id != "":
+			persisted_game_id = created_game_id
+			if get_tree().current_scene != null \
+			and get_tree().current_scene.has_method("register_game_id_for_pair") \
+			and persistence_pair_key != "":
+				get_tree().current_scene.register_game_id_for_pair(persistence_pair_key, persisted_game_id)
+	else:
+		var ok: bool = await backend.set_game_state(state, persisted_game_id, token)
+		if not ok:
+			print("Failed to update game state for " + persisted_game_id)
+
+	persist_in_flight = false
+
 @rpc
-func change_hole_button_visibility(is_visible: bool) -> void:
-	hole_buttons.visible = is_visible
+func change_hole_button_visibility(should_show: bool) -> void:
+	hole_buttons.visible = should_show
 
 @rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
@@ -150,49 +296,47 @@ func _on_ball_sunk(ball):
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
-	
+
 	shape_cast.global_position = origin
 	shape_cast.max_results = 1
 	shape_cast.target_position = 500 * dir
 	shape_cast.collision_mask = 1 << 2
 	shape_cast.collide_with_areas = true
-	
+
 	shape_cast.force_shapecast_update()
-	
+
 	if not shape_cast.is_colliding():
 		return
-	
+
 	var collider = shape_cast.get_collider(0)
-		
 	var collision_point = shape_cast.get_collision_point(0)
 	var collision_normal = shape_cast.get_collision_normal(0).normalized()
 	var aim_guide_line = $UI/AimVisuals/AimGuideLine
 	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
-	
+
 	var ghost_ball_pos = collision_point + collision_normal * Constants.BALL_RADIUS
-	
+
 	$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
 	$UI/AimVisuals/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
-	
+
 	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
 	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
-	
 	aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
-	
+
 	var length = 20
 	var normal_comp = dir.project(collision_normal)
 	var surface_comp = dir - normal_comp
-	
+
 	var cue_ball_endpoint = ghost_ball_pos
 	var object_ball_endpoint = ghost_ball_pos
 	var hitting_ball = collider.name.contains("Ball")
-	
+
 	if hitting_ball and ball_manager.check_is_ball_valid(collider.ball_num, player_ind, solids_player, scores):
 		cue_ball_endpoint = ghost_ball_pos + length * surface_comp
 		object_ball_endpoint = ghost_ball_pos + length * normal_comp
 	elif not hitting_ball:
 		cue_ball_endpoint = ghost_ball_pos + length * (surface_comp - normal_comp)
-		
+
 	aim_guide_line.set_point_position(2, camera.unproject_position(cue_ball_endpoint))
 	aim_guide_line2.set_point_position(1, camera.unproject_position(object_ball_endpoint))
 
@@ -265,7 +409,7 @@ func _on_aim_changed(touch_pos: Vector2):
 	var center_screen = camera.unproject_position(ball_center_3d)
 	var edge_screen = camera.unproject_position(ball_edge_3d)
 	var ball_radius_px = (edge_screen - center_screen).length()
-	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
+	var _cue_pos = ball_screen_pos - dir_norm * ball_radius_px
 	
 	cue_stick.update_position(ball_center_3d)
 	cue_stick.set_angle(angle)
@@ -336,9 +480,9 @@ func _on_fire_pressed():
 @rpc("any_peer", "reliable")
 func fire_cue():
 	if not multiplayer.is_server() \
-	   or connected_peers[player_ind] != multiplayer.get_remote_sender_id() \
-	   or game_state != GameState.AIMING \
-	   or not has_aimed:
+		or connected_peers[player_ind] != multiplayer.get_remote_sender_id() \
+		or game_state != GameState.AIMING \
+		or not has_aimed:
 		return
 	
 	var dir = calc_dir()
@@ -379,10 +523,11 @@ func fire_cue():
 		shake_camera(0.5, 0.1)
 		sway_light(7, 7)
 	
-func end_game(winner: int) -> void:
-	self.winner = winner
+func end_game(winner_ind: int) -> void:
+	self.winner = winner_ind
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
+	_persist_game_state()
 		
 func start_round(scratched_prev: bool = false) -> void:
 	if scratched_prev:
@@ -413,12 +558,14 @@ func end_round() -> void:
 	if not scratched and play_again:
 		play_again = false
 		start_round()
+		_persist_game_state()
 		return
 	
 	play_again = false
 	turn_num += 1
 	player_ind = 1 - player_ind
 	start_round(scratched)
+	_persist_game_state()
 	
 func process_midturn():
 	if multiplayer.is_server():

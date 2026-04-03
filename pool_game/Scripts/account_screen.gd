@@ -28,7 +28,7 @@ func _on_confirm_pressed() -> void:
 		$BackendRequests.register(username, password)
 		
 func _on_profiletest_pressed() -> void:
-	$BackendRequests.profile_test_endpoint()
+	$BackendRequests.info_for_account($BackendRequests.session)
 	
 func _on_close_pressed() -> void:
 	visible = false
