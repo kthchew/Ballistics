@@ -18,9 +18,10 @@ def get_info(username: str) -> dict:
     user_doc = users_collection.find_one({'username': username})
     if user_doc is None:
         raise ValueError("User not found")
+    game_id = user_doc.get('current_game_id')
     return {
         'username': user_doc['username'],
-        'current_game_id': str(user_doc.get('current_game_id'))
+        'current_game_id': str(game_id) if game_id else None,
     }
 
 def check_user_exists(username: str) -> bool:

@@ -35,7 +35,7 @@ func _refresh_resume_button_state() -> void:
 		return
 
 	var account_info: Dictionary = await backend_requests.info_for_account(token)
-	if not account_info.has("current_game_id"):
+	if not account_info.has("current_game_id") or account_info["current_game_id"] == null:
 		return
 
 	var game_id := str(account_info["current_game_id"])
