@@ -119,14 +119,48 @@ func info_for_account(token: String) -> Dictionary:
 	#var response = HTTPRequest.request(url, [], true, HTTPClient.METHOD_POST, JSON.print(body))
 	#return JSON.parse(response.get_body_as_string()).result
 	#
-#func get_game_state(token: String, game_id: String) -> Dictionary:
-	#var url = BACKEND_URL + "/getGame"
-	#var body = {"token": token, "game_id": game_id}
-	#var response = HTTPRequest.request(url, [], true, HTTPClient.METHOD_POST, JSON.print(body))
-	#return JSON.parse(response.get_body_as_string()).result
-	#
-#func set_game_state(state: Dictionary) -> Dictionary:
-	#var url = BACKEND_URL + "/setGame"
-	#var body = {"game_state": state}
-	#var response = HTTPRequest.request(url, [], true, HTTPClient.METHOD_POST, JSON.print(body))
-	#return JSON.parse(response.get_body_as_string()).result
+
+## Saves a new game to the backend and returns the game ID. This should only be called from the game server.
+func create_new_game(game_state: Dictionary) -> String:
+	var url = BACKEND_URL + "/createGame"
+	var body = {"game_state": game_state}
+	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
+	if "result" in response:
+		var json := JSON.new()
+		var err := json.parse(response["result"])
+		if err == OK:
+			var result_dict = json.get_data()
+			if "game_id" in result_dict:
+				return result_dict["game_id"]
+			else:
+				print("Failed to create game, no game_id in response: " + str(result_dict))
+				return ""
+		else:
+			print("Failed to parse JSON response: " + str(err))
+			return ""
+	else:
+		print("Failed to create game, no result in response: " + str(response))
+		return ""
+
+func get_game_state(token: String, game_id: String) -> Dictionary:
+	var url = BACKEND_URL + "/getGame"
+	var body = {"token": token, "game_id": game_id}
+	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body, token)
+	var json := JSON.new()
+	var err := json.parse(response["result"])
+	if err == OK:
+		var result_dict = json.get_data()
+		if "game_state" in result_dict:
+			return result_dict["game_state"]
+		else:
+			print("Failed to get game state, no game_state in response: " + str(result_dict))
+			return {}
+	else:
+		print("Failed to parse JSON response: " + str(err))
+		return {}
+
+func set_game_state(state: Dictionary, game_id: String) -> bool:
+	var url = BACKEND_URL + "/updateGame"
+	var body = {"game_state": state, "game_id": game_id}
+	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
+	return response["response_code"] == 200
