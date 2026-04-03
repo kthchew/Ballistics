@@ -13,6 +13,7 @@
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="12_dg77c"]
 [ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
 [ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="14_w48qg"]
+[ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="15_vivmo"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -89,45 +90,45 @@ properties/0/replication_mode = 2
 properties/1/path = NodePath(".:scores")
 properties/1/spawn = true
 properties/1/replication_mode = 2
-properties/2/path = NodePath(".:balls_sunk")
+properties/2/path = NodePath(".:game_state")
 properties/2/spawn = true
 properties/2/replication_mode = 2
-properties/3/path = NodePath(".:game_state")
+properties/3/path = NodePath(".:turn_num")
 properties/3/spawn = true
 properties/3/replication_mode = 2
-properties/4/path = NodePath(".:turn_num")
+properties/4/path = NodePath(".:solids_player")
 properties/4/spawn = true
 properties/4/replication_mode = 2
-properties/5/path = NodePath(".:solids_player")
+properties/5/path = NodePath(".:next_solids_player")
 properties/5/spawn = true
 properties/5/replication_mode = 2
-properties/6/path = NodePath(".:next_solids_player")
+properties/6/path = NodePath(".:winner")
 properties/6/spawn = true
 properties/6/replication_mode = 2
-properties/7/path = NodePath(".:winner")
+properties/7/path = NodePath(".:play_again")
 properties/7/spawn = true
 properties/7/replication_mode = 2
-properties/8/path = NodePath(".:play_again")
+properties/8/path = NodePath(".:target_hole")
 properties/8/spawn = true
 properties/8/replication_mode = 2
-properties/9/path = NodePath(".:target_hole")
+properties/9/path = NodePath(".:connected_peers")
 properties/9/spawn = true
 properties/9/replication_mode = 2
-properties/10/path = NodePath(".:connected_peers")
+properties/10/path = NodePath("UI/AimVisuals/CueStick:position")
 properties/10/spawn = true
 properties/10/replication_mode = 2
-properties/11/path = NodePath("UI/AimVisuals/CueStick:position")
+properties/11/path = NodePath("UI/AimVisuals/CueStick:visible")
 properties/11/spawn = true
 properties/11/replication_mode = 2
-properties/12/path = NodePath("UI/AimVisuals/CueStick:visible")
+properties/12/path = NodePath("UI/AimVisuals/CueStick:rotation")
 properties/12/spawn = true
 properties/12/replication_mode = 2
-properties/13/path = NodePath("UI/AimVisuals/CueStick:rotation")
+properties/13/path = NodePath("UI/AimVisuals:visible")
 properties/13/spawn = true
 properties/13/replication_mode = 2
-properties/14/path = NodePath("UI/AimVisuals:visible")
+properties/14/path = NodePath("BallManager:balls_sunk")
 properties/14/spawn = true
-properties/14/replication_mode = 2
+properties/14/replication_mode = 1
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
@@ -337,12 +338,15 @@ volume_db = 30.0
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
 shape = ExtResource("14_w48qg")
 
+[node name="BallManager" type="Node" parent="." unique_id=1345349029]
+script = ExtResource("15_vivmo")
+
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1196634560]
 replication_config = SubResource("SceneReplicationConfig_efxa6")
 public_visibility = false
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=2118392177]
 _spawnable_scenes = PackedStringArray("uid://cjgh3own5ppcr")
-spawn_path = NodePath("..")
+spawn_path = NodePath("../BallManager")
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
