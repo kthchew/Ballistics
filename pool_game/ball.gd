@@ -1,4 +1,4 @@
-extends RigidBody3D
+class_name Ball extends RigidBody3D
 
 signal first_hit_ball_changed
 
@@ -6,17 +6,14 @@ signal first_hit_ball_changed
 @onready var HoleSound: AudioStreamPlayer3D = $Hole
 @onready var CueCollide: AudioStreamPlayer3D = $CueCollide
 
-const BALL_RADIUS = 2.85
-
-var last_vel: Vector3 = Vector3(0, 0, 0)
 @export var ball_num: int = 0
+
 var first_hit_ball_num: int = -1
 var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
 var potted: bool = false
 
 func _ready() -> void:
-	self.body_entered.connect(self._on_body_entered)
 	HoleSound.max_db = 80.0
 	BallCollide.max_db = 80.0
 	
@@ -42,7 +39,8 @@ func play_hole_sound():
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if teleport_requested:
 		teleport_requested = false
-		var new_transform = state.transform
+		var new_basis = Basis.from_euler(Vector3(PI / 2, 0, PI))
+		var new_transform: Transform3D = Transform3D(new_basis)
 		new_transform.origin = teleport_pos
 		state.transform = new_transform
 		
@@ -62,7 +60,7 @@ func pot():
 	rotation = Vector3(PI / 2, 0, PI)
 	freeze = true
 	# position set manually + teleport are both needed for some reason
-	var pos = Vector3(-42 + 2 * BALL_RADIUS * ball_num, 0, 68)
+	var pos = Vector3(-42 + 2 * Constants.BALL_RADIUS * ball_num, 0, 68)
 	position = pos
 	teleport(pos)
 	potted = true
