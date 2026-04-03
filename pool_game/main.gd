@@ -144,7 +144,8 @@ func load(save_dict: Dictionary) -> void:
 
 	var saved_sunk = save_dict.get("balls_sunk", [0, 0])
 	if saved_sunk is Array and saved_sunk.size() == 2:
-		ball_manager.balls_sunk = [int(saved_sunk[0]), int(saved_sunk[1])]
+		var new_sunk: Array[int] = [int(saved_sunk[0]), int(saved_sunk[1])]
+		ball_manager.balls_sunk = new_sunk
 
 	var saved_usernames = save_dict.get("player_usernames", [])
 	if saved_usernames is Array and saved_usernames.size() == 2:
@@ -226,15 +227,18 @@ func _persist_game_state() -> void:
 	var state := save()
 
 	if persisted_game_id == "":
-		var created_game_id: String = await backend.create_new_game(state, token)
+		var created_game_id: String = await backend.create_new_game(state)
 		if created_game_id != "":
 			persisted_game_id = created_game_id
+			# make game as joined for both players
+			await backend.join_game(persistence_tokens[0], persisted_game_id)
+			await backend.join_game(persistence_tokens[1], persisted_game_id)
 			if get_tree().current_scene != null \
 			and get_tree().current_scene.has_method("register_game_id_for_pair") \
 			and persistence_pair_key != "":
 				get_tree().current_scene.register_game_id_for_pair(persistence_pair_key, persisted_game_id)
 	else:
-		var ok: bool = await backend.set_game_state(state, persisted_game_id, token)
+		var ok: bool = await backend.set_game_state(state, persisted_game_id)
 		if not ok:
 			print("Failed to update game state for " + persisted_game_id)
 

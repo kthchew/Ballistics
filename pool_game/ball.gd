@@ -19,6 +19,7 @@ func _ready() -> void:
 	
 func save() -> Dictionary:
 	var save_dict = {
+		"ball_num": ball_num,
 		"pos_x": position.x,
 		"pos_y": position.y,
 		"pos_z": position.z,

@@ -3,7 +3,8 @@ extends Node
 enum MatchmakingMode {
 	RANDOM,
 	PRIVATE_CREATE,
-	PRIVATE_JOIN
+	PRIVATE_JOIN,
+	RESUME
 }
 
 enum PlayerRole {STRIPES = 1, SOLIDS}

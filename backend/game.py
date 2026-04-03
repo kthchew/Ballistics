@@ -38,12 +38,12 @@ def mongo_dict_to_game_instance(mongo_dict: dict) -> GameInstance:
         ball_rotations={int(ball_id): rotation for ball_id, rotation in mongo_dict['ball_rotations']}
     )
 
-def get_game_state(game_id: ObjectId) -> GameInstance:
+def get_game_state(game_id: ObjectId) -> dict:
     games_collection = database.db['games']
     game_doc = games_collection.find_one({'_id': game_id})
     if game_doc is None:
         raise ValueError("Game not found")
-    return mongo_dict_to_game_instance(game_doc)
+    return game_doc
 
 def create_game(game_state: dict) -> ObjectId:
     games_collection = database.db['games']

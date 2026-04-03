@@ -11,6 +11,8 @@ var regular_queue = []
 var private_rooms = {}
 var room_by_peer = {}
 var game_id_by_player_pair: Dictionary = {}
+var resume_waiting_by_game_id: Dictionary = {}
+var resume_game_by_peer: Dictionary = {}
 
 var init_mp = null
 var init_slot = null
@@ -21,6 +23,7 @@ var player_info: Dictionary[int, Dictionary] = {}
 
 @export var matchmaking_mode: int = Utils.MatchmakingMode.RANDOM
 @export var pending_room_code: String = ""
+@export var resume_game_id: String = ""
 
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
@@ -110,6 +113,7 @@ func _on_peer_disconnected(peer: int):
 	if multiplayer.is_server():
 		_remove_from_random_queue(peer)
 		_remove_from_private_room(peer, true)
+		_remove_from_resume_wait(peer, false)
 
 func _on_server_disconnected():
 	pass
@@ -145,6 +149,8 @@ func _request_selected_matchmaking() -> void:
 			request_create_private_room.rpc()
 		Utils.MatchmakingMode.PRIVATE_JOIN:
 			request_join_private_room.rpc(pending_room_code)
+		Utils.MatchmakingMode.RESUME:
+			request_resume_game.rpc(resume_game_id)
 		_:
 			enter_random_regular_queue.rpc()
 	$ClientUI.show()
@@ -155,6 +161,7 @@ func enter_random_regular_queue():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_remove_from_private_room(sender_id, false)
+	_remove_from_resume_wait(sender_id, true)
 	if regular_queue.has(sender_id):
 		return
 	regular_queue.append(sender_id)
@@ -167,6 +174,7 @@ func request_create_private_room():
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, false)
+	_remove_from_resume_wait(sender_id, true)
 
 	var code := _generate_unique_room_code()
 	private_rooms[code] = {"host_id": sender_id, "guest_id": 0}
@@ -181,6 +189,7 @@ func request_join_private_room(code: String):
 	var normalized_code := _normalize_room_code(code)
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, false)
+	_remove_from_resume_wait(sender_id, true)
 
 	if normalized_code.is_empty():
 		private_room_join_failed.rpc_id(sender_id, "Room code is empty.")
@@ -211,6 +220,73 @@ func request_join_private_room(code: String):
 	_start_game_for_peers([host_id, sender_id])
 
 @rpc("any_peer")
+func request_resume_game(requested_game_id: String):
+	if not multiplayer.is_server():
+		return
+
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	_remove_from_random_queue(sender_id)
+	_remove_from_private_room(sender_id, false)
+	_remove_from_resume_wait(sender_id, false)
+
+	var token := _token_for_peer(sender_id)
+	if token == "":
+		resume_game_failed.rpc_id(sender_id, "You must be logged in to resume a game.")
+		return
+
+	var account_info: Dictionary = player_info.get(sender_id, {})
+	if not (account_info is Dictionary) or not account_info.has("username"):
+		account_info = await backend_requests.info_for_account(token)
+		if account_info.has("username"):
+			player_info[sender_id] = account_info
+
+	if not (account_info is Dictionary):
+		resume_game_failed.rpc_id(sender_id, "Failed to fetch account info.")
+		return
+
+	var profile_game_id := str(account_info.get("current_game_id", ""))
+	var chosen_game_id := requested_game_id.strip_edges()
+	if chosen_game_id == "":
+		chosen_game_id = profile_game_id
+
+	if chosen_game_id == "":
+		resume_game_failed.rpc_id(sender_id, "No resumable game found for this account.")
+		return
+
+	if profile_game_id != "" and profile_game_id != chosen_game_id:
+		resume_game_failed.rpc_id(sender_id, "Requested resume game no longer matches your account state.")
+		return
+
+	if not resume_waiting_by_game_id.has(chosen_game_id):
+		resume_waiting_by_game_id[chosen_game_id] = []
+
+	var waiting: Array = resume_waiting_by_game_id[chosen_game_id]
+	if not waiting.has(sender_id):
+		waiting.append(sender_id)
+	resume_waiting_by_game_id[chosen_game_id] = waiting
+	resume_game_by_peer[sender_id] = chosen_game_id
+
+	var waiting_count := waiting.size()
+	resume_game_waiting.rpc_id(sender_id, waiting_count)
+	_try_match_resume_game(chosen_game_id)
+
+func _try_match_resume_game(game_id: String) -> void:
+	if not resume_waiting_by_game_id.has(game_id):
+		return
+
+	var waiting: Array = resume_waiting_by_game_id[game_id]
+	while waiting.size() >= 2:
+		var first = waiting.pop_front()
+		var second = waiting.pop_front()
+		resume_waiting_by_game_id[game_id] = waiting
+		_remove_from_resume_wait(first, false)
+		_remove_from_resume_wait(second, false)
+		_start_game_for_peers([first, second], game_id)
+
+	if waiting.is_empty() and resume_waiting_by_game_id.has(game_id):
+		resume_waiting_by_game_id.erase(game_id)
+
+@rpc("any_peer")
 func request_cancel_private_room():
 	if not multiplayer.is_server():
 		return
@@ -224,6 +300,7 @@ func request_leave_matchmaking():
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, true)
+	_remove_from_resume_wait(sender_id, false)
 
 @rpc("authority", "call_remote", "reliable")
 func private_room_created(code: String):
@@ -247,6 +324,14 @@ func private_room_closed(reason: String):
 	emit_signal("private_room_closed_notice", reason)
 
 @rpc("authority", "call_remote", "reliable")
+func resume_game_waiting(waiting_count: int):
+	info_label.text = "Waiting to resume... (%d/2)" % waiting_count
+
+@rpc("authority", "call_remote", "reliable")
+func resume_game_failed(reason: String):
+	info_label.text = "Resume failed: %s" % reason
+
+@rpc("authority", "call_remote", "reliable")
 func send_to_game(slot: int, peers: Array):
 	var container = games.get_node("GameContainer%s/SubViewportContainer" % slot)
 	container.visible = true
@@ -263,9 +348,12 @@ func _try_match_random_queue() -> void:
 		var second = regular_queue.pop_front()
 		_start_game_for_peers([first, second])
 
-func _start_game_for_peers(peers: Array) -> void:
+func _start_game_for_peers(peers: Array, forced_game_id: String = "") -> void:
 	var game = spawn_new_regular_game()
 	var persistence_context := await _build_persistence_context(peers)
+	if forced_game_id != "":
+		persistence_context["game_id"] = forced_game_id
+		persistence_context["enabled"] = true
 	game.persistence_enabled = bool(persistence_context["enabled"])
 	game.persistence_usernames = persistence_context["usernames"]
 	game.persistence_tokens = persistence_context["tokens"]
@@ -282,8 +370,14 @@ func _start_game_for_peers(peers: Array) -> void:
 			game.start_game()
 		else:
 			game.load(state)
+			game.set_visibility.rpc()
 	else:
 		game.start_game()
+
+func register_game_id_for_pair(pair_key: String, game_id: String) -> void:
+	if pair_key == "" or game_id == "":
+		return
+	game_id_by_player_pair[pair_key] = game_id
 
 func _build_persistence_context(peers: Array) -> Dictionary:
 	var usernames: Array[String] = []
@@ -343,6 +437,24 @@ func _pair_key_for_usernames(usernames: Array[String]) -> String:
 func _remove_from_random_queue(peer_id: int) -> void:
 	while regular_queue.has(peer_id):
 		regular_queue.erase(peer_id)
+
+func _remove_from_resume_wait(peer_id: int, call_leave_game: bool) -> void:
+	if resume_game_by_peer.has(peer_id):
+		var game_id: String = str(resume_game_by_peer[peer_id])
+		resume_game_by_peer.erase(peer_id)
+		if resume_waiting_by_game_id.has(game_id):
+			var waiting: Array = resume_waiting_by_game_id[game_id]
+			while waiting.has(peer_id):
+				waiting.erase(peer_id)
+			if waiting.is_empty():
+				resume_waiting_by_game_id.erase(game_id)
+			else:
+				resume_waiting_by_game_id[game_id] = waiting
+
+	if call_leave_game:
+		var token := _token_for_peer(peer_id)
+		if token != "":
+			backend_requests.leave_game(token)
 
 func _remove_from_private_room(peer_id: int, notify_other: bool) -> void:
 	if not room_by_peer.has(peer_id):

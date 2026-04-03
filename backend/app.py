@@ -90,7 +90,8 @@ def get_game():
     if current_game_id is None:
         return "User is not in a game", 400
     game_instance = game.get_game_state(current_game_id)
-    return jsonify(game.game_instance_to_mongo_dict(game_instance))
+    game_instance['_id'] = str(game_instance['_id'])
+    return jsonify(game_instance)
 
 # FIXME: anything below this should be restricted to requests from a trusted Godot game server
 @app.post("/newGame")

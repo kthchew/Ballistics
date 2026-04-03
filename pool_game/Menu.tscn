@@ -151,6 +151,14 @@ theme_override_font_sizes/font_size = 44
 text = "Random Pool"
 script = ExtResource("5_1igrg")
 
+[node name="ResumeGameButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=315277108]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("2_n4eug")
+theme_override_font_sizes/font_size = 44
+text = "Resume Previous Game"
+disabled = true
+
 [node name="RandomCrazyPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1049916798]
 layout_mode = 2
 size_flags_vertical = 3

@@ -1,4 +1,7 @@
 import secrets
+
+from bson import ObjectId
+
 import database
 
 from pyargon2 import hash
@@ -17,7 +20,7 @@ def get_info(username: str) -> dict:
         raise ValueError("User not found")
     return {
         'username': user_doc['username'],
-        'current_game_id': user_doc.get('current_game_id')
+        'current_game_id': str(user_doc.get('current_game_id'))
     }
 
 def check_user_exists(username: str) -> bool:
@@ -46,9 +49,9 @@ def check_valid_login(username: str, password: str) -> bool:
 def join_game(username: str, game_id: str) -> bool:
     users_collection = database.db['users']
     games_collection = database.db['games']
-    if games_collection.find_one({'game_id': game_id}) is None:
+    if games_collection.find_one({'_id': ObjectId(game_id)}) is None:
         return False
-    result = users_collection.update_one({'username': username}, {'$set': {'current_game_id': game_id}})
+    result = users_collection.update_one({'username': username}, {'$set': {'current_game_id': ObjectId(game_id)}})
     return result.modified_count > 0
 
 def leave_game(username: str) -> bool:
