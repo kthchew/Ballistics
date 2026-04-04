@@ -26,6 +26,7 @@ const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
 const reg_game_scene = preload("res://main.tscn")
 const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
+@onready var title_label = $ClientUI/VBoxContainer/TitleLabel
 @onready var info_label = $ClientUI/VBoxContainer/InfoLabel
 @onready var exit_button = $ClientUI/VBoxContainer/ExitButton
 
@@ -115,7 +116,8 @@ func _on_peer_disconnected(peer: int):
 		_remove_from_private_room(peer, true)
 
 func _on_server_disconnected():
-	pass
+	title_label.text = "Server Disconnected"
+	info_label.text = "Disconnected from the server."
 
 func start_client(host: String, port: int = 18361) -> void:
 	print("Connecting to server %s:%d" % [host, port])
@@ -125,12 +127,16 @@ func start_client(host: String, port: int = 18361) -> void:
 	multiplayer.connect("connected_to_server", _on_connected_to_server)
 	multiplayer.connect("connection_failed", _on_connection_failed)
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
+	$ClientUI.show()
 
 func _on_connected_to_server():
+	title_label.text = "Connected"
+	info_label.text = "Requesting a match..."
 	_request_selected_matchmaking()
 
 func _on_connection_failed():
-	pass
+	title_label.text = "Connection Failed"
+	info_label.text = "Failed to connect to the server."
 
 func _request_selected_matchmaking() -> void:
 	if multiplayer.multiplayer_peer == null:
@@ -138,14 +144,17 @@ func _request_selected_matchmaking() -> void:
 	if multiplayer.is_server():
 		return
 
+	title_label.text = "Waiting for opponent..."
 	match matchmaking_mode:
 		Utils.MatchmakingMode.PRIVATE_CREATE:
+			info_label.text = "Creating private room..."
 			request_create_private_room.rpc()
 		Utils.MatchmakingMode.PRIVATE_JOIN:
+			info_label.text = "Joining private room..."
 			request_join_private_room.rpc(pending_room_code)
 		_:
+			info_label.text = "In random queue"
 			enter_random_regular_queue.rpc()
-	$ClientUI.show()
 
 @rpc("any_peer")
 func enter_random_regular_queue():
@@ -226,7 +235,8 @@ func request_leave_matchmaking():
 @rpc("authority", "call_remote", "reliable")
 func private_room_created(code: String):
 	print("Private room created: %s" % code)
-	info_label.text = code
+	title_label.text = "Waiting for opponent..."
+	info_label.text = "Room code: %s" % code
 	emit_signal("private_room_code_ready", code)
 
 @rpc("authority", "call_remote", "reliable")
@@ -253,7 +263,8 @@ func send_to_game(slot: int, peers: Array):
 	game.connected_peers = peers
 	var camera = game.get_node("CameraPivot/Camera3D")
 	camera.make_current()
-	$ClientUI.hide()
+	$ClientUI/VBoxContainer/TitleLabel.text = "In game"
+	$ClientUI/VBoxContainer/InfoLabel.text = "Currently playing a game"
 
 func _try_match_random_queue() -> void:
 	while regular_queue.size() >= 2:

@@ -5,14 +5,6 @@
 
 [node name="MultiplayerLobby" type="Node3D" unique_id=1602364776]
 script = ExtResource("1_so7ii")
-matchmaking_mode = null
-pending_room_code = null
-
-[node name="Games" type="Node3D" parent="." unique_id=1468780630]
-
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1760525304]
-_spawnable_scenes = PackedStringArray("uid://wvkvj1pke8gv")
-spawn_path = NodePath("../Games")
 
 [node name="ClientUI" type="Panel" parent="." unique_id=2002990612]
 visible = false
@@ -39,7 +31,7 @@ grow_vertical = 2
 [node name="TitleLabel" type="Label" parent="ClientUI/VBoxContainer" unique_id=2120607784]
 layout_mode = 2
 theme_override_font_sizes/font_size = 96
-text = "Waiting for game..."
+text = "Waiting for connection..."
 horizontal_alignment = 1
 
 [node name="InfoLabel" type="RichTextLabel" parent="ClientUI/VBoxContainer" unique_id=418551038]
@@ -49,7 +41,7 @@ theme_override_font_sizes/bold_font_size = 64
 theme_override_font_sizes/bold_italics_font_size = 64
 theme_override_font_sizes/italics_font_size = 64
 theme_override_font_sizes/mono_font_size = 64
-text = "In random queue"
+text = "Connecting to the server..."
 fit_content = true
 scroll_active = false
 horizontal_alignment = 1
@@ -59,3 +51,9 @@ layout_mode = 2
 theme = ExtResource("2_k551y")
 theme_override_font_sizes/font_size = 64
 text = "Return to Title"
+
+[node name="Games" type="Node3D" parent="." unique_id=1468780630]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1760525304]
+_spawnable_scenes = PackedStringArray("uid://wvkvj1pke8gv")
+spawn_path = NodePath("../Games")
