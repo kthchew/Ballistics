@@ -320,6 +320,9 @@ func sway_light(amount: float, duration: float) -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	
 func _on_fire_pressed():
+	if slider.value == 0:
+		slider.wiggle()
+		return
 	# need to set the strength in case it was changed by other player's turn
 	_on_force_changed.rpc_id(1, slider.value)
 	fire_cue.rpc_id(1)
