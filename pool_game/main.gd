@@ -42,6 +42,8 @@ var persistence_tokens: Array[String] = ["", ""]
 var persistence_pair_key: String = ""
 var persist_in_flight: bool = false
 
+var about_to_exit = false
+
 const ball_scene = preload("res://ball.tscn")
 const ball_script = preload("res://ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
@@ -653,3 +655,6 @@ func fill_info_label() -> void:
 				
 		if game_state == GameState.PLACING:
 			info_label.text += "Your opponent scratched, click to place the cue ball\n"
+			
+	if about_to_exit:
+		info_label.text += "The other player left the game - returning to menu in a few seconds..."
