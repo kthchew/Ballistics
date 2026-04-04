@@ -251,10 +251,14 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 
 [node name="ResetButton" type="Button" parent="UI" unique_id=1937985300]
-offset_left = 1752.0
-offset_top = 15.0
-offset_right = 1905.0
-offset_bottom = 87.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -185.0
+offset_top = 32.0
+offset_right = -32.0
+offset_bottom = 104.0
+grow_horizontal = 0
 text = "Reset Game
 "
 
