@@ -52,7 +52,7 @@ func _ready() -> void:
 	if err != OK:
 		print("No existing config file found, using defaults")
 	var args := OS.get_cmdline_args()
-	var remote_addr = config.get_value("network", "server_address", null)
+	var remote_addr = config.get_value("network", "server_address", "")
 	var remote_port = config.get_value("network", "server_port", 18361)
 	var arg_seen := false
 	for a in args:
@@ -61,12 +61,12 @@ func _ready() -> void:
 			arg_seen = true
 			break
 		elif a.begins_with("--connect="):
-			var host = a.get_slice("=", 1) if remote_addr == null else remote_addr
+			var host = a.get_slice("=", 1) if remote_addr == "" else remote_addr
 			start_client(host, remote_port)
 			arg_seen = true
 			break
 	if not arg_seen:
-		start_client("127.0.0.1" if remote_addr == null else remote_addr, remote_port)
+		start_client("127.0.0.1" if remote_addr == "" else remote_addr, remote_port)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
