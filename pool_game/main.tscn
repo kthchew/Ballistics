@@ -345,8 +345,4 @@ script = ExtResource("15_vivmo")
 replication_config = SubResource("SceneReplicationConfig_efxa6")
 public_visibility = false
 
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=2118392177]
-_spawnable_scenes = PackedStringArray("uid://cjgh3own5ppcr")
-spawn_path = NodePath("../BallManager")
-
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
