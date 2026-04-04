@@ -13,6 +13,7 @@ var room_by_peer = {}
 var game_id_by_player_pair: Dictionary = {}
 var resume_waiting_by_game_id: Dictionary = {}
 var resume_game_by_peer: Dictionary = {}
+var peer_to_slot: Dictionary[int, int] = {}
 
 var init_mp = null
 var init_slot = null
@@ -114,6 +115,10 @@ func _on_peer_disconnected(peer: int):
 		_remove_from_random_queue(peer)
 		_remove_from_private_room(peer, true)
 		_remove_from_resume_wait(peer, false)
+	# close down the game if they were in one
+	var slot = peer_to_slot.get(peer, null)
+	if slot != null:
+		close_game_at(slot)
 
 func _on_server_disconnected():
 	pass
@@ -361,6 +366,7 @@ func _start_game_for_peers(peers: Array, forced_game_id: String = "") -> void:
 	game.persisted_game_id = str(persistence_context["game_id"])
 	game.connected_peers = peers
 	for peer_id in peers:
+		peer_to_slot[peer_id] = game.lobby_slot
 		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers)
 
 	if game.persistence_enabled and game.persisted_game_id != "":
@@ -530,9 +536,32 @@ func spawn_new_regular_game() -> Node:
 	if free_spots.size() == 0:
 		free_spots.append(spot + 1)
 	return game
+	
+@rpc
+func send_to_menu():
+	get_tree().change_scene_to_file("res://Menu.tscn") 
+
+func close_game_at(spot: int):
+	var game = regular_games.get(spot, null)
+	if game == null:
+		return
+	game.stopped_moving.connect(func():
+		despawn_game_at(spot)
+	)
+	if game.game_state != Utils.GameState.MIDTURN:
+		despawn_game_at(spot)
 
 func despawn_game_at(spot: int):
+	var peers_to_remove = []
+	for peer_id in peer_to_slot.keys():
+		if peer_to_slot[peer_id] == spot:
+			peers_to_remove.append(peer_id)
+	for peer_id in peers_to_remove:
+		peer_to_slot.erase(peer_id)
+		player_tokens.erase(peer_id)
+		send_to_menu.rpc_id(peer_id)
 	var game = regular_games[spot]
+	regular_games.erase(spot)
 	var fs_pos = free_spots.bsearch(spot)
 	free_spots.insert(fs_pos, spot)
 	games.remove_child(game)

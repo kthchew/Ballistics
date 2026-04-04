@@ -1,5 +1,7 @@
 extends Node3D
 
+signal stopped_moving
+
 @onready var debug_label: Label = $UI/DebugLabel
 @onready var info_label: Label = $UI/InfoLabel
 @onready var slider = $UI/ForceSlider
@@ -562,14 +564,16 @@ func end_round() -> void:
 	if not scratched and play_again:
 		play_again = false
 		start_round()
-		_persist_game_state()
+		await _persist_game_state()
+		stopped_moving.emit()
 		return
 	
 	play_again = false
 	turn_num += 1
 	player_ind = 1 - player_ind
 	start_round(scratched)
-	_persist_game_state()
+	await _persist_game_state()
+	stopped_moving.emit()
 	
 func process_midturn():
 	if multiplayer.is_server():
