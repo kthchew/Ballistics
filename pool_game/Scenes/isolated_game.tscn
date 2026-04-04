@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://wvkvj1pke8gv"]
 
 [ext_resource type="PackedScene" uid="uid://comeyp103ci14" path="res://main.tscn" id="1_h0f3o"]
+[ext_resource type="Script" path="res://Scenes/isolated_game.gd" id="2_is6v0"]
 
 [node name="IsolatedRegGame" type="Node3D" unique_id=2021762876]
+script = ExtResource("2_is6v0")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=94782690]
 visible = false
@@ -13,7 +15,6 @@ offset_bottom = 40.0
 own_world_3d = true
 handle_input_locally = false
 audio_listener_enable_3d = true
-size = Vector2i(1920, 1080)
 render_target_update_mode = 0
 
 [node name="Game" parent="SubViewportContainer/SubViewport" unique_id=1362962675 instance=ExtResource("1_h0f3o")]
