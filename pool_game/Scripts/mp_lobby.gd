@@ -15,7 +15,10 @@ var init_mp = null
 var init_slot = null
 var init_peers = null
 
-@export var matchmaking_mode := Utils.MatchmakingMode.RANDOM
+var config := ConfigFile.new()
+const CONFIG_PATH := "user://settings.cfg"
+
+@export var matchmaking_mode = Utils.MatchmakingMode.RANDOM
 @export var pending_room_code := ""
 
 @onready var games = $Games
@@ -44,21 +47,26 @@ func _ready() -> void:
 		$"Games".add_child(container)
 		game.start_game()
 		return
-
+		
+	var err := config.load(CONFIG_PATH)
+	if err != OK:
+		print("No existing config file found, using defaults")
 	var args := OS.get_cmdline_args()
-	var arg_seen = false
+	var remote_addr = config.get_value("network", "server_address", null)
+	var remote_port = config.get_value("network", "server_port", 18361)
+	var arg_seen := false
 	for a in args:
 		if a == "--server":
 			start_server()
 			arg_seen = true
 			break
 		elif a.begins_with("--connect="):
-			var host = a.get_slice("=", 1)
-			start_client(host)
+			var host = a.get_slice("=", 1) if remote_addr == null else remote_addr
+			start_client(host, remote_port)
 			arg_seen = true
 			break
 	if not arg_seen:
-		start_client("127.0.0.1")
+		start_client("127.0.0.1" if remote_addr == null else remote_addr, remote_port)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

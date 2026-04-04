@@ -1,0 +1,85 @@
+[gd_scene format=3 uid="uid://x10c7um8tidx"]
+
+[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="1_85ujs"]
+[ext_resource type="Script" uid="uid://c8g61hyi2hpe5" path="res://Scripts/settings_screen.gd" id="1_bu2iy"]
+
+[node name="SettingsScreen" type="Control" unique_id=2040582154]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -960.0
+offset_top = -540.0
+offset_right = 960.0
+offset_bottom = 540.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bu2iy")
+
+[node name="Polygon2D" type="Polygon2D" parent="." unique_id=1012199164]
+position = Vector2(1.5258789e-05, 3.8146973e-06)
+scale = Vector2(91.42858, 49.09091)
+color = Color(0, 0, 0, 0.91764706)
+polygon = PackedVector2Array(0, 0, 21, 0, 21, 22, 0, 22)
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=166303889]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1378125951]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer" unique_id=76540240]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Settings"
+horizontal_alignment = 1
+
+[node name="ServerAddress" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1092421861]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ServerAddress" unique_id=1169054254]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Server Address"
+
+[node name="LineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/ServerAddress" unique_id=578022393]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+placeholder_text = "127.0.0.1"
+
+[node name="ServerPort" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1811446606]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ServerPort" unique_id=1063829272]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Server Port"
+
+[node name="LineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/ServerPort" unique_id=447110254]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+placeholder_text = "18361"
+
+[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1849299776]
+custom_minimum_size = Vector2(320, 64)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = ExtResource("1_85ujs")
+theme_override_font_sizes/font_size = 32
+text = "OK"
