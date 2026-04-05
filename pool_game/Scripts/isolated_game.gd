@@ -19,5 +19,4 @@ func _sync_subviewport_size() -> void:
 	subviewport_container.stretch = true
 	if subviewport.size != target_size:
 		subviewport.size = target_size
-
-
+	subviewport.get_node("Game/UI/HoleButtons").reposition_hole_buttons()
