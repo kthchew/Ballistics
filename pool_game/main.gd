@@ -135,7 +135,6 @@ func _on_ball_sunk(ball):
 			scores[next_solids_player] = ball_manager.balls_sunk[0]
 			scores[1 - next_solids_player] = ball_manager.balls_sunk[1]
 	
-@rpc
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
@@ -232,10 +231,15 @@ func _on_aim_input(touch_pos: Vector2):
 		# calculate difference between cue ball position and touch pos, use that to set cue stick angle
 		# this is done so that the vector provided to the server is consistent even if the window's size or aspect ratio is different
 		var ball_center_3d = ball_manager.get_cue_ball_global_pos()
-		var ball_screen_pos = camera.unproject_position(ball_center_3d)
-		var dir = ball_screen_pos - touch_pos
+		var ball_screen_pos: Vector2 = camera.unproject_position(ball_center_3d)
+		var dir: Vector2 = ball_screen_pos - touch_pos
 		if dir.length() >= 20:
+			var other_peer = connected_peers[1 - player_ind]
+			_on_aim_changed(dir)
+			cast_aim_ray(dir.normalized())
+			aim_visuals.show()
 			_on_aim_changed.rpc_id(1, dir)
+			_on_aim_changed.rpc_id(other_peer, dir)
 
 @rpc("any_peer")
 func _on_place_cue_ball(place_global_pos: Vector3):
@@ -246,7 +250,7 @@ func _on_place_cue_ball(place_global_pos: Vector3):
 
 @rpc("any_peer", "reliable")
 func _on_aim_changed(dir_from_cue: Vector2):
-	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.AIMING:
+	if (multiplayer.get_remote_sender_id() != 0 and connected_peers[player_ind] != multiplayer.get_remote_sender_id()) or game_state != GameState.AIMING:
 		return
 
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
@@ -256,14 +260,10 @@ func _on_aim_changed(dir_from_cue: Vector2):
 		
 	has_aimed = true
 
-	var angle = dir_from_cue.angle()
-	var dir_norm = dir_from_cue.normalized()
-	
-	cast_aim_ray.rpc_id(multiplayer.get_remote_sender_id(), dir_norm)
+	var angle: float = dir_from_cue.angle()
 	
 	cue_stick.update_position(ball_center_3d)
 	cue_stick.set_angle(angle)
-	aim_visuals.show()
 	cue_stick.show()
 
 @rpc("any_peer", "reliable")

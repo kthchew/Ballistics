@@ -19,4 +19,11 @@ func _sync_subviewport_size() -> void:
 	subviewport_container.stretch = true
 	if subviewport.size != target_size:
 		subviewport.size = target_size
-	subviewport.get_node("Game/UI/HoleButtons").reposition_hole_buttons()
+	var game: Node = subviewport.get_node("Game")
+	var hole_buttons: Node = game.get_node("UI/HoleButtons")
+	var cue_stick: Node = game.get_node("UI/AimVisuals/CueStick")
+	
+	hole_buttons.reposition_hole_buttons()
+	
+	var aim_dir = cue_stick.aim_direction
+	game.cast_aim_ray(Vector2(aim_dir.x, aim_dir.z))
