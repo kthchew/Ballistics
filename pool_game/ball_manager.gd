@@ -5,7 +5,7 @@ signal ball_sunk(ball: RigidBody3D)
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
-const ball_scene = preload("res://ball.tscn")
+const ball_scene = preload("res://Scenes/ball.tscn")
 
 var balls: Array[Ball]
 var balls_sunk: Array[int]
@@ -167,14 +167,16 @@ func start_synchronizing_ball(ball_name: String):
 	rep_config.add_property("BallManager/" + ball_name + ":angular_velocity")
 	rep_config.add_property("BallManager/" + ball_name + ":linear_velocity")
 	rep_config.add_property("BallManager/" + ball_name + ":ball_num")
+	rep_config.add_property("BallManager/" + ball_name + ":freeze")
 	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
 	
 @rpc("authority", "call_local", "reliable")
 func stop_synchronizing_ball(ball_name: String):
 	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
-	rep_config.remove_property(ball_name + ":position")
-	rep_config.remove_property(ball_name + ":rotation")
-	rep_config.remove_property(ball_name + ":angular_velocity")
-	rep_config.remove_property(ball_name + ":linear_velocity")
-	rep_config.add_property(ball_name + ":ball_num")
+	rep_config.remove_property("BallManager/" + ball_name + ":position")
+	rep_config.remove_property("BallManager/" + ball_name + ":rotation")
+	rep_config.remove_property("BallManager/" + ball_name + ":angular_velocity")
+	rep_config.remove_property("BallManager/" + ball_name + ":linear_velocity")
+	rep_config.remove_property("BallManager/" + ball_name + ":ball_num")
+	rep_config.remove_property("BallManager/" + ball_name + ":freeze")
 	$"../MultiplayerSynchronizer".set_replication_config(rep_config)

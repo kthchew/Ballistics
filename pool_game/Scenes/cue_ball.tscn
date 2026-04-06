@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dknwfe2hbtff"]
 
 [ext_resource type="PhysicsMaterial" uid="uid://chxig6vtldm8i" path="res://ball.tres" id="1_7848c"]
-[ext_resource type="Script" uid="uid://comor5ekwua50" path="res://ball.gd" id="2_vpj60"]
+[ext_resource type="Script" uid="uid://comor5ekwua50" path="res://Scripts/ball.gd" id="2_vpj60"]
 [ext_resource type="AudioStream" uid="uid://d4d5xwkfyjgea" path="res://Sounds/BallCollide.mp3" id="3_vpj60"]
 [ext_resource type="AudioStream" uid="uid://np0f1uljd14" path="res://Sounds/CueCollide.mp3" id="4_ykywp"]
 [ext_resource type="AudioStream" uid="uid://cfk4cqd1xm3eo" path="res://Sounds/alex_jauk-billiard-hole-2-288420.mp3" id="5_mh4n1"]
@@ -30,7 +30,7 @@ height = 5.7
 radius = 2.85
 
 [node name="CueBall" type="RigidBody3D" unique_id=1266988142]
-collision_mask = 3
+collision_mask = 7
 physics_material_override = ExtResource("1_7848c")
 can_sleep = false
 contact_monitor = true
