@@ -167,6 +167,21 @@ func enter_random_regular_queue():
 	_try_match_random_queue()
 
 @rpc("any_peer")
+func enter_random_crazy_queue():
+	if not multiplayer.is_server():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	crazy_queue.append(sender_id)
+	if crazy_queue.size() >= 2:
+		var first = crazy_queue.pop_front()
+		var second = crazy_queue.pop_front()
+		var game = spawn_new_crazy_game()
+		send_to_game.rpc_id(first, game.lobby_slot, [first, second], true)
+		send_to_game.rpc_id(second, game.lobby_slot, [first, second], true)
+		game.connected_peers = [first, second]
+		game.start_game()
+
+@rpc("any_peer")
 func request_create_private_room():
 	if not multiplayer.is_server():
 		return

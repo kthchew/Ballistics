@@ -2,9 +2,8 @@ extends Node3D
 
 @onready var randPoolButton = $MainMenu/MenuUI/BottomButtons/RandomPoolButton
 @onready var randCrazyButton = $MainMenu/MenuUI/BottomButtons/RandomCrazyPoolButton
-@onready var crazy = false
-
 @onready var priv_button = $MainMenu/MenuUI/BottomButtons/PrivateGameButton
+@onready var crazy = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -15,7 +14,7 @@ func _ready() -> void:
 			
 	randPoolButton.pressed.connect(_on_Rpool_pressed)
 	randCrazyButton.pressed.connect(_on_Cpool_pressed)
-		priv_button.pressed.connect(_on_priv_pressed)
+	priv_button.pressed.connect(_on_priv_pressed)
 
 func exit():
 	$OverheadLight/Light/AudioStreamPlayer3D.play()

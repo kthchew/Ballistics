@@ -5,7 +5,7 @@ signal ball_sunk(ball: RigidBody3D)
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
 # sometimes we change the below constant for playtesting
-const ball_scene = preload("res://ball.tscn")
+const ball_scene = preload("res://Scenes/ball.tscn")
 
 var balls: Array[Ball]
 var balls_sunk: Array[int]

@@ -148,12 +148,17 @@ func _on_ball_sunk(ball):
 		if round_num > 0 and solids_player == -1:
 			if ball.is_solid():
 				next_solids_player = player_ind
+				
 			elif ball.is_stripe():
 				next_solids_player = 1 - player_ind
-		
+			
 		if next_solids_player != -1:
 			scores[next_solids_player] = ball_manager.balls_sunk[0]
 			scores[1 - next_solids_player] = ball_manager.balls_sunk[1]
+			if ball.is_solid() and player_ind == solids_player:
+				money[1 - player_ind] += 10
+			elif ball.is_stripe() and player_ind != solids_player:
+				money[1 - player_ind] += 10
 			
 @rpc
 func set_aim_guide_visibility(new_is_visible: bool) -> void:
@@ -378,9 +383,46 @@ func start_round(scratched_prev: bool = false) -> void:
 	
 	game_state = GameState.AIMING
 	
+func update_cashout_label() -> void:
+	var owner_money_text = "Money: ?"
+	var owner_index = cashout_owner_ind
+	if owner_index == -1:
+		owner_index = get_local_player_index()
+	if owner_index >= 0 and owner_index < money.size():
+		owner_money_text = "Money: " + str(money[owner_index])
+	$CashOut/Panel/VBoxContainer/Label.text = "Cashout decision\n" + owner_money_text + "\nDo you want to cash out?"
+
+@rpc("any_peer", "reliable")
+func show_cashout_wait_menu(owner_peer_id: int) -> void:
+	if multiplayer.get_unique_id() == owner_peer_id:
+		return
+	game_state = GameState.CASHOUT
+	$UI.visible = false
+
+@rpc("any_peer", "reliable")
+func restore_ui_after_cashout() -> void:
+	$UI.visible = true
+
+@rpc("any_peer", "reliable")
+func set_cashout_owner(owner_index: int) -> void:
+	cashout_owner_ind = owner_index
+
+@rpc("any_peer", "reliable")
+func show_cashout_menu(server_money: Array, owner_index: int) -> void:
+	local_cashout_owner = true
+	cashout_owner_ind = owner_index
+	money = server_money.duplicate()
+	game_state = GameState.CASHOUT
+	$UI.visible = false
+	$CashOut.visible = true
+	update_cashout_label()
+	$pUI.visible = false
+	
 func end_round() -> void:
 	round_num += 1
 	target_hole = -1
+	money[0] += 1
+	money[1] += 1
 	if next_solids_player != -1:
 		solids_player = next_solids_player
 	var scratched = ball_manager.check_scratch()
@@ -462,8 +504,8 @@ func fill_debug_label() -> void:
 	label_txt += "\nFirst Hit Scratch: " + str(ball_manager.first_hit_scratch)
 	
 	if crazy:
-		label_txt += "\nStripes Crazy Currency: " + str(money[0])
-		label_txt += "\nSolids Crazy Currency: " + str(money[1])
+		label_txt += "\nSolids Crazy Currency: " + str(money[0])
+		label_txt += "\nStripes Crazy Currency: " + str(money[1])
 	debug_label.text = label_txt
 
 func get_cashout_owner_peer_id() -> int:

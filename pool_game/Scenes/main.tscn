@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="14_7k868"]
 [ext_resource type="Theme" uid="uid://d4jq170sc07ab" path="res://Art/Button - Copy.tres" id="14_b3802"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="15_hpc6h"]
+[ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="15_vivmo"]
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="16_kltya"]
 [ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="17_e08e2"]
 
@@ -249,6 +250,9 @@ properties/14/replication_mode = 2
 properties/15/path = NodePath(".:money")
 properties/15/spawn = true
 properties/15/replication_mode = 2
+properties/16/path = NodePath("BallManager:balls_sunk")
+properties/16/spawn = true
+properties/16/replication_mode = 1
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_h1bgf")
@@ -421,20 +425,25 @@ offset_bottom = 40.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
 script = ExtResource("9_u50mg")
 
-[node name="AimGuideMarker" type="Polygon2D" parent="UI/AimVisuals" unique_id=823821121]
+[node name="AimGuide" type="Control" parent="UI/AimVisuals" unique_id=1151335737]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="AimGuideMarker" type="Polygon2D" parent="UI/AimVisuals/AimGuide" unique_id=823821121]
 position = Vector2(-62, 31)
 polygon = PackedVector2Array(-5, -5, -5, 5, 5, 5, 5, -5)
 vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
-[node name="AimGuideCircle" type="Node2D" parent="UI/AimVisuals" unique_id=513049058]
+[node name="AimGuideCircle" type="Node2D" parent="UI/AimVisuals/AimGuide" unique_id=513049058]
 position = Vector2(13, 24)
 script = ExtResource("10_cbgmd")
 
-[node name="AimGuideLine" type="Line2D" parent="UI/AimVisuals" unique_id=430159681]
+[node name="AimGuideLine" type="Line2D" parent="UI/AimVisuals/AimGuide" unique_id=430159681]
 points = PackedVector2Array(0, 0, 0, 0, 0, 0)
 width = 3.0
 
-[node name="AimGuideLine2" type="Line2D" parent="UI/AimVisuals" unique_id=1448096911]
+[node name="AimGuideLine2" type="Line2D" parent="UI/AimVisuals/AimGuide" unique_id=1448096911]
 points = PackedVector2Array(0, 0, 0, 0)
 width = 3.0
 
@@ -691,10 +700,6 @@ text = "Right"
 [node name="TableGroup" parent="." unique_id=1955985234 instance=ExtResource("14_7k868")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
-[node name="CueStick" parent="." unique_id=259858604 instance=ExtResource("8_3pmx8")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
-script = ExtResource("9_u50mg")
-
 [node name="Floor" type="MeshInstance3D" parent="." unique_id=1063051328]
 transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.2828827, -63.39213, 0.6614113)
 mesh = SubResource("CylinderMesh_4c57u")
@@ -723,6 +728,9 @@ volume_db = 30.0
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
 shape = ExtResource("17_e08e2")
+
+[node name="BallManager" type="Node" parent="." unique_id=1345349029]
+script = ExtResource("15_vivmo")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1750200922]
 transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.9107674, 0.41267863, 0.05280001, -0.4128225, 0.9092798, -14.222816, 97.954666, 209.47566)
