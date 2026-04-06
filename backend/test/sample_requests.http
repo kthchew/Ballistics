@@ -1,0 +1,91 @@
+POST localhost:5000/register
+Content-Type: application/json
+
+{
+    "username": "testuser123",
+    "password": "testpassword"
+}
+
+###
+
+POST localhost:5000/login
+Content-Type: application/json
+
+{
+    "username": "testuser123",
+    "password": "testpassword"
+}
+
+###
+
+POST localhost:5000/register
+Content-Type: application/json
+
+{
+    "username": "testuser456",
+    "password": "testpassword"
+}
+
+###
+
+POST localhost:5000/login
+Content-Type: application/json
+
+{
+    "username": "testuser456",
+    "password": "testpassword"
+}
+
+###
+
+GET localhost:5000/profile
+
+###
+
+GET localhost:5000/friends
+
+###
+
+GET localhost:5000/friendRequests
+
+###
+
+POST localhost:5000/friendRequests/send
+Content-Type: application/json
+
+{
+    "to_user": "testuser123"
+}
+
+###
+
+POST localhost:5000/friendRequests/accept
+Content-Type: application/json
+
+{
+    "from_user": "testuser456"
+}
+
+###
+
+POST localhost:5000/friendRequests/reject
+Content-Type: application/json
+
+{
+    "from_user": "testuser456"
+}
+
+
+###
+
+GET localhost:5000/friends/check?other_user=testuser123
+
+###
+
+POST localhost:5000/friends/remove
+Content-Type: application/json
+
+{
+    "defriend": "testuser123"
+}
+

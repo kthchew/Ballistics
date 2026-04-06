@@ -107,6 +107,8 @@ func start_server(port: int = 18361) -> void:
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 
 func _on_peer_connected(peer: int):
+	var mp_peer = multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	mp_peer.get_peer(peer).set_timeout(32, 180000, 300000)
 	print("peer connected: %d" % peer)
 
 func _on_peer_disconnected(peer: int):
@@ -128,15 +130,10 @@ func start_client(host: String, port: int = 18361) -> void:
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 
 func _on_connected_to_server():
-	var is_crazy := false
-	if get_tree().has_meta("crazy"):
-		is_crazy = get_tree().get_meta("crazy")
+	var peer = multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	peer.get_peer(1).set_timeout(32, 180000, 300000)
+	_request_selected_matchmaking()
 
-	if is_crazy:
-		enter_random_crazy_queue.rpc()
-	else:
-		enter_random_regular_queue.rpc()
-	
 func _on_connection_failed():
 	pass
 
