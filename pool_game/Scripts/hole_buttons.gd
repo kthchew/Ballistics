@@ -2,7 +2,7 @@ extends Control
 
 signal hole_selected(hole_ind: int)
 
-const hole_btn_scene = preload("res://hole_button.tscn")
+const hole_btn_scene = preload("res://Scenes/hole_button.tscn")
 @onready var camera = $"../../CameraPivot/Camera3D"
 
 func _ready() -> void:

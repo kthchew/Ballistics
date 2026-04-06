@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^powershell -Command \"Get-Content 'c:\\\\Users\\\\Hamme\\\\VS Projects\\\\Ballistics\\\\pool_game\\\\main\\.gd' \\| Select-Object -Index 556,557,558,559,560\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
