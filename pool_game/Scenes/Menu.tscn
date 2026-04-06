@@ -1,21 +1,20 @@
 [gd_scene format=3 uid="uid://dytao3r8nooel"]
 
-[ext_resource type="Script" uid="uid://bhcr7nukm7qqq" path="res://menu.gd" id="1_v0s1l"]
-[ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://cue_ball.tscn" id="2_dlksc"]
-[ext_resource type="Script" uid="uid://857861wloa56" path="res://Scripts/profile_button.gd" id="2_dolsu"]
-[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="2_n4eug"]
-[ext_resource type="AudioStream" uid="uid://bnfsg1511m8v5" path="res://Sounds/lightOff.mp3" id="3_5qkn8"]
-[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="3_hcwhg"]
-[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="4_5p1lm"]
-[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="4_dlksc"]
-[ext_resource type="Script" uid="uid://bf40iov1exavf" path="res://Scripts/settings_button.gd" id="4_ktlje"]
-[ext_resource type="Script" uid="uid://642u25okqf25" path="res://Scripts/random_pool_button.gd" id="5_1igrg"]
-[ext_resource type="Script" uid="uid://cye7qp68m5yg" path="res://Scripts/random_crazy_pool_button.gd" id="6_5qkn8"]
-[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="6_v0s1l"]
-[ext_resource type="Script" uid="uid://q787dwlweys4" path="res://Scripts/random_knockout_button.gd" id="7_xucoo"]
-[ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="9_5qkn8"]
-[ext_resource type="PackedScene" uid="uid://x10c7um8tidx" path="res://Scenes/settings_screen.tscn" id="11_elwp8"]
-[ext_resource type="PackedScene" uid="uid://l3mdu1f62vct" path="res://Scenes/menu_private_game_panel.tscn" id="11_mnkgh"]
+[ext_resource type="Script" uid="uid://bhcr7nukm7qqq" path="res://Scripts/menu.gd" id="1_a8aa6"]
+[ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://Scenes/cue_ball.tscn" id="2_x0ao6"]
+[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="3_dsmso"]
+[ext_resource type="Script" uid="uid://gyxaumhi00lm" path="res://Scripts/settings_button.gd" id="4_t8p2w"]
+[ext_resource type="Script" uid="uid://bx1tkuogm56hn" path="res://Scripts/profile_button.gd" id="5_krje8"]
+[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="6_dd46u"]
+[ext_resource type="Script" uid="uid://cilditpup8xa4" path="res://Scripts/random_pool_button.gd" id="7_n3nbb"]
+[ext_resource type="Script" uid="uid://bqxay25tpcrue" path="res://Scripts/random_crazy_pool_button.gd" id="8_dm44m"]
+[ext_resource type="Script" uid="uid://btp8svy42xa5p" path="res://Scripts/random_knockout_button.gd" id="9_du1yi"]
+[ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="10_c0stj"]
+[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="11_3feh0"]
+[ext_resource type="PackedScene" path="res://Scenes/menu_private_game_panel.tscn" id="11_mnkgh"]
+[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="12_ksqlk"]
+[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="13_vkgky"]
+[ext_resource type="AudioStream" uid="uid://bnfsg1511m8v5" path="res://Sounds/lightOff.mp3" id="14_o00om"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -29,16 +28,16 @@ fog_light_energy = 0.01
 font_size = 18
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vivmo"]
-albedo_texture = ExtResource("6_v0s1l")
+albedo_texture = ExtResource("13_vkgky")
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
 material = SubResource("StandardMaterial3D_vivmo")
 top_radius = 300.0
 
 [node name="Menu" type="Node3D" unique_id=1362962675]
-script = ExtResource("1_v0s1l")
+script = ExtResource("1_a8aa6")
 
-[node name="CueBall" parent="." unique_id=1266988142 instance=ExtResource("2_dlksc")]
+[node name="CueBall" parent="." unique_id=1266988142 instance=ExtResource("2_x0ao6")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.900055, 3, 23.36322)
 script = null
 
@@ -81,14 +80,16 @@ grow_vertical = 2
 
 [node name="SettingsButton" type="Button" parent="MainMenu/MenuUI" unique_id=369492528]
 layout_mode = 1
+offset_right = 100.0
+offset_bottom = 40.0
+theme = ExtResource("3_dsmso")
 offset_left = 100.0
 offset_top = 100.0
 offset_right = 300.0
 offset_bottom = 180.0
-theme = ExtResource("2_n4eug")
 theme_override_font_sizes/font_size = 32
 text = "Settings"
-script = ExtResource("4_ktlje")
+script = ExtResource("4_t8p2w")
 
 [node name="ProfileButton" type="Button" parent="MainMenu/MenuUI" unique_id=914265886]
 layout_mode = 1
@@ -100,10 +101,10 @@ offset_top = 100.0
 offset_right = -100.0
 offset_bottom = 180.0
 grow_horizontal = 0
-theme = ExtResource("2_n4eug")
+theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 32
 text = "Profile"
-script = ExtResource("2_dolsu")
+script = ExtResource("5_krje8")
 
 [node name="Logo" type="ColorRect" parent="MainMenu/MenuUI" unique_id=913635870]
 layout_mode = 1
@@ -115,9 +116,10 @@ offset_top = 78.0
 offset_right = 400.0
 offset_bottom = 378.0
 grow_horizontal = 2
-color = Color(0.50271857, 0.50271857, 0.5027185, 1)
+grow_vertical = 2
+color = Color(0.08, 0.06, 0.05, 0.95)
 
-[node name="TextEdit" type="TextEdit" parent="MainMenu/MenuUI/Logo" unique_id=1353032068]
+[node name="TextEdit" type="Label" parent="MainMenu/MenuUI/Logo" unique_id=1933955017]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -129,10 +131,10 @@ offset_right = -45.0
 offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_fonts/font = ExtResource("4_dlksc")
+theme_override_fonts/font = ExtResource("6_dd46u")
 theme_override_font_sizes/font_size = 69
-text = "Bogstandard* Billiards"
-editable = false
+text = "BALL-ISTICS"
+horizontal_alignment = 1
 
 [node name="BottomButtons" type="VBoxContainer" parent="MainMenu/MenuUI" unique_id=860984698]
 layout_mode = 1
@@ -153,39 +155,36 @@ alignment = 1
 [node name="RandomPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1666973410]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("2_n4eug")
+theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Random Pool"
-script = ExtResource("5_1igrg")
+script = ExtResource("7_n3nbb")
 
 [node name="RandomCrazyPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1049916798]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("2_n4eug")
+theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Random Crazy Pool"
-script = ExtResource("6_5qkn8")
+script = ExtResource("8_dm44m")
 
 [node name="RandomKnockoutButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1786141284]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("2_n4eug")
+theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Random Knockout"
-script = ExtResource("7_xucoo")
+script = ExtResource("9_du1yi")
 
 [node name="PrivateGameButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=51089289]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("2_n4eug")
+theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Private Game"
 
-[node name="AccountScreen" parent="MainMenu/MenuUI" unique_id=2040582154 instance=ExtResource("9_5qkn8")]
-visible = false
-layout_mode = 1
-
-[node name="SettingsScreen" parent="MainMenu/MenuUI" unique_id=1881389153 instance=ExtResource("11_elwp8")]
+[node name="AccountScreen" parent="MainMenu/MenuUI" unique_id=2040582154 instance=ExtResource("10_c0stj")]
 visible = false
 layout_mode = 1
 
@@ -200,9 +199,9 @@ offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("3_hcwhg")]
+[node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("11_3feh0")]
 
-[node name="CueStick" parent="." unique_id=1895437411 instance=ExtResource("4_5p1lm")]
+[node name="CueStick" parent="." unique_id=1895437411 instance=ExtResource("12_ksqlk")]
 transform = Transform3D(0.6021256, -0.040109035, 0.79739326, -0.030192228, 0.9968791, 0.07294186, -0.7978301, -0.06799523, 0.59903544, 31.999367, -2.3076496, 20.047642)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1063051328]
@@ -226,5 +225,5 @@ spot_angle = 72.564
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=194489554]
 transform = Transform3D(0.6084552, 0.24058907, -0.75624025, -0.7935883, 0.18446292, -0.5798199, -3.4688846e-08, 0.9529377, 0.3031661, -119.03245, -91.263824, -16.2915)
-stream = ExtResource("3_5qkn8")
+stream = ExtResource("14_o00om")
 volume_db = 30.0
