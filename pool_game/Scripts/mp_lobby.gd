@@ -19,7 +19,7 @@ var init_peers = null
 var config := ConfigFile.new()
 const CONFIG_PATH := "user://settings.cfg"
 
-@export var matchmaking_mode = Utils.MatchmakingMode.RANDOM
+@export var matchmaking_mode = Utils.MatchmakingMode.RANDOM_NORMAL
 @export var pending_room_code := ""
 
 @onready var games = $Games
@@ -29,14 +29,10 @@ const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
 @onready var info_label = $ClientUI/VBoxContainer/InfoLabel
 @onready var exit_button = $ClientUI/VBoxContainer/ExitButton
-@onready var is_crazy := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_clicked)
-	if get_tree().has_meta("crazy"):
-		is_crazy = get_tree().get_meta("crazy")
-		print("ISCRAZY:", is_crazy)
 	
 	if init_mp != null and init_slot != null and init_peers != null:
 		get_tree().set_multiplayer(init_mp)
@@ -83,12 +79,13 @@ func _on_exit_clicked() -> void:
 	get_tree().change_scene_to_file("res://Scenes/Menu.tscn")
 
 func queue_random_match() -> void:
-	matchmaking_mode = Utils.MatchmakingMode.RANDOM
+	matchmaking_mode = Utils.MatchmakingMode.RANDOM_NORMAL
 	pending_room_code = ""
 	_request_selected_matchmaking()
 
 func create_private_room() -> void:
-	matchmaking_mode = Utils.MatchmakingMode.PRIVATE_CREATE
+	# FIXME: don't assume normal game
+	matchmaking_mode = Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE
 	pending_room_code = ""
 	_request_selected_matchmaking()
 
@@ -149,15 +146,18 @@ func _request_selected_matchmaking() -> void:
 		return
 
 	match matchmaking_mode:
-		Utils.MatchmakingMode.PRIVATE_CREATE:
+		Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE:
+			request_create_private_room.rpc()
+		Utils.MatchmakingMode.PRIVATE_CRAZY_CREATE:
 			request_create_private_room.rpc()
 		Utils.MatchmakingMode.PRIVATE_JOIN:
 			request_join_private_room.rpc(pending_room_code)
+		Utils.MatchmakingMode.RANDOM_NORMAL:
+			enter_random_regular_queue.rpc()
+		Utils.MatchmakingMode.RANDOM_CRAZY:
+			enter_random_crazy_queue.rpc()
 		_:
-			if is_crazy:
-				enter_random_crazy_queue.rpc()
-			else:
-				enter_random_regular_queue.rpc()
+			print("Unknown matchmaking mode: %d" % matchmaking_mode)
 	$ClientUI.show()
 
 @rpc("any_peer")
@@ -231,7 +231,8 @@ func request_join_private_room(code: String):
 	private_rooms.erase(normalized_code)
 	room_by_peer.erase(host_id)
 	room_by_peer.erase(sender_id)
-	_start_game_for_peers([host_id, sender_id])
+	# FIXME: set appropriate type not just normal game
+	_start_game_for_peers([host_id, sender_id], false)
 
 @rpc("any_peer")
 func request_cancel_private_room():
@@ -286,15 +287,15 @@ func _try_match_random_queue() -> void:
 	while regular_queue.size() >= 2:
 		var first = regular_queue.pop_front()
 		var second = regular_queue.pop_front()
-		_start_game_for_peers([first, second])
+		_start_game_for_peers([first, second], false)
 		
 func _try_match_crazy_queue() -> void:
 	while crazy_queue.size() >= 2:
 		var first = crazy_queue.pop_front()
 		var second = crazy_queue.pop_front()
-		_start_game_for_peers([first, second])
+		_start_game_for_peers([first, second], true)
 
-func _start_game_for_peers(peers: Array) -> void:
+func _start_game_for_peers(peers: Array, is_crazy: bool) -> void:
 	var game
 	if is_crazy:
 		game = spawn_new_crazy_game()
