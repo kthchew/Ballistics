@@ -109,13 +109,13 @@ func reset_request() -> void:
 		return
 	var sender = multiplayer.get_remote_sender_id()
 	var ind = connected_peers.find(sender)
-	if ind != -1:
-		requesting_reset[ind] = true
-		_change_reset_requested_visibility.rpc(true)
-		if requesting_reset[0] and requesting_reset[1]:
-			start_game()
-			_change_reset_requested_visibility.rpc(false)
-			requesting_reset = [false, false]
+	
+	requesting_reset[ind] = not requesting_reset[ind]
+	_change_reset_requested_visibility.rpc(requesting_reset[ind])
+	if requesting_reset[0] and requesting_reset[1]:
+		start_game()
+		_change_reset_requested_visibility.rpc(false)
+		requesting_reset = [false, false]
 
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
