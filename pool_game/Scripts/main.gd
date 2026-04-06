@@ -432,7 +432,7 @@ func end_round() -> void:
 		start_round(scratched)
 		return
 	if not scratched and play_again:
-		if solids_player != -1:
+		if solids_player != -1 and crazy:
 			cashout = true
 			cashout_owner_ind = 1 - player_ind
 			set_cashout_owner.rpc(cashout_owner_ind)
