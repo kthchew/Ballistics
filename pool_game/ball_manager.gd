@@ -68,8 +68,8 @@ func create_balls() -> void:
 		add_child(ball)
 		balls.append(ball)
 		
-		start_synchronizing_ball.rpc(ball.get_name())
-		rpc_color_ball.rpc(ball.get_name())
+		start_synchronizing_ball(ball.get_name())
+		color_ball(get_node(NodePath(ball.get_name())))
 		
 		if i == 0:
 			cue_ball = ball
@@ -160,7 +160,6 @@ func check_is_ball_valid(ball_num: int, player_ind: int, solids_player: int, sco
 	else:
 		return 9 <= ball_num and ball_num <= 15
 
-@rpc("authority", "call_local", "reliable")
 func start_synchronizing_ball(ball_name: String):
 	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
 	rep_config.add_property("BallManager/" + ball_name + ":position")
@@ -168,20 +167,16 @@ func start_synchronizing_ball(ball_name: String):
 	rep_config.add_property("BallManager/" + ball_name + ":angular_velocity")
 	rep_config.add_property("BallManager/" + ball_name + ":linear_velocity")
 	rep_config.add_property("BallManager/" + ball_name + ":ball_num")
+	rep_config.add_property("BallManager/" + ball_name + ":freeze")
 	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
 	
 @rpc("authority", "call_local", "reliable")
 func stop_synchronizing_ball(ball_name: String):
 	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
-	rep_config.remove_property(ball_name + ":position")
-	rep_config.remove_property(ball_name + ":rotation")
-	rep_config.remove_property(ball_name + ":angular_velocity")
-	rep_config.remove_property(ball_name + ":linear_velocity")
-	rep_config.add_property(ball_name + ":ball_num")
+	rep_config.remove_property("BallManager/" + ball_name + ":position")
+	rep_config.remove_property("BallManager/" + ball_name + ":rotation")
+	rep_config.remove_property("BallManager/" + ball_name + ":angular_velocity")
+	rep_config.remove_property("BallManager/" + ball_name + ":linear_velocity")
+	rep_config.remove_property("BallManager/" + ball_name + ":ball_num")
+	rep_config.remove_property("BallManager/" + ball_name + ":freeze")
 	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
-
-@rpc("authority", "call_local", "reliable")
-func rpc_color_ball(ball_name: String) -> void:
-	var ball_node = get_node(ball_name)
-	color_ball(ball_node)
-	

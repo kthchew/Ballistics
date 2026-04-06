@@ -8,6 +8,7 @@ extends Node3D
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_visuals = $UI/AimVisuals
+@onready var aim_guide = $UI/AimVisuals/AimGuide
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var shape_cast = $ShapeCast3D
 @onready var ball_manager = $BallManager
@@ -153,6 +154,10 @@ func _on_ball_sunk(ball):
 		if next_solids_player != -1:
 			scores[next_solids_player] = ball_manager.balls_sunk[0]
 			scores[1 - next_solids_player] = ball_manager.balls_sunk[1]
+			
+@rpc
+func set_aim_guide_visibility(new_is_visible: bool) -> void:
+	aim_guide.visible = new_is_visible
 	
 @rpc
 func cast_aim_ray(aim_dir: Vector2) -> void:
@@ -174,13 +179,13 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 		
 	var collision_point = shape_cast.get_collision_point(0)
 	var collision_normal = shape_cast.get_collision_normal(0).normalized()
-	var aim_guide_line = $UI/AimVisuals/AimGuideLine
-	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
+	var aim_guide_line = $UI/AimVisuals/AimGuide/AimGuideLine
+	var aim_guide_line2 = $UI/AimVisuals/AimGuide/AimGuideLine2
 	
 	var ghost_ball_pos = collision_point + collision_normal * Constants.BALL_RADIUS
 	
-	$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
-	$UI/AimVisuals/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
+	$UI/AimVisuals/AimGuide/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
+	$UI/AimVisuals/AimGuide/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
 	
 	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
 	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
@@ -216,6 +221,7 @@ func start_game() -> void:
 	set_visibility.rpc()
 	
 	aim_visuals.hide()
+	set_aim_guide_visibility.rpc(false)
 	cue_stick.hide()
 	hole_buttons.hide()
 	
@@ -280,6 +286,7 @@ func _on_aim_changed(touch_pos: Vector2):
 	cue_stick.update_position(ball_center_3d)
 	cue_stick.set_angle(angle)
 	aim_visuals.show()
+	set_aim_guide_visibility.rpc_id(connected_peers[player_ind], true)
 	cue_stick.show()
 
 @rpc("any_peer", "reliable")
@@ -378,6 +385,7 @@ func fire_cue():
 
 	tween.tween_callback(func():
 		aim_visuals.hide()
+		set_aim_guide_visibility.rpc_id(connected_peers[player_ind], false)
 		cue_stick.hide()
 		cue_stick.striking = false
 		ball_manager.hit_cue_ball(force, offset_3d)

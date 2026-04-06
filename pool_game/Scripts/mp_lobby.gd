@@ -52,7 +52,7 @@ func _ready() -> void:
 	if err != OK:
 		print("No existing config file found, using defaults")
 	var args := OS.get_cmdline_args()
-	var remote_addr = config.get_value("network", "server_address", null)
+	var remote_addr = config.get_value("network", "server_address", "")
 	var remote_port = config.get_value("network", "server_port", 18361)
 	var arg_seen := false
 	for a in args:
@@ -61,12 +61,12 @@ func _ready() -> void:
 			arg_seen = true
 			break
 		elif a.begins_with("--connect="):
-			var host = a.get_slice("=", 1) if remote_addr == null else remote_addr
+			var host = a.get_slice("=", 1) if remote_addr == "" else remote_addr
 			start_client(host, remote_port)
 			arg_seen = true
 			break
 	if not arg_seen:
-		start_client("127.0.0.1" if remote_addr == null else remote_addr, remote_port)
+		start_client("127.0.0.1" if remote_addr == "" else remote_addr, remote_port)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -106,6 +106,8 @@ func start_server(port: int = 18361) -> void:
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 
 func _on_peer_connected(peer: int):
+	var mp_peer = multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	mp_peer.get_peer(peer).set_timeout(32, 180000, 300000)
 	print("peer connected: %d" % peer)
 
 func _on_peer_disconnected(peer: int):
@@ -127,6 +129,8 @@ func start_client(host: String, port: int = 18361) -> void:
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 
 func _on_connected_to_server():
+	var peer = multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	peer.get_peer(1).set_timeout(32, 180000, 300000)
 	_request_selected_matchmaking()
 
 func _on_connection_failed():
