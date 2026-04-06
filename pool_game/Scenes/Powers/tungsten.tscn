@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://clr4r6ath6bx6"]
 
-[ext_resource type="Script" uid="uid://dx3hiqoonivf7" path="res://tungsten.gd" id="1_rxeir"]
+[ext_resource type="Script" uid="uid://dx3hiqoonivf7" path="res://Scripts/Powers/tungsten.gd" id="1_ewthn"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ab1if"]
 size = Vector3(2, 10, 2)
@@ -17,7 +17,7 @@ size = Vector3(2, 10, 2)
 [node name="Tungsten" type="StaticBody3D" unique_id=1912186201]
 collision_layer = 0
 collision_mask = 0
-script = ExtResource("1_rxeir")
+script = ExtResource("1_ewthn")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1486221908]
 shape = SubResource("BoxShape3D_ab1if")

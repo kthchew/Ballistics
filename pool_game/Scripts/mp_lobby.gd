@@ -12,7 +12,7 @@ var init_peers = null
 
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
-const reg_game_scene = preload("res://main.tscn")
+const reg_game_scene = preload("res://Scenes/main.tscn")
 const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
 # Called when the node enters the scene tree for the first time.

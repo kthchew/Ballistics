@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b4hdlpykttm4q"]
 
-[ext_resource type="Script" uid="uid://digpmwxpj6g77" path="res://tnt.gd" id="1_85g1k"]
+[ext_resource type="Script" uid="uid://digpmwxpj6g77" path="res://Scripts/Powers/tnt.gd" id="1_l24f6"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_isyyu"]
 size = Vector3(2, 10, 2)
@@ -15,7 +15,7 @@ size = Vector3(2, 10, 2)
 [node name="TNT" type="StaticBody3D" unique_id=1444210905]
 collision_layer = 0
 collision_mask = 0
-script = ExtResource("1_85g1k")
+script = ExtResource("1_l24f6")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=354285222]
 shape = SubResource("BoxShape3D_isyyu")

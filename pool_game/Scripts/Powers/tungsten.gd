@@ -20,7 +20,7 @@ func power() -> bool:
 		return false
 	var object = bodies[0].get_parent()
 	if object is RigidBody3D:
-		object.mass = 11
+		object.mass *= 11
 		var mesh = object.get_node_or_null("MeshInstance3D")
 		if mesh:
 			var mat = mesh.get_active_material(0)

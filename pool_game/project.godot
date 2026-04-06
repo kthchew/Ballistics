@@ -92,6 +92,6 @@ psx_fog_color={
 "value": Color(0, 0, 0, 0)
 }
 psx_bit_depth={
-"type": "float",
-"value": 8.0
+"type": "int",
+"value": 8
 }

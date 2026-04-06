@@ -26,7 +26,7 @@ func _on_power_1_pressed():
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(load("res://Powers/%s.tscn" % power_name))
+	start_placement(load("res://Scenes/Powers/%s.tscn" % power_name))
 
 func _on_power_2_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
@@ -37,7 +37,7 @@ func _on_power_2_pressed():
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(load("res://Powers/%s.tscn" % power_name))
+	start_placement(load("res://Scenes/Powers/%s.tscn" % power_name))
 
 func _on_power_3_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
@@ -48,7 +48,7 @@ func _on_power_3_pressed():
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(load("res://Powers/%s.tscn" % power_name))
+	start_placement(load("res://Scenes/Powers/%s.tscn" % power_name))
 
 
 func start_placement(scene: PackedScene):
@@ -143,7 +143,7 @@ func _on_place_button_pressed():
 
 
 func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Vector3) -> Node:
-	var scene = load("res://Powers/%s.tscn" % pName)
+	var scene = load("res://Scenes/Powers/%s.tscn" % pName)
 	var obj = scene.instantiate()
 
 	preview_container.add_child(obj)
@@ -154,10 +154,8 @@ func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Ve
 		obj.freeze = false
 
 	if power_type == "Object":
-		obj.collision_layer = 3
-		obj.collision_mask = 3
-
-	if multiplayer.is_server() and power_type == "Object":
+		obj.collision_layer = 1 << 2
+		obj.collision_mask = (1 << 0) | (1 << 2)
 		game_root.objects += 1
 
 	return obj
@@ -183,8 +181,7 @@ func _apply_modifier(pName: String, modified_path: String) -> void:
 		var low = target.name.to_lower()
 		if not low.contains("ball") and not low.contains("table"):
 			target.queue_free()
-			if multiplayer.is_server():
-				game_root.objects = max(0, game_root.objects - 1)
+			game_root.objects = max(0, game_root.objects - 1)
 
 	elif pName == "tungsten":
 		if target is RigidBody3D:
@@ -245,8 +242,17 @@ func finish_placement():
 	if preview:
 		preview.queue_free()
 		preview = null
+	if power_name != null and game_root:
+		if not game_root.power_shop_used.has(power_name):
+			game_root.power_shop_used.append(power_name)
 	if game_root and game_root.has_method("update_powerup_shop"):
 		game_root.update_powerup_shop()
+	if game_root and game_root.has_node("pUI"):
+		var p_ui = game_root.get_node("pUI")
+		p_ui.visible = true
+		if p_ui.has_node("Panel"):
+			p_ui.get_node("Panel").visible = true
+	power_name = null
 	rpc("rpc_clear_preview")
 	rpc("rpc_exit_powerup_ui")
 

@@ -1,7 +1,7 @@
 extends Node3D
 
-@onready var debug_label: Label = $UI/DebugLabel
-@onready var info_label: Label = $UI/InfoLabel
+@onready var debug_label: Label = $LabelLayer/DebugLabel
+@onready var info_label: Label = $LabelLayer/InfoLabel
 @onready var slider = $UI/ForceSlider
 @onready var fire_button = $UI/FireButton
 @onready var aimer = $UI/Aimer
@@ -9,6 +9,7 @@ extends Node3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_visuals = $UI/AimVisuals
 @onready var cue_stick = $UI/AimVisuals/CueStick
+@onready var reroll_button: Button = $pUI/Panel/HBoxContainer2/RerollButton
 @onready var shape_cast = $ShapeCast3D
 @onready var cashout = false
 
@@ -16,10 +17,12 @@ var crazy
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
+var continue_after_crazy: bool = false
 const POWER_BASE_COSTS := {"block": 5, "tungsten": 8, "tnt": 10}
 const POWER_COST_VARIATION_PERCENT: int = 10
 var power_shop_options: Array[String] = []
 var power_shop_costs: Dictionary = {}
+var power_shop_used: Array[String] = []
 const STATIC_TICKS_THRESHOLD: int = 60
 const SPEED_THRESH: float = 0.25
 const ANGULAR_SPEED_THRESH: float = 0.25
@@ -42,13 +45,12 @@ var cur_static_ticks = 0
 @export var winner: int = -1
 @export var play_again: bool = false
 @export var target_hole: int = -1
-@export var connected_peers = [-1, -1] # index is player index, value is peer id
+@export var connected_peers = [-1, -1]
+@export var money = [0,0]
 
 var first_hit_scratch: bool = false
-var money = [0,0]
-var pending_cashout_money = [0,0]
-const ball_scene = preload("res://ball.tscn")
-const ball_script = preload("res://ball.gd")
+const ball_scene = preload("res://Scenes/ball.tscn")
+const ball_script = preload("res://Scripts/ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
@@ -67,6 +69,7 @@ func _ready() -> void:
 	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
 	$UI.visible = true
+	$LabelLayer.visible = true
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed.rpc)
 	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
@@ -298,7 +301,7 @@ func fire_cue():
 		return
 	if not(has_aimed):
 		return
-	var strength = cue_stick.strength * 100
+	var strength = cue_stick.strength * 80
 	var angle = cue_stick.angle
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
 	var force = dir * (strength * 5)
@@ -382,20 +385,22 @@ func process_fallen_ball(ball: RigidBody3D) -> void:
 		if ball.is_solid():
 			balls_sunk[0] += 1
 			if solids_player != -1 and player_ind == solids_player:
-				pending_cashout_money[1 - player_ind] += 1
+				money[1 - player_ind] += 10
 			if solids_player == player_ind:
 				play_again = true
 		elif ball.is_stripe():
 			balls_sunk[1] += 1
 			if solids_player != -1 and player_ind != solids_player:
-				pending_cashout_money[1 - player_ind] += 1
+				money[1 - player_ind] += 10
 			if solids_player == 1 - player_ind:
 				play_again = true
 		if round_num > 0 and solids_player == -1:
 			if ball.is_solid():
 				next_solids_player = player_ind
+				money[1 - player_ind] += 10
 			elif ball.is_stripe():
 				next_solids_player = 1 - player_ind
+				money[1 - player_ind] += 10
 		if next_solids_player != -1:
 			scores[next_solids_player] = balls_sunk[0]
 			scores[1 - next_solids_player] = balls_sunk[1]
@@ -454,38 +459,33 @@ func update_cashout_label() -> void:
 		owner_money_text = "Money: " + str(money[owner_index])
 	$CashOut/Panel/VBoxContainer/Label.text = "Cashout decision\n" + owner_money_text + "\nDo you want to cash out?"
 
-func apply_pending_cashout_money() -> void:
-	for i in range(pending_cashout_money.size()):
-		money[i] += pending_cashout_money[i]
-	pending_cashout_money = [0, 0]
+@rpc("any_peer", "reliable")
+func show_cashout_wait_menu(owner_peer_id: int) -> void:
+	if multiplayer.get_unique_id() == owner_peer_id:
+		return
+	game_state = GameState.CASHOUT
+	$UI.visible = false
+
+@rpc("any_peer", "reliable")
+func restore_ui_after_cashout() -> void:
+	$UI.visible = true
+
+@rpc("any_peer", "reliable")
+func set_cashout_owner(owner_index: int) -> void:
+	cashout_owner_ind = owner_index
 
 @rpc("any_peer", "reliable")
 func show_cashout_menu(server_money: Array, owner_index: int) -> void:
 	local_cashout_owner = true
 	cashout_owner_ind = owner_index
 	money = server_money.duplicate()
+	game_state = GameState.CASHOUT
 	$UI.visible = false
 	$CashOut.visible = true
 	update_cashout_label()
 	$pUI.visible = false
 
 func end_round() -> void:
-	if cashout:
-		print("end_round CASHOUT")
-		cashout_owner_ind = 1 - player_ind
-		game_state = GameState.CASHOUT
-		var cashout_peer_id = connected_peers[cashout_owner_ind]
-		if cashout_peer_id != -1:
-			apply_pending_cashout_money()
-			if cashout_peer_id == multiplayer.get_unique_id():
-				show_cashout_menu(money, cashout_owner_ind)
-			else:
-				show_cashout_menu.rpc_id(cashout_peer_id, money, cashout_owner_ind)
-		$pUI.visible = false
-		$UI.visible = true
-		play_again = false
-		start_round(false)
-		return
 	round_num += 1
 	target_hole = -1
 	if next_solids_player != -1:
@@ -493,18 +493,29 @@ func end_round() -> void:
 	var scratched = check_for_scratch()
 	first_hit_scratch = false
 	cue_ball.first_hit_ball_num = -1
+	if continue_after_crazy:
+		continue_after_crazy = false
+		play_again = false
+		start_round(scratched)
+		return
 	if not scratched and play_again:
-		cashout = true
-		cashout_owner_ind = 1 - player_ind
-		game_state = GameState.CASHOUT
-		var cashout_peer_id = connected_peers[cashout_owner_ind]
-		if cashout_peer_id != -1:
-			apply_pending_cashout_money()
-			if cashout_peer_id == multiplayer.get_unique_id():
-				show_cashout_menu(money, cashout_owner_ind)
-			else:
-				show_cashout_menu.rpc_id(cashout_peer_id, money, cashout_owner_ind)
-		return  # Wait for opponent decision before starting extra turn
+		if solids_player != -1:
+			cashout = true
+			cashout_owner_ind = 1 - player_ind
+			set_cashout_owner.rpc(cashout_owner_ind)
+			var cashout_peer_id = connected_peers[cashout_owner_ind]
+			if cashout_peer_id != -1:
+				game_state = GameState.CASHOUT
+				show_cashout_wait_menu.rpc(cashout_peer_id)
+				if cashout_peer_id == multiplayer.get_unique_id():
+					show_cashout_menu(money, cashout_owner_ind)
+				else:
+					show_cashout_menu.rpc_id(cashout_peer_id, money, cashout_owner_ind)
+			return
+		else:
+			play_again = false
+			start_round(scratched)
+			return
 	play_again = false
 	turn_num += 1
 	player_ind = 1 - player_ind
@@ -523,6 +534,8 @@ func start_round(scratched_prev: bool = false) -> void:
 		change_hole_button_visibility.rpc_id(connected_peers[player_ind], true)
 		return
 	game_state = GameState.AIMING
+	money[0] += 1
+	money[1] += 1
 
 func process_midturn():
 	if multiplayer.is_server():
@@ -570,6 +583,14 @@ func fill_debug_label() -> void:
 		label_txt += "\nSolids Crazy Currency: " + str(money[1])
 	debug_label.text = label_txt
 
+func get_cashout_owner_peer_id() -> int:
+	if cashout_owner_ind < 0 or cashout_owner_ind >= connected_peers.size():
+		return -1
+	return connected_peers[cashout_owner_ind]
+
+func is_local_cashout_owner() -> bool:
+	return get_cashout_owner_peer_id() == multiplayer.get_unique_id()
+
 func fill_info_label() -> void:
 	var is_your_turn := false
 	if connected_peers and connected_peers.size() > player_ind:
@@ -580,7 +601,7 @@ func fill_info_label() -> void:
 	if game_state == GameState.ENDED:
 		info_label.text = "Player " + str(winner + 1) + " won the game! Click the 'Reset Game' button to play again"
 	if game_state == GameState.CASHOUT:
-		if local_cashout_owner or connected_peers[cashout_owner_ind] == multiplayer.get_unique_id():
+		if is_local_cashout_owner():
 			info_label.text += "Decide whether to cash out and use power ups.\n"
 		else:
 			info_label.text += "Opponent is deciding whether to cash out.\n"
@@ -608,6 +629,7 @@ func _on_no_pressed() -> void:
 	$UI.visible = true
 	cashout = false
 	end_round()
+	
 @onready var objects = 0
 var randPower = []
 
@@ -616,30 +638,34 @@ func _on_yes_pressed() -> void:
 	game_state = GameState.CRAZY
 	$CashOut.visible = false
 	$pUI.visible = true
-	$pUI/Panel.visible = true
-	$pUI/Panel/HBoxContainer.visible = true
-	$pUI/Panel/DoneButton.visible = true
-	$pUI/placementController.visible = false
-	$pUI/Panel/NoticeLabel.visible = false
+	initialize_powerup_shop()
+	update_powerup_shop()
+
+func _on_done_powerup_pressed() -> void:
+	$pUI.visible = false
+	$UI.visible = true
+	request_finish_powerup_selection.rpc()
+
+func _on_reroll_powerup_pressed() -> void:
+	if get_local_player_money() < 1:
+		return
+	var local_index = get_local_player_index()
+	if local_index == -1:
+		return
+	money[local_index] -= 1
+	initialize_powerup_shop()
+	update_powerup_shop()
+
+func initialize_powerup_shop() -> void:
 	if objects > 0:
 		power_shop_options = ["block", "tungsten", "tnt"]
 	else:
 		power_shop_options = ["block", "tungsten"]
 	power_shop_options.shuffle()
+	power_shop_used.clear()
 	power_shop_costs.clear()
 	for power_name in power_shop_options:
 		power_shop_costs[power_name] = get_power_cost(power_name)
-	update_powerup_shop()
-
-func _on_done_powerup_pressed() -> void:
-	$pUI.visible = false
-	$pUI/Panel.visible = false
-	$pUI/Panel/HBoxContainer.visible = false
-	$pUI/Panel/DoneButton.visible = false
-	$pUI/placementController.visible = false
-	$pUI/Panel/NoticeLabel.visible = false
-	$UI.visible = true
-	request_finish_powerup_selection.rpc()
 
 func _on_no_pressed_local() -> void:
 	request_cashout_no.rpc()
@@ -655,6 +681,9 @@ func request_finish_powerup_selection() -> void:
 	var owner_index = connected_peers.find(sender_id)
 	if owner_index == -1 or owner_index != cashout_owner_ind:
 		return
+	var shooter_peer_id = connected_peers[player_ind]
+	if shooter_peer_id != -1:
+		restore_ui_after_cashout.rpc_id(shooter_peer_id)
 	end_round()
 
 func get_power_cost(power_name: String) -> int:
@@ -692,10 +721,6 @@ func update_powerup_shop() -> void:
 	if not $pUI or not $pUI/Panel:
 		return
 	$pUI/Panel/MoneyLabel.text = "Money: %s" % get_local_player_money()
-	var affordable: Array = []
-	for power_name in power_shop_options:
-		if power_shop_costs.has(power_name) and power_shop_costs[power_name] <= get_local_player_money():
-			affordable.append(power_name)
 	var buttons = [
 		$pUI/Panel/HBoxContainer/Power1,
 		$pUI/Panel/HBoxContainer/Power2,
@@ -703,18 +728,38 @@ func update_powerup_shop() -> void:
 	]
 	for i in range(buttons.size()):
 		var button = buttons[i]
-		if i < affordable.size():
-			var power_name = affordable[i]
-			button.visible = true
-			button.disabled = false
-			button.text = "%s (%d)" % [power_name.capitalize(), power_shop_costs[power_name]]
-			button.set_meta("power_name", power_name)
-			button.set_meta("power_cost", power_shop_costs[power_name])
+		if i < power_shop_options.size():
+			var power_name = power_shop_options[i]
+			var cost = power_shop_costs.get(power_name, 0)
+			var used = power_shop_used.has(power_name)
+			var affordable = cost > 0 and cost <= get_local_player_money()
+			if used or not affordable:
+				button.visible = false
+				button.disabled = true
+				button.set_meta("power_name", null)
+				button.set_meta("power_cost", 0)
+			else:
+				button.visible = true
+				button.disabled = false
+				button.text = "%s (%d)" % [power_name.capitalize(), cost]
+				button.set_meta("power_name", power_name)
+				button.set_meta("power_cost", cost)
 		else:
 			button.visible = false
 			button.disabled = true
-	if len(affordable) == 0:
-		$pUI/Panel/NoticeLabel.text = "You lack funding. Play the game. Now."
+			button.set_meta("power_name", null)
+			button.set_meta("power_cost", 0)
+	reroll_button.disabled = get_local_player_money() < 1
+	var any_visible = false
+	for button in buttons:
+		if button.visible:
+			any_visible = true
+			break
+	if not any_visible:
+		if power_shop_used.size() >= power_shop_options.size():
+			$pUI/Panel/NoticeLabel.text = "No power ups remain. Press Done."
+		else:
+			$pUI/Panel/NoticeLabel.text = "You lack funding. Play the game. Now."
 		$pUI/Panel/NoticeLabel.visible = true
 	else:
 		$pUI/Panel/NoticeLabel.visible = false
@@ -727,6 +772,7 @@ func request_cashout_no() -> void:
 	if cashout_owner_ind == -1 or sender_id != connected_peers[cashout_owner_ind]:
 		return
 	hide_cashout_menu.rpc_id(sender_id)
+	rpc("restore_ui_after_cashout")
 	cashout = false
 	if play_again:
 		play_again = false
@@ -742,9 +788,8 @@ func request_cashout_yes() -> void:
 	if cashout_owner_ind == -1 or sender_id != connected_peers[cashout_owner_ind]:
 		return
 	cashout = false
-	var shooter_ind = player_ind
-	var non_shooter_ind = 1 - shooter_ind
-	var owner_peer_id = connected_peers[non_shooter_ind]
+	continue_after_crazy = true
+	var owner_peer_id = connected_peers[cashout_owner_ind]
 	$pUI/placementController.set_cashout_owner.rpc(owner_peer_id)
 	start_crazy_mode.rpc_id(sender_id)
 	game_state = GameState.CRAZY
@@ -760,17 +805,5 @@ func start_crazy_mode() -> void:
 	local_cashout_owner = false
 	$CashOut.visible = false
 	$pUI.visible = true
-	$pUI/Panel.visible = true
-	$pUI/Panel/HBoxContainer.visible = true
-	$pUI/Panel/DoneButton.visible = true
-	$pUI/placementController.visible = false
-	$pUI/Panel/NoticeLabel.visible = false
-	if objects > 0:
-		power_shop_options = ["block", "tungsten", "tnt"]
-	else:
-		power_shop_options = ["block", "tungsten"]
-	power_shop_options.shuffle()
-	power_shop_costs.clear()
-	for power_name in power_shop_options:
-		power_shop_costs[power_name] = get_power_cost(power_name)
+	initialize_powerup_shop()
 	update_powerup_shop()

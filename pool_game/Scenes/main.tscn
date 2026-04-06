@@ -1,22 +1,23 @@
 [gd_scene format=3 uid="uid://comeyp103ci14"]
 
-[ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://b3yvxs7qw3v2u" path="res://hole_buttons.gd" id="7_5vw27"]
-[ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://aim_input_region.gd" id="7_272bh"]
-[ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://aimer.gd" id="8_5vw27"]
-[ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://placement_controller.gd" id="8_dg77c"]
-[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="8_w48qg"]
-[ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="9_efxa6"]
-[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="9_kek77"]
-[ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://power_2.gd" id="9_vivmo"]
-[ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://aim_guide_circle.gd" id="10_ycdy4"]
-[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_074og"]
-[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://cue_stick.tscn" id="11_dg77c"]
-[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="11_w48qg"]
-[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://force_slider.gd" id="11_ycdy4"]
-[ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="12_dg77c"]
-[ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://cue_stick.gd" id="12_ycdy4"]
-[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="14_w48qg"]
+[ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://Scripts/main.gd" id="1_h1bgf"]
+[ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://Scripts/aim_input_region.gd" id="2_b3802"]
+[ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="3_fevyy"]
+[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://Scripts/force_slider.gd" id="4_hibaj"]
+[ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://Scripts/aimer.gd" id="5_pdsj5"]
+[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="6_ee4r6"]
+[ext_resource type="Script" uid="uid://b3yvxs7qw3v2u" path="res://Scripts/hole_buttons.gd" id="7_gt3je"]
+[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="8_3pmx8"]
+[ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://Scripts/cue_stick.gd" id="9_u50mg"]
+[ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://Scripts/aim_guide_circle.gd" id="10_cbgmd"]
+[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_1w6v2"]
+[ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://Scripts/PowerButton.gd" id="12_ueoa1"]
+[ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://Scripts/placement_controller.gd" id="13_6vcvc"]
+[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="14_7k868"]
+[ext_resource type="Theme" uid="uid://d4jq170sc07ab" path="res://Art/Button - Copy.tres" id="14_b3802"]
+[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="15_hpc6h"]
+[ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="16_kltya"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="17_e08e2"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 2
@@ -26,8 +27,14 @@ ambient_light_energy = 0.0
 fog_enabled = true
 fog_light_energy = 0.01
 
+[sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
+font_size = 18
+
+[sub_resource type="LabelSettings" id="LabelSettings_5vw27"]
+font_size = 24
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
-texture = ExtResource("9_efxa6")
+texture = ExtResource("3_fevyy")
 texture_margin_left = 40.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg77c"]
@@ -157,12 +164,6 @@ corner_radius_top_right = 100
 corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
-[sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
-font_size = 18
-
-[sub_resource type="LabelSettings" id="LabelSettings_5vw27"]
-font_size = 24
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cegan"]
 bg_color = Color(0.06, 0.05, 0.04, 0.94)
 border_width_left = 2
@@ -172,7 +173,7 @@ border_width_bottom = 2
 border_color = Color(0.92, 0.58, 0.22, 1)
 
 [sub_resource type="Theme" id="Theme_cegan"]
-default_font = ExtResource("11_074og")
+default_font = ExtResource("11_1w6v2")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yaehf"]
 border_width_left = 2
@@ -193,7 +194,7 @@ corner_radius_top_right = 100
 corner_radius_bottom_right = 100
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vivmo"]
-albedo_texture = ExtResource("11_w48qg")
+albedo_texture = ExtResource("15_hpc6h")
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
 material = SubResource("StandardMaterial3D_vivmo")
@@ -245,9 +246,12 @@ properties/13/replication_mode = 2
 properties/14/path = NodePath("UI/AimVisuals:visible")
 properties/14/spawn = true
 properties/14/replication_mode = 2
+properties/15/path = NodePath(".:money")
+properties/15/spawn = true
+properties/15/replication_mode = 2
 
 [node name="Main" type="Node3D" unique_id=1362962675]
-script = ExtResource("1_ig7tw")
+script = ExtResource("1_h1bgf")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
@@ -261,7 +265,26 @@ size = 200.0
 [node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
 environment = SubResource("Environment_4c57u")
 
+[node name="LabelLayer" type="CanvasLayer" parent="." unique_id=1486846883]
+visible = false
+
+[node name="DebugLabel" type="Label" parent="LabelLayer" unique_id=287979515]
+offset_left = 17.0
+offset_top = 11.0
+offset_right = 164.0
+offset_bottom = 84.0
+label_settings = SubResource("LabelSettings_h2yge")
+
+[node name="InfoLabel" type="Label" parent="LabelLayer" unique_id=920015048]
+offset_left = 855.0
+offset_top = 24.0
+offset_right = 1045.0
+offset_bottom = 112.0
+label_settings = SubResource("LabelSettings_5vw27")
+horizontal_alignment = 1
+
 [node name="UI" type="CanvasLayer" parent="." unique_id=1888597792]
+visible = false
 
 [node name="AimInputRegion" type="Control" parent="UI" unique_id=944627298]
 layout_mode = 3
@@ -272,7 +295,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("7_272bh")
+script = ExtResource("2_b3802")
 
 [node name="ForceSlider" type="VSlider" parent="UI" unique_id=184144014]
 anchors_preset = -1
@@ -287,7 +310,7 @@ grow_vertical = 2
 theme_override_styles/slider = SubResource("StyleBoxTexture_dg77c")
 theme_override_styles/grabber_area = SubResource("StyleBoxEmpty_dg77c")
 theme_override_styles/grabber_area_highlight = SubResource("StyleBoxEmpty_ycdy4")
-script = ExtResource("11_ycdy4")
+script = ExtResource("4_hibaj")
 
 [node name="GrabberVisual" type="Panel" parent="UI/ForceSlider" unique_id=291372859]
 layout_mode = 0
@@ -306,7 +329,7 @@ anchor_bottom = 1.0
 offset_top = -200.0
 offset_right = 200.0
 grow_vertical = 0
-script = ExtResource("8_5vw27")
+script = ExtResource("5_pdsj5")
 
 [node name="Background" type="Panel" parent="UI/Aimer" unique_id=1635728414]
 layout_mode = 1
@@ -350,7 +373,7 @@ offset_right = -50.0
 offset_bottom = -50.0
 grow_horizontal = 0
 grow_vertical = 0
-theme = ExtResource("8_w48qg")
+theme = ExtResource("6_ee4r6")
 theme_override_styles/normal = SubResource("StyleBoxFlat_82xsv")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_getpj")
 theme_override_styles/hover = SubResource("StyleBoxFlat_ryguw")
@@ -376,24 +399,9 @@ offset_left = 1752.0
 offset_top = 15.0
 offset_right = 1905.0
 offset_bottom = 87.0
-theme = ExtResource("8_w48qg")
+theme = ExtResource("6_ee4r6")
 text = "Reset Game
 "
-
-[node name="DebugLabel" type="Label" parent="UI" unique_id=287979515]
-offset_left = 17.0
-offset_top = 11.0
-offset_right = 164.0
-offset_bottom = 84.0
-label_settings = SubResource("LabelSettings_h2yge")
-
-[node name="InfoLabel" type="Label" parent="UI" unique_id=920015048]
-offset_left = 855.0
-offset_top = 24.0
-offset_right = 1045.0
-offset_bottom = 112.0
-label_settings = SubResource("LabelSettings_5vw27")
-horizontal_alignment = 1
 
 [node name="HoleButtons" type="Control" parent="UI" unique_id=760296245]
 visible = false
@@ -401,7 +409,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("7_5vw27")
+script = ExtResource("7_gt3je")
 
 [node name="AimVisuals" type="Control" parent="UI" unique_id=329155063]
 layout_mode = 3
@@ -409,9 +417,9 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="CueStick" parent="UI/AimVisuals" unique_id=1895437411 instance=ExtResource("11_dg77c")]
+[node name="CueStick" parent="UI/AimVisuals" unique_id=1895437411 instance=ExtResource("8_3pmx8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
-script = ExtResource("12_ycdy4")
+script = ExtResource("9_u50mg")
 
 [node name="AimGuideMarker" type="Polygon2D" parent="UI/AimVisuals" unique_id=823821121]
 position = Vector2(-62, 31)
@@ -420,7 +428,7 @@ vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
 [node name="AimGuideCircle" type="Node2D" parent="UI/AimVisuals" unique_id=513049058]
 position = Vector2(13, 24)
-script = ExtResource("10_ycdy4")
+script = ExtResource("10_cbgmd")
 
 [node name="AimGuideLine" type="Line2D" parent="UI/AimVisuals" unique_id=430159681]
 points = PackedVector2Array(0, 0, 0, 0, 0, 0)
@@ -433,22 +441,22 @@ width = 3.0
 [node name="CashOut" type="CanvasLayer" parent="." unique_id=276110570]
 visible = false
 
-[node name="Panel" type="Panel" parent="CashOut" unique_id=1285902101]
+[node name="Panel" type="Panel" parent="CashOut" unique_id=924837834]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -80.0
-offset_right = 150.0
-offset_bottom = 40.0
+offset_left = -375.0
+offset_top = -150.0
+offset_right = 375.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_stretch_ratio = 0.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_cegan")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CashOut/Panel" unique_id=1529902629]
+[node name="VBoxContainer" type="VBoxContainer" parent="CashOut/Panel" unique_id=433061637]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -464,27 +472,27 @@ grow_vertical = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="Label" type="Label" parent="CashOut/Panel/VBoxContainer" unique_id=828797622]
+[node name="Label" type="Label" parent="CashOut/Panel/VBoxContainer" unique_id=1340266690]
 layout_mode = 2
 theme = SubResource("Theme_cegan")
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CashOut/Panel/VBoxContainer" unique_id=445537174]
+[node name="HBoxContainer" type="HBoxContainer" parent="CashOut/Panel/VBoxContainer" unique_id=1426716358]
 layout_mode = 2
 theme_override_constants/separation = 90
 alignment = 1
 
-[node name="Yes" type="Button" parent="CashOut/Panel/VBoxContainer/HBoxContainer" unique_id=305944815]
+[node name="Yes" type="Button" parent="CashOut/Panel/VBoxContainer/HBoxContainer" unique_id=1326606961]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("8_w48qg")
+theme = ExtResource("6_ee4r6")
 theme_override_font_sizes/font_size = 44
 text = "Yes!"
 
-[node name="No" type="Button" parent="CashOut/Panel/VBoxContainer/HBoxContainer" unique_id=1854655039]
+[node name="No" type="Button" parent="CashOut/Panel/VBoxContainer/HBoxContainer" unique_id=1810053349]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("8_w48qg")
+theme = ExtResource("6_ee4r6")
 theme_override_font_sizes/font_size = 44
 text = "No!"
 
@@ -497,10 +505,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -325.0
-offset_top = -40.0
-offset_right = 325.0
-offset_bottom = 40.0
+offset_left = -375.0
+offset_top = -150.0
+offset_right = 375.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_stretch_ratio = 0.0
@@ -519,6 +527,7 @@ grow_horizontal = 2
 grow_vertical = 0
 text = "Money: 0"
 label_settings = SubResource("LabelSettings_5vw27")
+horizontal_alignment = 1
 
 [node name="NoticeLabel" type="Label" parent="pUI/Panel" unique_id=1122334455]
 visible = false
@@ -541,10 +550,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -311.0
-offset_top = -27.0
-offset_right = 311.0
-offset_bottom = 27.0
+offset_left = -341.0
+offset_top = -61.0
+offset_right = 341.0
+offset_bottom = 13.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 90
@@ -553,41 +562,52 @@ alignment = 1
 [node name="Power1" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=379034427]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("8_w48qg")
+theme = ExtResource("6_ee4r6")
 theme_override_font_sizes/font_size = 44
 text = "Option 1"
-script = ExtResource("9_vivmo")
+script = ExtResource("12_ueoa1")
 
 [node name="Power2" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=1417258925]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("8_w48qg")
+theme = ExtResource("6_ee4r6")
 theme_override_font_sizes/font_size = 44
 text = "Block"
-script = ExtResource("9_vivmo")
+script = ExtResource("12_ueoa1")
 
 [node name="Power3" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=1937977840]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("8_w48qg")
+theme = ExtResource("6_ee4r6")
 theme_override_font_sizes/font_size = 44
 text = "Option 3"
-script = ExtResource("9_vivmo")
+script = ExtResource("12_ueoa1")
 
-[node name="DoneButton" type="Button" parent="pUI/Panel" unique_id=1286608618]
+[node name="HBoxContainer2" type="HBoxContainer" parent="pUI/Panel" unique_id=108574757]
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
+anchors_preset = 7
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -100.0
-offset_right = -50.0
-offset_bottom = -50.0
-grow_horizontal = 0
+offset_left = -341.0
+offset_top = -102.0
+offset_right = 341.0
+offset_bottom = -28.0
+grow_horizontal = 2
 grow_vertical = 0
-theme = ExtResource("8_w48qg")
+theme_override_constants/separation = 90
+alignment = 1
+
+[node name="RerollButton" type="Button" parent="pUI/Panel/HBoxContainer2" unique_id=987654321]
+layout_mode = 2
+theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 24
+text = "Reroll (1)"
+
+[node name="DoneButton" type="Button" parent="pUI/Panel/HBoxContainer2" unique_id=1286608618]
+layout_mode = 2
+theme = ExtResource("6_ee4r6")
 theme_override_font_sizes/font_size = 24
 text = "Done"
 
@@ -601,7 +621,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("8_dg77c")
+script = ExtResource("13_6vcvc")
 
 [node name="placeButton" type="Button" parent="pUI" unique_id=1569992797]
 anchors_preset = 3
@@ -615,8 +635,7 @@ offset_right = -50.0
 offset_bottom = -50.0
 grow_horizontal = 0
 grow_vertical = 0
-theme = ExtResource("8_w48qg")
-text = "Place"
+theme = ExtResource("14_b3802")
 
 [node name="Background" type="Panel" parent="pUI/placeButton" unique_id=323250726]
 layout_mode = 1
@@ -669,12 +688,12 @@ offset_bottom = 100.0
 theme_override_styles/normal = SubResource("StyleBoxFlat_074og")
 text = "Right"
 
-[node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
+[node name="TableGroup" parent="." unique_id=1955985234 instance=ExtResource("14_7k868")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
-[node name="CueStick" parent="." unique_id=259858604 instance=ExtResource("11_dg77c")]
+[node name="CueStick" parent="." unique_id=259858604 instance=ExtResource("8_3pmx8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
-script = ExtResource("12_ycdy4")
+script = ExtResource("9_u50mg")
 
 [node name="Floor" type="MeshInstance3D" parent="." unique_id=1063051328]
 transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.2828827, -63.39213, 0.6614113)
@@ -697,13 +716,13 @@ spot_range = 270.72592
 spot_angle = 72.564
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=935783405]
-stream = ExtResource("12_dg77c")
+stream = ExtResource("16_kltya")
 volume_db = 30.0
 
 [node name="PreviewContainer" type="Node3D" parent="." unique_id=1410175614]
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
-shape = ExtResource("14_w48qg")
+shape = ExtResource("17_e08e2")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1750200922]
 transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.9107674, 0.41267863, 0.05280001, -0.4128225, 0.9092798, -14.222816, 97.954666, 209.47566)
@@ -716,19 +735,14 @@ replication_config = SubResource("SceneReplicationConfig_efxa6")
 public_visibility = false
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=2118392177]
-_spawnable_scenes = PackedStringArray("uid://cjgh3own5ppcr")
 spawn_path = NodePath("..")
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
-[connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/Yes" to="." method="_on_yes_pressed"]
-[connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/Yes" to="CashOut" method="_on_yes_pressed"]
-[connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/No" to="." method="_on_no_pressed"]
-[connection signal="pressed" from="CashOut/Panel/VBoxContainer/HBoxContainer/No" to="CashOut" method="_on_no_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power1" to="pUI/placementController" method="_on_power_1_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power3" to="pUI/placementController" method="_on_power_3_pressed"]
-[connection signal="pressed" from="pUI/Panel/DoneButton" to="." method="_on_done_powerup_pressed"]
-[connection signal="pressed" from="pUI/placeButton" to="." method="_on_place_button_pressed"]
+[connection signal="pressed" from="pUI/Panel/HBoxContainer2/RerollButton" to="." method="_on_reroll_powerup_pressed"]
+[connection signal="pressed" from="pUI/Panel/HBoxContainer2/DoneButton" to="." method="_on_done_powerup_pressed"]
 [connection signal="pressed" from="pUI/placeButton" to="pUI/placementController" method="_on_place_button_pressed"]
 [connection signal="button_down" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_down"]
 [connection signal="button_up" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_up"]
