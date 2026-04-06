@@ -123,12 +123,9 @@ properties/11/replication_mode = 2
 properties/12/path = NodePath("UI/AimVisuals/CueStick:rotation")
 properties/12/spawn = true
 properties/12/replication_mode = 2
-properties/13/path = NodePath("UI/AimVisuals:visible")
+properties/13/path = NodePath("BallManager:balls_sunk")
 properties/13/spawn = true
-properties/13/replication_mode = 2
-properties/14/path = NodePath("BallManager:balls_sunk")
-properties/14/spawn = true
-properties/14/replication_mode = 1
+properties/13/replication_mode = 1
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_ig7tw")
@@ -299,21 +296,24 @@ offset_bottom = 40.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
 script = ExtResource("12_ycdy4")
 
-[node name="AimGuideMarker" type="Polygon2D" parent="UI/AimVisuals" unique_id=823821121]
+[node name="AimGuide" type="Control" parent="UI/AimVisuals" unique_id=550642810]
+anchors_preset = 0
+
+[node name="AimGuideLine2" type="Line2D" parent="UI/AimVisuals/AimGuide" unique_id=1448096911]
+points = PackedVector2Array(0, 0, 0, 0)
+width = 3.0
+
+[node name="AimGuideMarker" type="Polygon2D" parent="UI/AimVisuals/AimGuide" unique_id=823821121]
 position = Vector2(-62, 31)
 polygon = PackedVector2Array(-5, -5, -5, 5, 5, 5, 5, -5)
 vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
-[node name="AimGuideCircle" type="Node2D" parent="UI/AimVisuals" unique_id=513049058]
+[node name="AimGuideCircle" type="Node2D" parent="UI/AimVisuals/AimGuide" unique_id=513049058]
 position = Vector2(13, 24)
 script = ExtResource("10_ycdy4")
 
-[node name="AimGuideLine" type="Line2D" parent="UI/AimVisuals" unique_id=430159681]
+[node name="AimGuideLine" type="Line2D" parent="UI/AimVisuals/AimGuide" unique_id=430159681]
 points = PackedVector2Array(0, 0, 0, 0, 0, 0)
-width = 3.0
-
-[node name="AimGuideLine2" type="Line2D" parent="UI/AimVisuals" unique_id=1448096911]
-points = PackedVector2Array(0, 0, 0, 0)
 width = 3.0
 
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("9_kek77")]
@@ -352,9 +352,5 @@ script = ExtResource("15_vivmo")
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1196634560]
 replication_config = SubResource("SceneReplicationConfig_efxa6")
 public_visibility = false
-
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=2118392177]
-_spawnable_scenes = PackedStringArray("uid://cjgh3own5ppcr")
-spawn_path = NodePath("../BallManager")
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]

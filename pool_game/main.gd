@@ -8,6 +8,7 @@ extends Node3D
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_visuals = $UI/AimVisuals
+@onready var aim_guide = $UI/AimVisuals/AimGuide
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var shape_cast = $ShapeCast3D
 @onready var ball_manager = $BallManager
@@ -154,13 +155,13 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 		
 	var collision_point = shape_cast.get_collision_point(0)
 	var collision_normal = shape_cast.get_collision_normal(0).normalized()
-	var aim_guide_line = $UI/AimVisuals/AimGuideLine
-	var aim_guide_line2 = $UI/AimVisuals/AimGuideLine2
+	var aim_guide_line = $UI/AimVisuals/AimGuide/AimGuideLine
+	var aim_guide_line2 = $UI/AimVisuals/AimGuide/AimGuideLine2
 	
 	var ghost_ball_pos = collision_point + collision_normal * Constants.BALL_RADIUS
 	
-	$UI/AimVisuals/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
-	$UI/AimVisuals/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
+	$UI/AimVisuals/AimGuide/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
+	$UI/AimVisuals/AimGuide/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
 	
 	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
 	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
@@ -238,6 +239,7 @@ func _on_aim_input(touch_pos: Vector2):
 			_on_aim_changed(dir)
 			cast_aim_ray(dir.normalized())
 			aim_visuals.show()
+			aim_guide.show()
 			_on_aim_changed.rpc_id(1, dir)
 			_on_aim_changed.rpc_id(other_peer, dir)
 
@@ -321,6 +323,7 @@ func _on_fire_pressed():
 	# need to set the strength in case it was changed by other player's turn
 	_on_force_changed.rpc_id(1, slider.value)
 	fire_cue.rpc_id(1)
+	aim_guide.hide()
 	
 	has_aimed = false
 	slider.value = 0
@@ -362,6 +365,7 @@ func fire_cue():
 
 	tween.tween_callback(func():
 		aim_visuals.hide()
+		aim_guide.hide()
 		cue_stick.hide()
 		cue_stick.striking = false
 		ball_manager.hit_cue_ball(force, offset_3d)
