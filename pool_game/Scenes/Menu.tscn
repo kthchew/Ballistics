@@ -14,6 +14,8 @@
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="12_ksqlk"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="13_vkgky"]
 [ext_resource type="AudioStream" uid="uid://bnfsg1511m8v5" path="res://Sounds/lightOff.mp3" id="14_o00om"]
+[ext_resource type="PackedScene" uid="uid://x10c7um8tidx" path="res://Scenes/settings_screen.tscn" id="11_elwp8"]
+[ext_resource type="PackedScene" uid="uid://l3mdu1f62vct" path="res://Scenes/menu_private_game_panel.tscn" id="11_mnkgh"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -168,9 +170,28 @@ theme_override_font_sizes/font_size = 44
 text = "Random Knockout"
 script = ExtResource("9_du1yi")
 
+[node name="PrivateGameButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=51089289]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("2_n4eug")
+theme_override_font_sizes/font_size = 44
+text = "Random Knockout"
+script = ExtResource("7_xucoo")
+
 [node name="AccountScreen" parent="MainMenu/MenuUI" unique_id=2040582154 instance=ExtResource("10_c0stj")]
 visible = false
 layout_mode = 1
+
+[node name="PrivateGamePanel" parent="MainMenu/MenuUI" unique_id=725213517 instance=ExtResource("11_mnkgh")]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("11_3feh0")]
 
