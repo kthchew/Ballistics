@@ -25,11 +25,13 @@ func _process(delta: float) -> void:
 	
 func _on_pool_create() -> void:
 	var lobby := mp_lobby_scene.instantiate()
-	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_CREATE
+	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE
 	get_tree().change_scene_to_node(lobby)
 	
 func _on_crazy_create() -> void:
-	pass
+	var lobby := mp_lobby_scene.instantiate()
+	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_CRAZY_CREATE
+	get_tree().change_scene_to_node(lobby)
 	
 func _on_knockout_create() -> void:
 	pass

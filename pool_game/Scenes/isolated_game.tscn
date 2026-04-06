@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://wvkvj1pke8gv"]
 
-[ext_resource type="PackedScene" uid="uid://comeyp103ci14" path="res://main.tscn" id="1_h0f3o"]
+[ext_resource type="PackedScene" uid="uid://dtwea76x43glo" path="res://Scenes/main.tscn" id="1_h0f3o"]
 
 [node name="IsolatedRegGame" type="Node3D" unique_id=2021762876]
 

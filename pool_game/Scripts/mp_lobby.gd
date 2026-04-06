@@ -6,8 +6,9 @@ signal private_room_closed_notice(reason: String)
 
 var free_spots = [0]
 var regular_games = {}
-
 var regular_queue = []
+var crazy_queue = []
+var crazy_games = {}
 var private_rooms = {}
 var room_by_peer = {}
 
@@ -18,12 +19,12 @@ var init_peers = null
 var config := ConfigFile.new()
 const CONFIG_PATH := "user://settings.cfg"
 
-@export var matchmaking_mode = Utils.MatchmakingMode.RANDOM
+@export var matchmaking_mode = Utils.MatchmakingMode.RANDOM_NORMAL
 @export var pending_room_code := ""
 
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
-const reg_game_scene = preload("res://main.tscn")
+const reg_game_scene = preload("res://Scenes/main.tscn")
 const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
 @onready var title_label = $ClientUI/VBoxContainer/TitleLabel
@@ -76,15 +77,16 @@ func _process(_delta: float) -> void:
 	
 func _on_exit_clicked() -> void:
 	request_leave_matchmaking.rpc_id(1)
-	get_tree().change_scene_to_file("res://Menu.tscn")
+	get_tree().change_scene_to_file("res://Scenes/Menu.tscn")
 
 func queue_random_match() -> void:
-	matchmaking_mode = Utils.MatchmakingMode.RANDOM
+	matchmaking_mode = Utils.MatchmakingMode.RANDOM_NORMAL
 	pending_room_code = ""
 	_request_selected_matchmaking()
 
 func create_private_room() -> void:
-	matchmaking_mode = Utils.MatchmakingMode.PRIVATE_CREATE
+	# FIXME: don't assume normal game
+	matchmaking_mode = Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE
 	pending_room_code = ""
 	_request_selected_matchmaking()
 
@@ -107,12 +109,15 @@ func start_server(port: int = 18361) -> void:
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 
 func _on_peer_connected(peer: int):
+	var mp_peer = multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	mp_peer.get_peer(peer).set_timeout(32, 180000, 300000)
 	print("peer connected: %d" % peer)
 
 func _on_peer_disconnected(peer: int):
 	print("peer disconnected: %d" % peer)
 	if multiplayer.is_server():
 		_remove_from_random_queue(peer)
+		_remove_from_crazy_queue(peer)
 		_remove_from_private_room(peer, true)
 
 func _on_server_disconnected():
@@ -132,6 +137,8 @@ func start_client(host: String, port: int = 18361) -> void:
 func _on_connected_to_server():
 	title_label.text = "Connected"
 	info_label.text = "Requesting a match..."
+	var peer = multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	peer.get_peer(1).set_timeout(32, 180000, 300000)
 	_request_selected_matchmaking()
 
 func _on_connection_failed():
@@ -146,15 +153,24 @@ func _request_selected_matchmaking() -> void:
 
 	title_label.text = "Waiting for opponent..."
 	match matchmaking_mode:
-		Utils.MatchmakingMode.PRIVATE_CREATE:
-			info_label.text = "Creating private room..."
+		Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE:
+			info_label.text = "Creating normal private room..."
+			request_create_private_room.rpc()
+		Utils.MatchmakingMode.PRIVATE_CRAZY_CREATE:
+			info_label.text = "Creating crazy private room..."
 			request_create_private_room.rpc()
 		Utils.MatchmakingMode.PRIVATE_JOIN:
 			info_label.text = "Joining private room..."
 			request_join_private_room.rpc(pending_room_code)
-		_:
-			info_label.text = "In random queue"
+		Utils.MatchmakingMode.RANDOM_NORMAL:
+			info_label.text = "In random normal queue"
 			enter_random_regular_queue.rpc()
+		Utils.MatchmakingMode.RANDOM_CRAZY:
+			info_label.text = "In random crazy queue"
+			enter_random_crazy_queue.rpc()
+		_:
+			print("Unknown matchmaking mode: %d" % matchmaking_mode)
+	$ClientUI.show()
 
 @rpc("any_peer")
 func enter_random_regular_queue():
@@ -166,6 +182,17 @@ func enter_random_regular_queue():
 		return
 	regular_queue.append(sender_id)
 	_try_match_random_queue()
+
+@rpc("any_peer")
+func enter_random_crazy_queue():
+	if not multiplayer.is_server():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	_remove_from_private_room(sender_id, false)
+	if crazy_queue.has(sender_id):
+		return
+	crazy_queue.append(sender_id)
+	_try_match_crazy_queue()
 
 @rpc("any_peer")
 func request_create_private_room():
@@ -188,6 +215,7 @@ func request_join_private_room(code: String):
 	var normalized_code := _normalize_room_code(code)
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, false)
+	_remove_from_crazy_queue(sender_id)
 
 	if normalized_code.is_empty():
 		private_room_join_failed.rpc_id(sender_id, "Room code is empty.")
@@ -215,7 +243,8 @@ func request_join_private_room(code: String):
 	private_rooms.erase(normalized_code)
 	room_by_peer.erase(host_id)
 	room_by_peer.erase(sender_id)
-	_start_game_for_peers([host_id, sender_id])
+	# FIXME: set appropriate type not just normal game
+	_start_game_for_peers([host_id, sender_id], false)
 
 @rpc("any_peer")
 func request_cancel_private_room():
@@ -231,6 +260,7 @@ func request_leave_matchmaking():
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, true)
+	_remove_from_crazy_queue(sender_id)
 
 @rpc("authority", "call_remote", "reliable")
 func private_room_created(code: String):
@@ -255,10 +285,11 @@ func private_room_closed(reason: String):
 	emit_signal("private_room_closed_notice", reason)
 
 @rpc("authority", "call_remote", "reliable")
-func send_to_game(slot: int, peers: Array):
+func send_to_game(slot: int, peers: Array, crazy: bool):
 	var container = games.get_node("GameContainer%s/SubViewportContainer" % slot)
 	container.visible = true
 	var game = container.get_node("SubViewport/Game")
+	game.crazy = crazy
 	game.visible = true
 	game.connected_peers = peers
 	var camera = game.get_node("CameraPivot/Camera3D")
@@ -270,12 +301,22 @@ func _try_match_random_queue() -> void:
 	while regular_queue.size() >= 2:
 		var first = regular_queue.pop_front()
 		var second = regular_queue.pop_front()
-		_start_game_for_peers([first, second])
+		_start_game_for_peers([first, second], false)
+		
+func _try_match_crazy_queue() -> void:
+	while crazy_queue.size() >= 2:
+		var first = crazy_queue.pop_front()
+		var second = crazy_queue.pop_front()
+		_start_game_for_peers([first, second], true)
 
-func _start_game_for_peers(peers: Array) -> void:
-	var game = spawn_new_regular_game()
+func _start_game_for_peers(peers: Array, is_crazy: bool) -> void:
+	var game
+	if is_crazy:
+		game = spawn_new_crazy_game()
+	else:
+		game = spawn_new_regular_game()
 	for peer_id in peers:
-		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers)
+		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers, is_crazy)
 	game.connected_peers = peers
 	game.start_game()
 
@@ -283,6 +324,10 @@ func _remove_from_random_queue(peer_id: int) -> void:
 	while regular_queue.has(peer_id):
 		regular_queue.erase(peer_id)
 
+func _remove_from_crazy_queue(peer_id: int) -> void:
+	while crazy_queue.has(peer_id):
+		crazy_queue.erase(peer_id)
+		
 func _remove_from_private_room(peer_id: int, notify_other: bool) -> void:
 	if not room_by_peer.has(peer_id):
 		return
@@ -333,9 +378,27 @@ func spawn_new_regular_game() -> Node:
 	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
 	regular_games[spot] = game
 	game.lobby_slot = spot
+	game.crazy = false
 	games.add_child(isolated)
 
 	print("putting game in spot " + str(spot))
+	if free_spots.size() == 0:
+		free_spots.append(spot + 1)
+	return game
+	
+func spawn_new_crazy_game() -> Node:
+	var spot = free_spots[0]
+	free_spots.remove_at(0)
+
+	var isolated: Node3D = isolated_game.instantiate()
+	isolated.name = "GameContainer%s" % spot
+	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
+	crazy_games[spot] = game
+	game.lobby_slot = spot
+	game.crazy = true
+	games.add_child(isolated)
+
+	print("putting CRAZY game in spot " + str(spot))
 	if free_spots.size() == 0:
 		free_spots.append(spot + 1)
 	return game
