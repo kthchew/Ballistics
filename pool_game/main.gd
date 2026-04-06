@@ -220,6 +220,8 @@ func start_game() -> void:
 	ball_manager.start_game()
 			
 func _on_aim_input(touch_pos: Vector2):
+	if not is_your_turn():
+		return
 	if game_state == GameState.PLACING:
 		var ray_origin: Vector3 = camera.project_ray_origin(touch_pos)
 		var ray_normal: Vector3 = camera.project_ray_normal(touch_pos)
@@ -445,6 +447,9 @@ func _physics_process(delta: float) -> void:
 func _process(delta: float) -> void:
 	fill_debug_label()
 	fill_info_label()
+
+func is_your_turn() -> bool:
+	return connected_peers[player_ind] == multiplayer.get_unique_id()
 	
 func fill_debug_label() -> void:
 	var label_txt = "Static Ticks: " + str(cur_static_ticks)
@@ -468,7 +473,6 @@ func fill_debug_label() -> void:
 	debug_label.text = label_txt
 
 func fill_info_label() -> void:
-	var is_your_turn = connected_peers[player_ind] == multiplayer.get_unique_id()
 	info_label.text = ""
 	
 	if game_state == GameState.NOT_STARTED:
@@ -480,7 +484,7 @@ func fill_info_label() -> void:
 	if game_state != GameState.MIDTURN and game_state != GameState.ENDED and game_state != GameState.NOT_STARTED:
 		if multiplayer.is_server():
 			info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
-		elif is_your_turn:
+		elif is_your_turn():
 			info_label.text += "Your turn.\n"
 		else:
 			info_label.text += "Opponent's turn.\n"
@@ -490,7 +494,7 @@ func fill_info_label() -> void:
 			else:
 				info_label.text += "You are stripes\n"
 	
-	if is_your_turn:
+	if is_your_turn():
 		if game_state == GameState.PICKPOCKET:
 			info_label.text += "Pick your target pocket for the 8-ball\n"
 				
