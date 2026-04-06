@@ -1,24 +1,24 @@
-[gd_scene format=3 uid="uid://comeyp103ci14"]
+[gd_scene format=3 uid="uid://dtwea76x43glo"]
 
-[ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://Scripts/main.gd" id="1_h1bgf"]
-[ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://Scripts/aim_input_region.gd" id="2_b3802"]
-[ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="3_fevyy"]
-[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://Scripts/force_slider.gd" id="4_hibaj"]
-[ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://Scripts/aimer.gd" id="5_pdsj5"]
-[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="6_ee4r6"]
-[ext_resource type="Script" uid="uid://b3yvxs7qw3v2u" path="res://Scripts/hole_buttons.gd" id="7_gt3je"]
-[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="8_3pmx8"]
-[ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://Scripts/cue_stick.gd" id="9_u50mg"]
-[ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://Scripts/aim_guide_circle.gd" id="10_cbgmd"]
-[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_1w6v2"]
-[ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://Scripts/PowerButton.gd" id="12_ueoa1"]
-[ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://Scripts/placement_controller.gd" id="13_6vcvc"]
-[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="14_7k868"]
-[ext_resource type="Theme" uid="uid://d4jq170sc07ab" path="res://Art/Button - Copy.tres" id="14_b3802"]
-[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="15_hpc6h"]
-[ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="15_vivmo"]
-[ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="16_kltya"]
-[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="17_e08e2"]
+[ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://Scripts/main.gd" id="1_cegan"]
+[ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://Scripts/aim_input_region.gd" id="2_82xsv"]
+[ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="3_getpj"]
+[ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://Scripts/force_slider.gd" id="4_ryguw"]
+[ext_resource type="Script" uid="uid://mvr8sgkxgtg6" path="res://Scripts/aimer.gd" id="5_d13ii"]
+[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="6_1u8w0"]
+[ext_resource type="Script" uid="uid://b3yvxs7qw3v2u" path="res://Scripts/hole_buttons.gd" id="7_0odxb"]
+[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="8_lswn8"]
+[ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://Scripts/cue_stick.gd" id="9_a6jrf"]
+[ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://Scripts/aim_guide_circle.gd" id="10_xuqvo"]
+[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_qsp4k"]
+[ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://Scripts/PowerButton.gd" id="12_kq58d"]
+[ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://Scripts/placement_controller.gd" id="13_seu75"]
+[ext_resource type="Theme" uid="uid://d4jq170sc07ab" path="res://Art/Button - Copy.tres" id="14_htxhm"]
+[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="15_jq2sk"]
+[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="16_4k2k6"]
+[ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="17_0rl1p"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="18_ok6jj"]
+[ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="19_facbu"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 2
@@ -35,7 +35,7 @@ font_size = 18
 font_size = 24
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
-texture = ExtResource("3_fevyy")
+texture = ExtResource("3_getpj")
 texture_margin_left = 40.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg77c"]
@@ -174,7 +174,7 @@ border_width_bottom = 2
 border_color = Color(0.92, 0.58, 0.22, 1)
 
 [sub_resource type="Theme" id="Theme_cegan"]
-default_font = ExtResource("11_1w6v2")
+default_font = ExtResource("11_qsp4k")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yaehf"]
 border_width_left = 2
@@ -195,7 +195,7 @@ corner_radius_top_right = 100
 corner_radius_bottom_right = 100
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vivmo"]
-albedo_texture = ExtResource("15_hpc6h")
+albedo_texture = ExtResource("16_4k2k6")
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
 material = SubResource("StandardMaterial3D_vivmo")
@@ -255,7 +255,7 @@ properties/16/spawn = true
 properties/16/replication_mode = 1
 
 [node name="Main" type="Node3D" unique_id=1362962675]
-script = ExtResource("1_h1bgf")
+script = ExtResource("1_cegan")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
@@ -299,7 +299,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_b3802")
+script = ExtResource("2_82xsv")
 
 [node name="ForceSlider" type="VSlider" parent="UI" unique_id=184144014]
 anchors_preset = -1
@@ -314,7 +314,7 @@ grow_vertical = 2
 theme_override_styles/slider = SubResource("StyleBoxTexture_dg77c")
 theme_override_styles/grabber_area = SubResource("StyleBoxEmpty_dg77c")
 theme_override_styles/grabber_area_highlight = SubResource("StyleBoxEmpty_ycdy4")
-script = ExtResource("4_hibaj")
+script = ExtResource("4_ryguw")
 
 [node name="GrabberVisual" type="Panel" parent="UI/ForceSlider" unique_id=291372859]
 layout_mode = 0
@@ -333,7 +333,7 @@ anchor_bottom = 1.0
 offset_top = -200.0
 offset_right = 200.0
 grow_vertical = 0
-script = ExtResource("5_pdsj5")
+script = ExtResource("5_d13ii")
 
 [node name="Background" type="Panel" parent="UI/Aimer" unique_id=1635728414]
 layout_mode = 1
@@ -377,7 +377,7 @@ offset_right = -50.0
 offset_bottom = -50.0
 grow_horizontal = 0
 grow_vertical = 0
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 theme_override_styles/normal = SubResource("StyleBoxFlat_82xsv")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_getpj")
 theme_override_styles/hover = SubResource("StyleBoxFlat_ryguw")
@@ -403,7 +403,7 @@ offset_left = 1752.0
 offset_top = 15.0
 offset_right = 1905.0
 offset_bottom = 87.0
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 text = "Reset Game
 "
 
@@ -413,7 +413,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("7_gt3je")
+script = ExtResource("7_0odxb")
 
 [node name="AimVisuals" type="Control" parent="UI" unique_id=329155063]
 layout_mode = 3
@@ -421,9 +421,9 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="CueStick" parent="UI/AimVisuals" unique_id=1895437411 instance=ExtResource("8_3pmx8")]
+[node name="CueStick" parent="UI/AimVisuals" unique_id=1895437411 instance=ExtResource("8_lswn8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -399, 0, 0)
-script = ExtResource("9_u50mg")
+script = ExtResource("9_a6jrf")
 
 [node name="AimGuide" type="Control" parent="UI/AimVisuals" unique_id=1151335737]
 anchors_preset = 0
@@ -437,7 +437,7 @@ vertex_colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
 [node name="AimGuideCircle" type="Node2D" parent="UI/AimVisuals/AimGuide" unique_id=513049058]
 position = Vector2(13, 24)
-script = ExtResource("10_cbgmd")
+script = ExtResource("10_xuqvo")
 
 [node name="AimGuideLine" type="Line2D" parent="UI/AimVisuals/AimGuide" unique_id=430159681]
 points = PackedVector2Array(0, 0, 0, 0, 0, 0)
@@ -494,14 +494,14 @@ alignment = 1
 [node name="Yes" type="Button" parent="CashOut/Panel/VBoxContainer/HBoxContainer" unique_id=1326606961]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 theme_override_font_sizes/font_size = 44
 text = "Yes!"
 
 [node name="No" type="Button" parent="CashOut/Panel/VBoxContainer/HBoxContainer" unique_id=1810053349]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 theme_override_font_sizes/font_size = 44
 text = "No!"
 
@@ -571,26 +571,26 @@ alignment = 1
 [node name="Power1" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=379034427]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 theme_override_font_sizes/font_size = 44
 text = "Option 1"
-script = ExtResource("12_ueoa1")
+script = ExtResource("12_kq58d")
 
 [node name="Power2" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=1417258925]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 theme_override_font_sizes/font_size = 44
 text = "Block"
-script = ExtResource("12_ueoa1")
+script = ExtResource("12_kq58d")
 
 [node name="Power3" type="Button" parent="pUI/Panel/HBoxContainer" unique_id=1937977840]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 theme_override_font_sizes/font_size = 44
 text = "Option 3"
-script = ExtResource("12_ueoa1")
+script = ExtResource("12_kq58d")
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="pUI/Panel" unique_id=108574757]
 layout_mode = 1
@@ -610,13 +610,13 @@ alignment = 1
 
 [node name="RerollButton" type="Button" parent="pUI/Panel/HBoxContainer2" unique_id=987654321]
 layout_mode = 2
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 theme_override_font_sizes/font_size = 24
 text = "Reroll (1)"
 
 [node name="DoneButton" type="Button" parent="pUI/Panel/HBoxContainer2" unique_id=1286608618]
 layout_mode = 2
-theme = ExtResource("6_ee4r6")
+theme = ExtResource("6_1u8w0")
 theme_override_font_sizes/font_size = 24
 text = "Done"
 
@@ -630,7 +630,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("13_6vcvc")
+script = ExtResource("13_seu75")
 
 [node name="placeButton" type="Button" parent="pUI" unique_id=1569992797]
 anchors_preset = 3
@@ -644,7 +644,7 @@ offset_right = -50.0
 offset_bottom = -50.0
 grow_horizontal = 0
 grow_vertical = 0
-theme = ExtResource("14_b3802")
+theme = ExtResource("14_htxhm")
 
 [node name="Background" type="Panel" parent="pUI/placeButton" unique_id=323250726]
 layout_mode = 1
@@ -697,7 +697,7 @@ offset_bottom = 100.0
 theme_override_styles/normal = SubResource("StyleBoxFlat_074og")
 text = "Right"
 
-[node name="TableGroup" parent="." unique_id=1955985234 instance=ExtResource("14_7k868")]
+[node name="TableGroup" parent="." unique_id=1955985234 instance=ExtResource("15_jq2sk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
 [node name="Floor" type="MeshInstance3D" parent="." unique_id=1063051328]
@@ -721,16 +721,16 @@ spot_range = 270.72592
 spot_angle = 72.564
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=935783405]
-stream = ExtResource("16_kltya")
+stream = ExtResource("17_0rl1p")
 volume_db = 30.0
 
 [node name="PreviewContainer" type="Node3D" parent="." unique_id=1410175614]
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
-shape = ExtResource("17_e08e2")
+shape = ExtResource("18_ok6jj")
 
 [node name="BallManager" type="Node" parent="." unique_id=1345349029]
-script = ExtResource("15_vivmo")
+script = ExtResource("19_facbu")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1750200922]
 transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.9107674, 0.41267863, 0.05280001, -0.4128225, 0.9092798, -14.222816, 97.954666, 209.47566)

@@ -87,7 +87,6 @@ offset_left = 100.0
 offset_top = 100.0
 offset_right = 300.0
 offset_bottom = 180.0
-theme = ExtResource("2_n4eug")
 theme_override_font_sizes/font_size = 32
 text = "Settings"
 script = ExtResource("4_t8p2w")
