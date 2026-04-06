@@ -270,10 +270,14 @@ offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_h2yge")
 
 [node name="InfoLabel" type="Label" parent="UI" unique_id=920015048]
-offset_left = 855.0
-offset_top = 24.0
-offset_right = 1045.0
-offset_bottom = 112.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -96.0
+offset_top = 26.0
+offset_right = 94.0
+offset_bottom = 114.0
+grow_horizontal = 2
 label_settings = SubResource("LabelSettings_5vw27")
 horizontal_alignment = 1
 
