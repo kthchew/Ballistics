@@ -99,23 +99,27 @@ func _on_hole_selected(hole_ind: int) -> void:
 	
 func _on_reset_button_pressed() -> void:
 	reset_request.rpc_id(1)
+	reset_request.rpc_id(connected_peers[0])
+	reset_request.rpc_id(connected_peers[1])
 	
-@rpc("authority", "call_remote")
-func _change_reset_requested_visibility(new_is_visible: bool) -> void:
-	$UI/ResetButton/ResetRequestedLabel.visible = new_is_visible
-	
-@rpc("any_peer")
+@rpc("any_peer", "call_local")
 func reset_request() -> void:
-	if not multiplayer.is_server():
-		return
 	var sender = multiplayer.get_remote_sender_id()
-	var ind = connected_peers.find(sender)
+	var changer_ind = connected_peers.find(sender) if sender != 0 else connected_peers.find(multiplayer.get_unique_id())
+	var this_ind = connected_peers.find(multiplayer.get_unique_id())
 	
-	requesting_reset[ind] = not requesting_reset[ind]
-	_change_reset_requested_visibility.rpc(requesting_reset[ind])
+	requesting_reset[changer_ind] = not requesting_reset[changer_ind]
+	$UI/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
+	
+	if requesting_reset[this_ind]:
+		$UI/ResetButton/ResetRequestedLabel.text = "Requested reset"
+	else:
+		$UI/ResetButton/ResetRequestedLabel.text = "Opponent requested reset"
+	
 	if requesting_reset[0] and requesting_reset[1]:
-		start_game()
-		_change_reset_requested_visibility.rpc(false)
+		if multiplayer.is_server():
+			start_game()
+		$UI/ResetButton/ResetRequestedLabel.visible = false
 		requesting_reset = [false, false]
 
 func _on_first_hit_ball_changed():
@@ -218,7 +222,9 @@ func set_visibility():
 		$MultiplayerSynchronizer.set_visibility_for(connected_peers[1], true)
 	
 func start_game() -> void:
-	set_visibility.rpc()
+	set_visibility()
+	set_visibility.rpc_id(connected_peers[0])
+	set_visibility.rpc_id(connected_peers[1])
 	
 	aim_visuals.hide()
 	set_aim_guide_visibility.rpc(false)
