@@ -29,10 +29,14 @@ const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
 @onready var info_label = $ClientUI/VBoxContainer/InfoLabel
 @onready var exit_button = $ClientUI/VBoxContainer/ExitButton
+@onready var is_crazy := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_clicked)
+	if get_tree().has_meta("crazy"):
+		is_crazy = get_tree().get_meta("crazy")
+		print("ISCRAZY:", is_crazy)
 	
 	if init_mp != null and init_slot != null and init_peers != null:
 		get_tree().set_multiplayer(init_mp)
@@ -76,7 +80,7 @@ func _process(_delta: float) -> void:
 	
 func _on_exit_clicked() -> void:
 	request_leave_matchmaking.rpc_id(1)
-	get_tree().change_scene_to_file("res://Menu.tscn")
+	get_tree().change_scene_to_file("res://Scenes/Menu.tscn")
 
 func queue_random_match() -> void:
 	matchmaking_mode = Utils.MatchmakingMode.RANDOM
@@ -115,6 +119,7 @@ func _on_peer_disconnected(peer: int):
 	print("peer disconnected: %d" % peer)
 	if multiplayer.is_server():
 		_remove_from_random_queue(peer)
+		_remove_from_crazy_queue(peer)
 		_remove_from_private_room(peer, true)
 
 func _on_server_disconnected():
@@ -149,7 +154,10 @@ func _request_selected_matchmaking() -> void:
 		Utils.MatchmakingMode.PRIVATE_JOIN:
 			request_join_private_room.rpc(pending_room_code)
 		_:
-			enter_random_regular_queue.rpc()
+			if is_crazy:
+				enter_random_crazy_queue.rpc()
+			else:
+				enter_random_regular_queue.rpc()
 	$ClientUI.show()
 
 @rpc("any_peer")
@@ -168,15 +176,11 @@ func enter_random_crazy_queue():
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
+	_remove_from_private_room(sender_id, false)
+	if crazy_queue.has(sender_id):
+		return
 	crazy_queue.append(sender_id)
-	if crazy_queue.size() >= 2:
-		var first = crazy_queue.pop_front()
-		var second = crazy_queue.pop_front()
-		var game = spawn_new_crazy_game()
-		send_to_game.rpc_id(first, game.lobby_slot, [first, second], true)
-		send_to_game.rpc_id(second, game.lobby_slot, [first, second], true)
-		game.connected_peers = [first, second]
-		game.start_game()
+	_try_match_crazy_queue()
 
 @rpc("any_peer")
 func request_create_private_room():
@@ -199,6 +203,7 @@ func request_join_private_room(code: String):
 	var normalized_code := _normalize_room_code(code)
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, false)
+	_remove_from_crazy_queue(sender_id)
 
 	if normalized_code.is_empty():
 		private_room_join_failed.rpc_id(sender_id, "Room code is empty.")
@@ -242,6 +247,7 @@ func request_leave_matchmaking():
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, true)
+	_remove_from_crazy_queue(sender_id)
 
 @rpc("authority", "call_remote", "reliable")
 func private_room_created(code: String):
@@ -281,11 +287,21 @@ func _try_match_random_queue() -> void:
 		var first = regular_queue.pop_front()
 		var second = regular_queue.pop_front()
 		_start_game_for_peers([first, second])
+		
+func _try_match_crazy_queue() -> void:
+	while crazy_queue.size() >= 2:
+		var first = crazy_queue.pop_front()
+		var second = crazy_queue.pop_front()
+		_start_game_for_peers([first, second])
 
 func _start_game_for_peers(peers: Array) -> void:
-	var game = spawn_new_regular_game()
+	var game
+	if is_crazy:
+		game = spawn_new_crazy_game()
+	else:
+		game = spawn_new_regular_game()
 	for peer_id in peers:
-		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers)
+		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers, is_crazy)
 	game.connected_peers = peers
 	game.start_game()
 
@@ -293,6 +309,10 @@ func _remove_from_random_queue(peer_id: int) -> void:
 	while regular_queue.has(peer_id):
 		regular_queue.erase(peer_id)
 
+func _remove_from_crazy_queue(peer_id: int) -> void:
+	while crazy_queue.has(peer_id):
+		crazy_queue.erase(peer_id)
+		
 func _remove_from_private_room(peer_id: int, notify_other: bool) -> void:
 	if not room_by_peer.has(peer_id):
 		return

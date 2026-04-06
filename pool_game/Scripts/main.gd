@@ -55,8 +55,7 @@ const ball_shape = preload("res://ball_shape.tres")
 func _ready() -> void:
 	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
 	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
-	print(crazy)
-	print("MAIN READY PATH:", get_path(), "CRAZY:", crazy)
+	print("MAIN READY PATH:", get_path(), "\nCRAZY:", crazy)
 	if init_peer != null:
 		multiplayer.multiplayer_peer = init_peer
 	

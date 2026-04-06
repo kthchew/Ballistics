@@ -154,16 +154,14 @@ func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Ve
 		obj.freeze = false
 
 	if power_type == "Object":
-		obj.collision_layer = 1 << 2
-		obj.collision_mask = (1 << 0) | (1 << 2)
+		obj.collision_layer = (1 << 2) | (1 << 3)
+		obj.collision_mask = (1 << 0) | (1 << 2) | (1 << 3)
 		game_root.objects += 1
 
 	return obj
 
 @rpc("any_peer", "reliable")
 func rpc_spawn_power(power_type: String, pName: String, pos: Vector3, rot: Vector3):
-	if multiplayer.is_server():
-		return
 	_spawn_power_local(power_type, pName, pos, rot)
 
 func _get_node_by_global_path(path: String) -> Node:
@@ -198,8 +196,6 @@ func _apply_modifier(pName: String, modified_path: String) -> void:
 
 @rpc("any_peer", "reliable")
 func rpc_apply_modifier(pName: String, modified_path: String) -> void:
-	if multiplayer.is_server():
-		return
 	_apply_modifier(pName, modified_path)
 
 @rpc("any_peer", "reliable")
