@@ -62,7 +62,7 @@ func _ready() -> void:
 	
 	aim_visuals.hide()
 	
-	$UI/AimInputRegion.aim_changed.connect(_on_aim_changed.rpc)
+	$UI/AimInputRegion.aim_changed.connect(_on_aim_input)
 	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
@@ -181,12 +181,7 @@ func _on_ball_sunk(ball):
 				money[1 - player_ind] += 10
 			elif ball.is_stripe() and player_ind != solids_player:
 				money[1 - player_ind] += 10
-			
-@rpc
-func set_aim_guide_visibility(new_is_visible: bool) -> void:
-	aim_guide.visible = new_is_visible
 	
-@rpc
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
@@ -241,7 +236,6 @@ func start_game() -> void:
 	set_visibility.rpc_id(connected_peers[1])
 	
 	aim_visuals.hide()
-	set_aim_guide_visibility.rpc(false)
 	cue_stick.hide()
 	hole_buttons.hide()
 	
@@ -265,43 +259,54 @@ func start_game() -> void:
 	
 	ball_manager.start_game()
 			
-
-@rpc("any_peer", "reliable")
-func _on_aim_changed(touch_pos: Vector2):
-	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
-		return
-	if game_state == GameState.MIDTURN or game_state == GameState.PICKPOCKET or game_state == GameState.ENDED:
+func _on_aim_input(touch_pos: Vector2):
+	if not is_your_turn():
 		return
 	if game_state == GameState.PLACING:
-		var ray_origin = camera.project_ray_origin(touch_pos)
-		var ray_normal = camera.project_ray_normal(touch_pos)
-		var drop_plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
+		var ray_origin: Vector3 = camera.project_ray_origin(touch_pos)
+		var ray_normal: Vector3 = camera.project_ray_normal(touch_pos)
+		var drop_plane: Plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		ball_manager.reset_cue_ball(intersection)
-		start_round()
+		if intersection == null:
+			return
+		_on_place_cue_ball.rpc_id(1, intersection)
+	elif game_state == GameState.AIMING:
+		# calculate difference between cue ball position and touch pos, use that to set cue stick angle
+		# this is done so that the vector provided to the server is consistent even if the window's size or aspect ratio is different
+		var ball_center_3d = ball_manager.get_cue_ball_global_pos()
+		var ball_screen_pos: Vector2 = camera.unproject_position(ball_center_3d)
+		var dir: Vector2 = ball_screen_pos - touch_pos
+		if dir.length() >= 20:
+			var other_peer = connected_peers[1 - player_ind]
+			_on_aim_changed(dir)
+			cast_aim_ray(dir.normalized())
+			aim_visuals.show()
+			aim_guide.show()
+			_on_aim_changed.rpc_id(1, dir)
+			_on_aim_changed.rpc_id(other_peer, dir)
+
+@rpc("any_peer")
+func _on_place_cue_ball(place_global_pos: Vector3):
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PLACING:
+		return
+	ball_manager.reset_cue_ball(place_global_pos)
+	start_round()
+
+@rpc("any_peer", "reliable")
+func _on_aim_changed(dir_from_cue: Vector2):
+	if (multiplayer.get_remote_sender_id() != 0 and connected_peers[player_ind] != multiplayer.get_remote_sender_id()) or game_state != GameState.AIMING:
 		return
 
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
-	var ball_screen_pos = camera.unproject_position(ball_center_3d)
-	var dir = ball_screen_pos - touch_pos
 	
-	if dir.length() < 20 or ball_manager.check_cue_ball_potted_by_pos():
+	if dir_from_cue.length() < 20 or ball_manager.check_cue_ball_potted_by_pos():
 		return
 	has_aimed = true
-	var angle = dir.angle()
-	var dir_norm = dir.normalized()
-	cast_aim_ray.rpc_id(multiplayer.get_remote_sender_id(), dir_norm)
 
-	var ball_edge_3d = ball_center_3d + Vector3(5, 0, 0)
-	var center_screen = camera.unproject_position(ball_center_3d)
-	var edge_screen = camera.unproject_position(ball_edge_3d)
-	var ball_radius_px = (edge_screen - center_screen).length()
-	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
+	var angle: float = dir_from_cue.angle()
 	
 	cue_stick.update_position(ball_center_3d)
 	cue_stick.set_angle(angle)
-	aim_visuals.show()
-	set_aim_guide_visibility.rpc_id(connected_peers[player_ind], true)
 	cue_stick.show()
 
 @rpc("any_peer", "reliable")
@@ -340,6 +345,7 @@ func sway_light(amount: float, duration: float) -> void:
 func _on_fire_pressed():
 	_on_force_changed.rpc_id(1, slider.value)
 	fire_cue.rpc_id(1)
+	aim_guide.hide()
 	
 	has_aimed = false
 	slider.value = 0
@@ -376,7 +382,7 @@ func fire_cue():
 		.set_ease(Tween.EASE_IN_OUT)
 	tween.tween_callback(func():
 		aim_visuals.hide()
-		set_aim_guide_visibility.rpc_id(connected_peers[player_ind], false)
+		aim_guide.hide()
 		cue_stick.hide()
 		cue_stick.striking = false
 		ball_manager.hit_cue_ball(force, offset_3d)
@@ -510,6 +516,11 @@ func _process(delta: float) -> void:
 	if $pUI and $pUI.visible:
 		update_powerup_shop()
 
+func is_your_turn() -> bool:
+	if connected_peers and connected_peers.size() > player_ind:
+		return connected_peers[player_ind] == multiplayer.get_unique_id()
+	return false
+	
 func fill_debug_label() -> void:
 	var label_txt = "Static Ticks: " + str(cur_static_ticks)
 	
@@ -543,9 +554,6 @@ func is_local_cashout_owner() -> bool:
 	return get_cashout_owner_peer_id() == multiplayer.get_unique_id()
 
 func fill_info_label() -> void:
-	var is_your_turn := false
-	if connected_peers and connected_peers.size() > player_ind:
-		is_your_turn = connected_peers[player_ind] == multiplayer.get_unique_id()
 	info_label.text = ""
 	if game_state == GameState.NOT_STARTED:
 		info_label.text = "Currently waiting for enough players..."
@@ -559,7 +567,7 @@ func fill_info_label() -> void:
 	if game_state != GameState.MIDTURN and game_state != GameState.ENDED and game_state != GameState.NOT_STARTED:
 		if multiplayer.is_server():
 			info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
-		elif is_your_turn:
+		elif is_your_turn():
 			info_label.text += "Your turn.\n"
 		else:
 			info_label.text += "Opponent's turn.\n"
@@ -568,7 +576,8 @@ func fill_info_label() -> void:
 				info_label.text += "You are solids\n"
 			else:
 				info_label.text += "You are stripes\n"
-	if is_your_turn:
+	
+	if is_your_turn():
 		if game_state == GameState.PICKPOCKET:
 			info_label.text += "Pick your target pocket for the 8-ball\n"
 		if game_state == GameState.PLACING:

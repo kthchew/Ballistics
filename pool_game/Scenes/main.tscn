@@ -34,45 +34,6 @@ font_size = 18
 [sub_resource type="LabelSettings" id="LabelSettings_5vw27"]
 font_size = 24
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
-texture = ExtResource("3_fevyy")
-texture_margin_left = 40.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg77c"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ycdy4"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w48qg"]
-bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 100
-corner_radius_top_right = 100
-corner_radius_bottom_right = 100
-corner_radius_bottom_left = 100
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_efxa6"]
-bg_color = Color(1, 1, 1, 0.92156863)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.92, 0.58, 0.22, 1)
-corner_radius_top_left = 100
-corner_radius_top_right = 100
-corner_radius_bottom_right = 100
-corner_radius_bottom_left = 100
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dg77c"]
-bg_color = Color(1, 0.58, 0.2, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.6, 0.16, 0.04, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_82xsv"]
 content_margin_left = 10.0
 content_margin_top = 10.0
@@ -165,6 +126,45 @@ corner_radius_top_right = 100
 corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg77c"]
+texture = ExtResource("3_fevyy")
+texture_margin_left = 40.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dg77c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ycdy4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w48qg"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_efxa6"]
+bg_color = Color(1, 1, 1, 0.92156863)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.92, 0.58, 0.22, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dg77c"]
+bg_color = Color(1, 0.58, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.16, 0.04, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cegan"]
 bg_color = Color(0.06, 0.05, 0.04, 0.94)
 border_width_left = 2
@@ -241,15 +241,12 @@ properties/11/replication_mode = 2
 properties/12/path = NodePath("UI/AimVisuals/CueStick:rotation")
 properties/12/spawn = true
 properties/12/replication_mode = 2
-properties/13/path = NodePath("UI/AimVisuals:visible")
+properties/13/path = NodePath(".:money")
 properties/13/spawn = true
 properties/13/replication_mode = 2
-properties/14/path = NodePath(".:money")
+properties/14/path = NodePath("BallManager:balls_sunk")
 properties/14/spawn = true
-properties/14/replication_mode = 2
-properties/15/path = NodePath("BallManager:balls_sunk")
-properties/15/spawn = true
-properties/15/replication_mode = 1
+properties/14/replication_mode = 1
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_h1bgf")
@@ -277,10 +274,14 @@ offset_bottom = 84.0
 label_settings = SubResource("LabelSettings_h2yge")
 
 [node name="InfoLabel" type="Label" parent="LabelLayer" unique_id=920015048]
-offset_left = 855.0
-offset_top = 24.0
-offset_right = 1045.0
-offset_bottom = 112.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -96.0
+offset_top = 26.0
+offset_right = 94.0
+offset_bottom = 114.0
+grow_horizontal = 2
 label_settings = SubResource("LabelSettings_5vw27")
 horizontal_alignment = 1
 
@@ -297,6 +298,39 @@ offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_b3802")
+
+[node name="FireButton" type="Button" parent="UI" unique_id=961744578]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -150.0
+offset_right = -120.0
+offset_bottom = -50.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = ExtResource("6_ee4r6")
+theme_override_styles/normal = SubResource("StyleBoxFlat_82xsv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_getpj")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ryguw")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_d13ii")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_1u8w0")
+
+[node name="Background" type="Panel" parent="UI/FireButton" unique_id=1662154618]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -100.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 
 [node name="ForceSlider" type="VSlider" parent="UI" unique_id=184144014]
 anchors_preset = -1
@@ -364,48 +398,16 @@ offset_bottom = 5.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_dg77c")
 
-[node name="FireButton" type="Button" parent="UI" unique_id=961744578]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -220.0
-offset_top = -150.0
-offset_right = -120.0
-offset_bottom = -50.0
-grow_horizontal = 0
-grow_vertical = 0
-theme = ExtResource("6_ee4r6")
-theme_override_styles/normal = SubResource("StyleBoxFlat_82xsv")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_getpj")
-theme_override_styles/hover = SubResource("StyleBoxFlat_ryguw")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_d13ii")
-theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_1u8w0")
-
-[node name="Background" type="Panel" parent="UI/FireButton" unique_id=1662154618]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -100.0
-grow_horizontal = 0
-grow_vertical = 0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
-
 [node name="ResetButton" type="Button" parent="UI" unique_id=1937985300]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -193.0
-offset_top = 40.0
-offset_right = -40.0
-offset_bottom = 112.0
+offset_left = -185.0
+offset_top = 32.0
+offset_right = -32.0
+offset_bottom = 104.0
 grow_horizontal = 0
+theme = ExtResource("6_ee4r6")
 text = "Request Reset"
 
 [node name="ResetRequestedLabel" type="Label" parent="UI/ResetButton" unique_id=556853298]
