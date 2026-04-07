@@ -92,7 +92,7 @@ func is_stripe():
 
 func _on_body_entered(body: Node) -> void:
 	# print("Collision with cue ball: " + body.name)
-	if self.name.contains("Cue") and first_hit_ball_num <= 0 and body.name.contains("Ball"):
+	if self.is_cue_ball() and first_hit_ball_num <= 0 and body.name.contains("Ball"):
 		first_hit_ball_num = body.ball_num
 		first_hit_ball_changed.emit()
 
