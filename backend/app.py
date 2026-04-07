@@ -294,6 +294,26 @@ def remove_game_invite():
         return "Game invite removed", 200
     return "Failed to remove game invite", 500
 
+
+@app.post("/gameInvites/cancel")
+def cancel_sent_game_invite():
+    if 'username' not in session:
+        return "Unauthorized", 401
+    json_data = request.get_json()
+    if 'to_user' not in json_data or 'room_code' not in json_data:
+        return "Bad request", 400
+
+    to_user_name = json_data['to_user']
+    room_code = json_data['room_code']
+    from_user_id = accounts.username_to_id(session['username'])
+    if from_user_id is None:
+        return "User not found", 401
+
+    removed = accounts.cancel_sent_game_invite(from_user_id, to_user_name, room_code)
+    if removed:
+        return "Game invite cancelled", 200
+    return "Game invite was already cleared", 200
+
 # FIXME: anything below this should be restricted to requests from a trusted Godot game server
 @app.post("/updateGame")
 def update_game_state():

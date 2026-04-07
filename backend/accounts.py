@@ -166,6 +166,22 @@ def remove_game_invite(to_user_id: ObjectId, from_user_id: ObjectId, room_code: 
     )
     return result.modified_count > 0
 
+def cancel_sent_game_invite(from_user_id: ObjectId, to_user_name: str, room_code: str) -> bool:
+    users_collection = database.db['users']
+    to_user = users_collection.find_one({'username': to_user_name})
+    if to_user is None:
+        return False
+
+    normalized_room_code = room_code.strip().upper()
+    result = users_collection.update_one(
+        {'_id': to_user['_id']},
+        {'$pull': {'game_invites': {
+            'from_user': from_user_id,
+            'room_code': normalized_room_code
+        }}}
+    )
+    return result.modified_count > 0
+
 def accept_friend_request(to_user_id: ObjectId, from_user_id: ObjectId) -> bool:
     users_collection = database.db['users']
     result = users_collection.update_one(

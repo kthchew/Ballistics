@@ -18,15 +18,26 @@ var init_peers = null
 
 var config := ConfigFile.new()
 const CONFIG_PATH := "user://settings.cfg"
+const FRIEND_JOIN_RETRY_MAX := 3
 
 @export var matchmaking_mode = Utils.MatchmakingMode.RANDOM_NORMAL
 @export var pending_room_code := ""
+@export var suppress_private_room_code_display := false
+@export var created_via_friends_menu := false
+@export var friend_invite_target := ""
+@export var joined_via_friend_invite := false
+@export var pending_friend_invite_from_user := ""
+
+var friend_invite_sent := false
+var friend_invite_room_code := ""
+var friend_join_retry_count := 0
 
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
 const reg_game_scene = preload("res://Scenes/main.tscn")
 const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
+@onready var backend_requests = $BackendRequests
 @onready var title_label = $ClientUI/VBoxContainer/TitleLabel
 @onready var info_label = $ClientUI/VBoxContainer/InfoLabel
 @onready var exit_button = $ClientUI/VBoxContainer/ExitButton
@@ -76,8 +87,69 @@ func _process(_delta: float) -> void:
 	pass
 	
 func _on_exit_clicked() -> void:
+	await _cancel_pending_friend_invite_if_needed()
 	request_leave_matchmaking.rpc_id(1)
 	get_tree().change_scene_to_file("res://Scenes/Menu.tscn")
+
+func _response_text(response: Dictionary, fallback: String) -> String:
+	if "result" in response:
+		var body := str(response["result"]).strip_edges()
+		if body != "":
+			return body
+	if "error" in response:
+		return str(response["error"])
+	return fallback
+
+func _cancel_pending_friend_invite_if_needed() -> void:
+	if not created_via_friends_menu:
+		return
+	if not friend_invite_sent:
+		return
+	if friend_invite_target.strip_edges().is_empty() or friend_invite_room_code.strip_edges().is_empty():
+		return
+	await backend_requests.cancel_game_invite(friend_invite_target, friend_invite_room_code)
+	friend_invite_sent = false
+
+func _send_friend_invite_after_room_created(code: String) -> void:
+	if not created_via_friends_menu:
+		return
+	if friend_invite_target.strip_edges().is_empty():
+		info_label.text = "No friend selected for invite."
+		return
+	if friend_invite_sent:
+		return
+		
+	var response: Dictionary = await backend_requests.send_game_invite(friend_invite_target, code)
+	if int(response.get("response_code", 0)) == 200:
+		friend_invite_sent = true
+		friend_invite_room_code = code
+		info_label.text = "Invite sent to %s. Waiting for friend..." % friend_invite_target
+		return
+	info_label.text = _response_text(response, "Failed to send friend invite.")
+
+# TODO: do this from the server side so that a disconnected or crashed client won't cause the invite to be left behind
+func _consume_joined_friend_invite_if_needed() -> void:
+	if not joined_via_friend_invite:
+		return
+	if pending_friend_invite_from_user.strip_edges().is_empty() or pending_room_code.strip_edges().is_empty():
+		return
+	await backend_requests.remove_game_invite(pending_friend_invite_from_user, pending_room_code)
+
+func _retry_or_expire_friend_join(reason: String) -> bool:
+	if not joined_via_friend_invite:
+		return false
+	var lowered := reason.to_lower()
+	if lowered.find("not found") == -1:
+		return false
+	if friend_join_retry_count < FRIEND_JOIN_RETRY_MAX:
+		friend_join_retry_count += 1
+		info_label.text = "Invite not ready yet. Retrying (%d/%d)..." % [friend_join_retry_count, FRIEND_JOIN_RETRY_MAX]
+		await get_tree().create_timer(1.0).timeout
+		request_join_private_room.rpc(pending_room_code)
+		return true
+	await _consume_joined_friend_invite_if_needed()
+	info_label.text = "Invite expired or host left."
+	return true
 
 func queue_random_match() -> void:
 	matchmaking_mode = Utils.MatchmakingMode.RANDOM_NORMAL
@@ -293,17 +365,28 @@ func request_leave_matchmaking():
 @rpc("authority", "call_remote", "reliable")
 func private_room_created(code: String):
 	print("Private room created: %s" % code)
-	title_label.text = "Waiting for opponent..."
-	info_label.text = "Room code: %s" % code
+	if suppress_private_room_code_display:
+		title_label.text = "Waiting for opponent..."
+		info_label.text = "Creating invite..."
+	else:
+		title_label.text = "Waiting for opponent..."
+		info_label.text = "Room code: %s" % code
+	await _send_friend_invite_after_room_created(code)
 	emit_signal("private_room_code_ready", code)
 
 @rpc("authority", "call_remote", "reliable")
 func private_room_joined(code: String):
 	print("Joined room: %s" % code)
+	if created_via_friends_menu and code == friend_invite_room_code:
+		friend_invite_sent = false
+	if joined_via_friend_invite:
+		await _consume_joined_friend_invite_if_needed()
 
 @rpc("authority", "call_remote", "reliable")
 func private_room_join_failed(reason: String):
 	print("Private room join failed: %s" % reason)
+	if await _retry_or_expire_friend_join(reason):
+		return
 	info_label.text = "Private room join failed: %s" % reason
 	emit_signal("private_room_error", reason)
 

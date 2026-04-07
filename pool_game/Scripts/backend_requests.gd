@@ -176,6 +176,13 @@ func remove_game_invite(from_user: String, room_code: String) -> Dictionary:
 		HTTPClient.METHOD_POST,
 		{"from_user": from_user, "room_code": room_code}
 	)
+
+func cancel_game_invite(to_user: String, room_code: String) -> Dictionary:
+	return await _make_request(
+		BACKEND_URL + "/gameInvites/cancel",
+		HTTPClient.METHOD_POST,
+		{"to_user": to_user, "room_code": room_code}
+	)
 	
 func profile_test_endpoint() -> Dictionary:
 	var url: String = BACKEND_URL + "/profile"

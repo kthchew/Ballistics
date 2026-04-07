@@ -5,6 +5,8 @@ const MP_LOBBY_SCENE: PackedScene = preload("res://Scenes/mp_lobby.tscn")
 var friends: Array = []
 var friend_requests: Array = []
 var game_invites: Array = []
+var is_refreshing_lists := false
+var poll_timer: Timer
 
 @onready var backend := $BackendRequests
 @onready var auth_panel := $AuthPanel
@@ -38,11 +40,22 @@ func _ready() -> void:
 	$LoggedInPanel/Content/RequestActions/AcceptInviteButton.pressed.connect(_on_accept_game_invite_pressed)
 	$LoggedInPanel/Content/RequestActions/DismissInviteButton.pressed.connect(_on_dismiss_game_invite_pressed)
 
+	poll_timer = Timer.new()
+	poll_timer.wait_time = 5.0
+	poll_timer.one_shot = false
+	poll_timer.autostart = false
+	add_child(poll_timer)
+	poll_timer.timeout.connect(_on_poll_timeout)
+
 	_refresh_session_view()
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_VISIBILITY_CHANGED and visible:
-		_refresh_session_view()
+	if what == NOTIFICATION_VISIBILITY_CHANGED:
+		if visible:
+			_refresh_session_view()
+		else:
+			if poll_timer != null:
+				poll_timer.stop()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -54,6 +67,8 @@ func _refresh_session_view() -> void:
 	var is_logged_in := bool(session_state.get("logged_in", false))
 	if is_logged_in:
 		_show_logged_in(str(session_state.get("username", "")))
+		if poll_timer != null and poll_timer.is_stopped():
+			poll_timer.start()
 		await _refresh_lists()
 	else:
 		_show_auth()
@@ -61,6 +76,8 @@ func _refresh_session_view() -> void:
 func _show_auth() -> void:
 	auth_panel.show()
 	logged_in_panel.hide()
+	if poll_timer != null:
+		poll_timer.stop()
 	auth_status_label.text = ""
 	status_label.text = ""
 
@@ -70,29 +87,62 @@ func _show_logged_in(username: String) -> void:
 	username_label.text = username
 
 func _refresh_lists() -> void:
+	if is_refreshing_lists:
+		return
+	is_refreshing_lists = true
 	friends = await backend.get_friends()
 	friend_requests = await backend.get_friend_requests()
 	game_invites = await backend.get_game_invites()
 	_populate_friends_list()
 	_populate_friend_requests_list()
 	_populate_game_invites_list()
+	is_refreshing_lists = false
+
+func _on_poll_timeout() -> void:
+	if not visible or not logged_in_panel.visible:
+		return
+	await _refresh_lists()
+	
+func _get_selected_items_text(list: ItemList) -> Array:
+	var selected_indexes = list.get_selected_items()
+	var selected_texts = []
+	for idx in selected_indexes:
+		if idx >= 0 and idx < list.get_item_count():
+			selected_texts.append(list.get_item_text(idx))
+	return selected_texts
+	
+func _select_items_by_text(list: ItemList, texts: Array) -> void:
+	for i in range(list.get_item_count()):
+		if list.get_item_text(i) in texts:
+			list.select(i)
 
 func _populate_friends_list() -> void:
+	var selected: Array = _get_selected_items_text(friends_list)
+	
 	friends_list.clear()
 	for friend in friends:
 		friends_list.add_item(str(friend))
+		
+	_select_items_by_text(friends_list, selected)
 
 func _populate_friend_requests_list() -> void:
+	var selected: Array = _get_selected_items_text(friend_requests_list)
+	
 	friend_requests_list.clear()
 	for request in friend_requests:
-		friend_requests_list.add_item("FR: %s" % str(request.get("from_user", "")))
+		friend_requests_list.add_item("Friend Request: %s" % str(request.get("from_user", "")))
+		
+	_select_items_by_text(friend_requests_list, selected)
 
 func _populate_game_invites_list() -> void:
+	var selected: Array = _get_selected_items_text(game_invites_list)
+	
 	game_invites_list.clear()
 	for invite in game_invites:
 		var from_user := str(invite.get("from_user", ""))
-		var room_code := str(invite.get("room_code", ""))
-		game_invites_list.add_item("INV: %s (%s)" % [from_user, room_code])
+		game_invites_list.add_item("Invite: %s" % from_user)
+	
+	_select_items_by_text(game_invites_list, selected)
 
 func _response_text(response: Dictionary, fallback: String) -> String:
 	if "result" in response:
@@ -193,14 +243,12 @@ func _on_invite_friend_pressed() -> void:
 		return
 
 	var room_code := _generate_room_code()
-	var response: Dictionary = await backend.send_game_invite(friend_username, room_code)
-	if int(response.get("response_code", 0)) != 200:
-		status_label.text = _response_text(response, "Failed to send game invite.")
-		return
-
 	var lobby := MP_LOBBY_SCENE.instantiate()
 	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE
 	lobby.pending_room_code = room_code
+	lobby.suppress_private_room_code_display = true
+	lobby.created_via_friends_menu = true
+	lobby.friend_invite_target = friend_username
 	get_tree().change_scene_to_node(lobby)
 
 func _on_accept_friend_request_pressed() -> void:
@@ -237,11 +285,13 @@ func _on_accept_game_invite_pressed() -> void:
 
 	var from_user := str(invite.get("from_user", ""))
 	var room_code := str(invite.get("room_code", ""))
-	await backend.remove_game_invite(from_user, room_code)
 
 	var lobby := MP_LOBBY_SCENE.instantiate()
 	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_JOIN
 	lobby.pending_room_code = room_code
+	lobby.suppress_private_room_code_display = true
+	lobby.joined_via_friend_invite = true
+	lobby.pending_friend_invite_from_user = from_user
 	get_tree().change_scene_to_node(lobby)
 
 func _on_dismiss_game_invite_pressed() -> void:
