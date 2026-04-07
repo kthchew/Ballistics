@@ -2,8 +2,8 @@ extends Control
 
 @export var table_plane_y := 0.0
 var preview: Node3D = null
-var illegalMat
-var legalMat
+var illegalMat: Material
+var legalMat: Material
 var dragging := false
 var owner_peer_id := -1
 
