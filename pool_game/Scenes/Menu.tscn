@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://q787dwlweys4" path="res://Scripts/random_knockout_button.gd" id="9_du1yi"]
 [ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="10_c0stj"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="11_3feh0"]
+[ext_resource type="PackedScene" uid="uid://x10c7um8tidx" path="res://Scenes/settings_screen.tscn" id="11_dsmso"]
 [ext_resource type="PackedScene" uid="uid://l3mdu1f62vct" path="res://Scenes/menu_private_game_panel.tscn" id="11_mnkgh"]
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="12_ksqlk"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="13_vkgky"]
@@ -77,6 +78,32 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="SettingsButton" type="Button" parent="MainMenu/MenuUI" unique_id=369492528]
+layout_mode = 1
+offset_left = 100.0
+offset_top = 100.0
+offset_right = 300.0
+offset_bottom = 180.0
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 32
+text = "Settings"
+script = ExtResource("4_t8p2w")
+
+[node name="ProfileButton" type="Button" parent="MainMenu/MenuUI" unique_id=914265886]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 100.0
+offset_right = -100.0
+offset_bottom = 180.0
+grow_horizontal = 0
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 32
+text = "Profile"
+script = ExtResource("5_krje8")
 
 [node name="Logo" type="ColorRect" parent="MainMenu/MenuUI" unique_id=913635870]
 layout_mode = 1
@@ -183,6 +210,10 @@ theme_override_font_sizes/font_size = 44
 text = "Private Game"
 
 [node name="AccountScreen" parent="MainMenu/MenuUI" unique_id=2040582154 instance=ExtResource("10_c0stj")]
+visible = false
+layout_mode = 1
+
+[node name="SettingsScreen" parent="MainMenu/MenuUI" unique_id=560101118 instance=ExtResource("11_dsmso")]
 visible = false
 layout_mode = 1
 
