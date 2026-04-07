@@ -31,6 +31,7 @@ var init_peer = null
 var has_aimed := false
 # physics defaults to 60 ticks per second
 var cur_static_ticks = 0
+var requesting_reset: Array[bool] = [false, false] # index is player index
 
 
 @export var lobby_slot: int = -1
@@ -115,7 +116,29 @@ func _on_hole_selected(hole_ind: int) -> void:
 	start_round()
 
 func _on_reset_button_pressed() -> void:
-	start_game()
+	reset_request.rpc_id(1)
+	reset_request.rpc_id(connected_peers[0])
+	reset_request.rpc_id(connected_peers[1])
+	
+@rpc("any_peer", "call_local")
+func reset_request() -> void:
+	var sender = multiplayer.get_remote_sender_id()
+	var changer_ind = connected_peers.find(sender) if sender != 0 else connected_peers.find(multiplayer.get_unique_id())
+	var this_ind = connected_peers.find(multiplayer.get_unique_id())
+	
+	requesting_reset[changer_ind] = not requesting_reset[changer_ind]
+	$UI/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
+	
+	if requesting_reset[this_ind]:
+		$UI/ResetButton/ResetRequestedLabel.text = "Requested reset"
+	else:
+		$UI/ResetButton/ResetRequestedLabel.text = "Opponent requested reset"
+	
+	if requesting_reset[0] and requesting_reset[1]:
+		if multiplayer.is_server():
+			start_game()
+		$UI/ResetButton/ResetRequestedLabel.visible = false
+		requesting_reset = [false, false]
 
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
@@ -213,7 +236,9 @@ func set_visibility():
 		$MultiplayerSynchronizer.set_visibility_for(connected_peers[1], true)
 	
 func start_game() -> void:
-	set_visibility.rpc()
+	set_visibility()
+	set_visibility.rpc_id(connected_peers[0])
+	set_visibility.rpc_id(connected_peers[1])
 	
 	aim_visuals.hide()
 	set_aim_guide_visibility.rpc(false)
@@ -235,6 +260,8 @@ func start_game() -> void:
 	round_num = 0
 	play_again = false
 	target_hole = -1
+	
+	requesting_reset = [false, false]
 	
 	ball_manager.start_game()
 			
