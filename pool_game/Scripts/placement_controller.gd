@@ -2,6 +2,8 @@ extends Control
 
 @export var table_plane_y := 0.0
 var preview: Node3D = null
+var illegalMat
+var legalMat
 var dragging := false
 var owner_peer_id := -1
 
@@ -55,9 +57,23 @@ func start_placement(scene: PackedScene):
 	preview = scene.instantiate()
 	preview.visible = true
 	preview_container.add_child(preview)
+	illegalMat = preview.get_node_or_null("MeshInstance3D").get_active_material(0).duplicate()
+	illegalMat.albedo_color = Color(1, 0.3, 0.3)
+	illegalMat.emission_enabled = true
+	illegalMat.emission = Color(1, 0, 0)
+	legalMat = preview.get_node_or_null("MeshInstance3D").get_active_material(0)
 
 	rpc("rpc_spawn_preview", scene.resource_path)
 
+func set_preview_illegal(illegal: bool):
+	var mesh = preview.get_node_or_null("MeshInstance3D")
+	if not mesh:
+		return
+
+	if illegal:
+		mesh.set_surface_override_material(0, illegalMat)
+	else:
+		mesh.set_surface_override_material(0, legalMat)
 @rpc("any_peer", "call_remote")
 func rpc_spawn_preview(scene_path: String):
 	if multiplayer.get_unique_id() == owner_peer_id:
@@ -288,6 +304,7 @@ func _process(delta):
 		if rotated:
 			rpc("rpc_update_preview", preview.global_position, preview.global_rotation)
 
+		set_preview_illegal(not preview.power())
 
 func _on_rotate_left_button_down(): rotating_left = true
 func _on_rotate_left_button_up(): rotating_left = false
