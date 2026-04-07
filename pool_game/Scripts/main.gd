@@ -15,7 +15,7 @@ extends Node3D
 @onready var ball_manager = $BallManager
 @onready var cashout = false
 
-var crazy
+var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
@@ -55,7 +55,7 @@ const ball_shape = preload("res://ball_shape.tres")
 func _ready() -> void:
 	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
 	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
-	print("MAIN READY PATH:", get_path(), "\nCRAZY:", crazy)
+	print("MAIN READY PATH:", get_path(), "\nGAME TYPE:", game_type)
 	if init_peer != null:
 		multiplayer.multiplayer_peer = init_peer
 	
@@ -103,8 +103,8 @@ func calc_dir():
 	return dir
 
 @rpc
-func change_hole_button_visibility(is_visible: bool) -> void:
-	hole_buttons.visible = is_visible
+func change_hole_button_visibility(visible_state: bool) -> void:
+	hole_buttons.visible = visible_state
 
 @rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
@@ -321,10 +321,7 @@ func _on_fire_pressed():
 	
 @rpc("any_peer", "reliable")
 func fire_cue():
-	if not multiplayer.is_server() \
-	   or connected_peers[player_ind] != multiplayer.get_remote_sender_id() \
-	   or game_state != GameState.AIMING \
-	   or not has_aimed:
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.AIMING or not has_aimed:
 		return
 	
 	var dir = calc_dir()
@@ -361,8 +358,8 @@ func fire_cue():
 		shake_camera(0.5, 0.1)
 		sway_light(7, 7)
 	
-func end_game(winner: int) -> void:
-	self.winner = winner
+func end_game(winning_player: int) -> void:
+	self.winner = winning_player
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
 		
@@ -432,7 +429,7 @@ func end_round() -> void:
 		start_round(scratched)
 		return
 	if not scratched and play_again:
-		if solids_player != -1 and crazy:
+		if solids_player != -1 and game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
 			cashout = true
 			cashout_owner_ind = 1 - player_ind
 			set_cashout_owner.rpc(cashout_owner_ind)
@@ -502,7 +499,7 @@ func fill_debug_label() -> void:
 	label_txt += "\nFirst Hit: " + str(ball_manager.cue_ball.first_hit_ball_num)
 	label_txt += "\nFirst Hit Scratch: " + str(ball_manager.first_hit_scratch)
 	
-	if crazy:
+	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
 		label_txt += "\nSolids Crazy Currency: " + str(money[0])
 		label_txt += "\nStripes Crazy Currency: " + str(money[1])
 	debug_label.text = label_txt
