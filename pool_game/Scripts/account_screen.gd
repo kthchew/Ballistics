@@ -20,25 +20,15 @@ var poll_timer: Timer
 
 @onready var username_label := $LoggedInPanel/Content/Header/UsernameLabel
 @onready var friends_list := $LoggedInPanel/Content/FriendsList
-@onready var add_friend_input := $LoggedInPanel/Content/FriendActions/AddFriendInput
-@onready var friend_requests_list := $LoggedInPanel/Content/RequestsRow/FriendRequestsList
-@onready var game_invites_list := $LoggedInPanel/Content/RequestsRow/GameInvitesList
+@onready var add_friend_input := $LoggedInPanel/Content/FriendsListHeader/FriendActions/AddFriendInput
+@onready var friend_requests_list := $LoggedInPanel/Content/RequestsRow/FriendRequests/FriendRequestsList
+@onready var game_invites_list := $LoggedInPanel/Content/RequestsRow/GameInvites/GameInvitesList
 @onready var status_label := $LoggedInPanel/Content/StatusLabel
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	$AuthPanel/AuthActions/ConfirmButton.pressed.connect(_on_confirm_pressed)
 	$AuthPanel/AuthActions/CloseButton.pressed.connect(_on_close_pressed)
-
-	$LoggedInPanel/Content/Header/RefreshButton.pressed.connect(_on_refresh_pressed)
-	$LoggedInPanel/Content/Header/LogoutButton.pressed.connect(_on_logout_pressed)
-	$LoggedInPanel/Content/Header/CloseLoggedInButton.pressed.connect(_on_close_pressed)
-	$LoggedInPanel/Content/FriendActions/AddFriendButton.pressed.connect(_on_add_friend_pressed)
-	$LoggedInPanel/Content/FriendActions/InviteFriendButton.pressed.connect(_on_invite_friend_pressed)
-	$LoggedInPanel/Content/RequestActions/AcceptFriendButton.pressed.connect(_on_accept_friend_request_pressed)
-	$LoggedInPanel/Content/RequestActions/RejectFriendButton.pressed.connect(_on_reject_friend_request_pressed)
-	$LoggedInPanel/Content/RequestActions/AcceptInviteButton.pressed.connect(_on_accept_game_invite_pressed)
-	$LoggedInPanel/Content/RequestActions/DismissInviteButton.pressed.connect(_on_dismiss_game_invite_pressed)
 
 	poll_timer = Timer.new()
 	poll_timer.wait_time = 5.0
@@ -236,7 +226,13 @@ func _on_add_friend_pressed() -> void:
 	else:
 		status_label.text = _response_text(response, "Could not send friend request.")
 
-func _on_invite_friend_pressed() -> void:
+func _on_invite_friend_standard_pressed() -> void:
+	_invite_friend(Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE)
+
+func _on_invite_friend_crazy_pressed() -> void:
+	_invite_friend(Utils.MatchmakingMode.PRIVATE_CRAZY_CREATE)
+
+func _invite_friend(matchmaking_mode: Utils.MatchmakingMode) -> void:
 	var friend_username := _selected_friend()
 	if friend_username == "":
 		status_label.text = "Select a friend to invite."
@@ -244,7 +240,7 @@ func _on_invite_friend_pressed() -> void:
 
 	var room_code := _generate_room_code()
 	var lobby := MP_LOBBY_SCENE.instantiate()
-	lobby.matchmaking_mode = Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE
+	lobby.matchmaking_mode = matchmaking_mode
 	lobby.pending_room_code = room_code
 	lobby.suppress_private_room_code_display = true
 	lobby.created_via_friends_menu = true

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://d0d0lrt7qvjg0"]
 
-[ext_resource type="Script" uid="uid://bvipluoafwnpi" path="res://Scripts/account_screen.gd" id="1_6a4oh"]
-[ext_resource type="Script" uid="uid://btadexg7mlppa" path="res://Scripts/backend_requests.gd" id="2_5ntkm"]
+[ext_resource type="Script" uid="uid://dhtv2v1konkqv" path="res://Scripts/account_screen.gd" id="1_6a4oh"]
+[ext_resource type="Script" uid="uid://br1i5yrq1rkte" path="res://Scripts/backend_requests.gd" id="2_5ntkm"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="3_qh2xj"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_mnkgh"]
@@ -152,6 +152,33 @@ theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 30
 text = "Back"
 
+[node name="FriendsListHeader" type="HBoxContainer" parent="LoggedInPanel/Content" unique_id=895884662]
+layout_mode = 2
+theme_override_constants/separation = 512
+
+[node name="FriendsListLabel" type="Label" parent="LoggedInPanel/Content/FriendsListHeader" unique_id=1569698605]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Friends"
+
+[node name="FriendActions" type="HBoxContainer" parent="LoggedInPanel/Content/FriendsListHeader" unique_id=1573397178]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="AddFriendInput" type="LineEdit" parent="LoggedInPanel/Content/FriendsListHeader/FriendActions" unique_id=903554885]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("3_qh2xj")
+theme_override_font_sizes/font_size = 28
+placeholder_text = "Friend username"
+
+[node name="AddFriendButton" type="Button" parent="LoggedInPanel/Content/FriendsListHeader/FriendActions" unique_id=1342250803]
+layout_mode = 2
+theme = ExtResource("3_qh2xj")
+theme_override_font_sizes/font_size = 28
+text = "Add Friend"
+
 [node name="FriendsList" type="ItemList" parent="LoggedInPanel/Content" unique_id=1817270510]
 custom_minimum_size = Vector2(0, 260)
 layout_mode = 2
@@ -159,35 +186,42 @@ size_flags_vertical = 3
 theme_override_font_sizes/font_size = 30
 allow_reselect = true
 
-[node name="FriendActions" type="HBoxContainer" parent="LoggedInPanel/Content" unique_id=1573397178]
+[node name="FriendChallenge" type="HBoxContainer" parent="LoggedInPanel/Content" unique_id=74806369]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="InviteFriendButton" type="Button" parent="LoggedInPanel/Content/FriendActions" unique_id=282813853]
+[node name="ChallengeLabel" type="Label" parent="LoggedInPanel/Content/FriendChallenge" unique_id=1358089630]
 layout_mode = 2
-theme = ExtResource("3_qh2xj")
-theme_override_font_sizes/font_size = 28
-text = "Invite Selected Friend"
+theme_override_font_sizes/font_size = 22
+text = "Challenge selected friend to: "
 
-[node name="AddFriendInput" type="LineEdit" parent="LoggedInPanel/Content/FriendActions" unique_id=903554885]
+[node name="InviteFriendStandardButton" type="Button" parent="LoggedInPanel/Content/FriendChallenge" unique_id=1697484394]
 layout_mode = 2
-size_flags_horizontal = 3
 theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 28
-placeholder_text = "Friend username"
+text = "Standard Pool"
 
-[node name="AddFriendButton" type="Button" parent="LoggedInPanel/Content/FriendActions" unique_id=1342250803]
+[node name="InviteFriendCrazyButton" type="Button" parent="LoggedInPanel/Content/FriendChallenge" unique_id=2144037986]
 layout_mode = 2
 theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 28
-text = "Add Friend"
+text = "Crazy Pool"
 
 [node name="RequestsRow" type="HBoxContainer" parent="LoggedInPanel/Content" unique_id=1028442448]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="FriendRequestsList" type="ItemList" parent="LoggedInPanel/Content/RequestsRow" unique_id=575034786]
+[node name="FriendRequests" type="VBoxContainer" parent="LoggedInPanel/Content/RequestsRow" unique_id=539279358]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FriendRequestsLabel" type="Label" parent="LoggedInPanel/Content/RequestsRow/FriendRequests" unique_id=691414997]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Friend Requests"
+
+[node name="FriendRequestsList" type="ItemList" parent="LoggedInPanel/Content/RequestsRow/FriendRequests" unique_id=575034786]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -195,37 +229,50 @@ size_flags_vertical = 3
 theme_override_font_sizes/font_size = 24
 allow_reselect = true
 
-[node name="GameInvitesList" type="ItemList" parent="LoggedInPanel/Content/RequestsRow" unique_id=1872220666]
-custom_minimum_size = Vector2(0, 200)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_font_sizes/font_size = 24
-allow_reselect = true
-
-[node name="RequestActions" type="HBoxContainer" parent="LoggedInPanel/Content" unique_id=1061427683]
+[node name="RequestActions" type="HBoxContainer" parent="LoggedInPanel/Content/RequestsRow/FriendRequests" unique_id=1061427683]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="AcceptFriendButton" type="Button" parent="LoggedInPanel/Content/RequestActions" unique_id=2086748146]
+[node name="AcceptFriendButton" type="Button" parent="LoggedInPanel/Content/RequestsRow/FriendRequests/RequestActions" unique_id=2086748146]
 layout_mode = 2
 theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 24
 text = "Accept Friend Request"
 
-[node name="RejectFriendButton" type="Button" parent="LoggedInPanel/Content/RequestActions" unique_id=206113786]
+[node name="RejectFriendButton" type="Button" parent="LoggedInPanel/Content/RequestsRow/FriendRequests/RequestActions" unique_id=206113786]
 layout_mode = 2
 theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 24
 text = "Reject Friend Request"
 
-[node name="AcceptInviteButton" type="Button" parent="LoggedInPanel/Content/RequestActions" unique_id=1796493877]
+[node name="GameInvites" type="VBoxContainer" parent="LoggedInPanel/Content/RequestsRow" unique_id=1992038081]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GameInvitesLabel" type="Label" parent="LoggedInPanel/Content/RequestsRow/GameInvites" unique_id=1300831554]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Game Invites"
+
+[node name="GameInvitesList" type="ItemList" parent="LoggedInPanel/Content/RequestsRow/GameInvites" unique_id=1872220666]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 24
+allow_reselect = true
+
+[node name="InviteActions" type="HBoxContainer" parent="LoggedInPanel/Content/RequestsRow/GameInvites" unique_id=753771113]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="AcceptInviteButton" type="Button" parent="LoggedInPanel/Content/RequestsRow/GameInvites/InviteActions" unique_id=23199502]
 layout_mode = 2
 theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 24
 text = "Join Game Invite"
 
-[node name="DismissInviteButton" type="Button" parent="LoggedInPanel/Content/RequestActions" unique_id=214030697]
+[node name="DismissInviteButton" type="Button" parent="LoggedInPanel/Content/RequestsRow/GameInvites/InviteActions" unique_id=2060067067]
 layout_mode = 2
 theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 24
@@ -234,3 +281,14 @@ text = "Dismiss Invite"
 [node name="StatusLabel" type="Label" parent="LoggedInPanel/Content" unique_id=861583094]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
+
+[connection signal="pressed" from="LoggedInPanel/Content/Header/RefreshButton" to="." method="_on_refresh_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/Header/LogoutButton" to="." method="_on_logout_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/Header/CloseLoggedInButton" to="." method="_on_close_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/FriendsListHeader/FriendActions/AddFriendButton" to="." method="_on_add_friend_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/FriendChallenge/InviteFriendStandardButton" to="." method="_on_invite_friend_standard_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/FriendChallenge/InviteFriendCrazyButton" to="." method="_on_invite_friend_crazy_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/RequestsRow/FriendRequests/RequestActions/AcceptFriendButton" to="." method="_on_accept_friend_request_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/RequestsRow/FriendRequests/RequestActions/RejectFriendButton" to="." method="_on_reject_friend_request_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/RequestsRow/GameInvites/InviteActions/AcceptInviteButton" to="." method="_on_accept_game_invite_pressed"]
+[connection signal="pressed" from="LoggedInPanel/Content/RequestsRow/GameInvites/InviteActions/DismissInviteButton" to="." method="_on_dismiss_game_invite_pressed"]
