@@ -129,11 +129,6 @@ func rpc_update_preview(pos: Vector3, rot: Vector3):
 		preview.global_position = pos
 		preview.global_rotation = rot
 
-func _get_node_by_global_path(path: String) -> Node:
-	if path == "":
-		return null
-	return get_tree().get_root().get_node_or_null(path)
-
 func _on_place_button_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
@@ -144,31 +139,40 @@ func _on_place_button_pressed():
 	for name in ["Power1", "Power2", "Power3"]:
 		var path = "../Panel/HBoxContainer/%s" % name
 		var button = get_node(path)
-
 		if button.get_meta("power_name") == power_name:
 			power_cost = button.get_meta("power_cost")
 			break
+
 	if power_cost <= 0:
 		return
 	if not game_root or not game_root.purchase_power(power_name, power_cost):
 		return
 
-	var target_path := ""
-	if preview.power_type == "Modifier":
-		var area = preview.get_node_or_null("Area3D")
-		if area:
-			var overlaps = area.get_overlapping_areas()
-			if overlaps.size() == 1:
-				target_path = overlaps[0].get_parent().get_path()
+	if not preview.canPlace():
+		return
 
-	request_place_power.rpc(
-		preview.power_type,
-		preview.global_position,
-		preview.global_rotation,
-		preview.canPlace(),
-		preview.power_scene_name,
-		target_path
-	)
+	var target
+	if preview.power_type == "Modifier":
+		target = preview.get_target()
+		if not target:
+			return
+		request_place_power.rpc(
+			preview.power_type,
+			preview.global_position,
+			preview.global_rotation,
+			true,
+			preview.power_scene_name,
+			target.get_path()
+		)
+	else:
+		request_place_power.rpc(
+			preview.power_type,
+			preview.global_position,
+			preview.global_rotation,
+			true,
+			preview.power_scene_name,
+		)
+
 
 func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Vector3) -> Node:
 	var scene = power_scenes[pName]
@@ -195,8 +199,7 @@ func rpc_spawn_power(power_type: String, pName: String, pos: Vector3, rot: Vecto
 func _get_node_by_global_path(path: String) -> Node:
 	if path == "":
 		return null
-	var root = get_tree().get_root()
-	return root.get_node_or_null(path)
+	return get_tree().get_root().get_node_or_null(path)
 
 @rpc("any_peer", "reliable")
 func rpc_apply_modifier(pName: String, target_path: String):
