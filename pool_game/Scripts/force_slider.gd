@@ -5,6 +5,9 @@ extends VSlider
 
 @onready var grabber: Control = $GrabberVisual
 
+var _wiggle_tween: Tween = null
+var _original_pos: Vector2
+
 func _process(delta: float) -> void:
 	var t: float = 0.0
 	if max_value != min_value:
@@ -30,3 +33,13 @@ func _process(delta: float) -> void:
 		randf_range(-shake_strength, shake_strength)
 	)
 	grabber.position += shake_offset
+
+func wiggle() -> void:
+	if _wiggle_tween and _original_pos:
+		position = _original_pos
+		_wiggle_tween.kill()
+	_wiggle_tween = create_tween()
+	_original_pos = position
+	_wiggle_tween.tween_property(self, "position", _original_pos + Vector2(10, 0), 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_wiggle_tween.tween_property(self, "position", _original_pos - Vector2(10, 0), 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_wiggle_tween.tween_property(self, "position", _original_pos, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

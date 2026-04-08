@@ -79,32 +79,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SettingsButton" type="Button" parent="MainMenu/MenuUI" unique_id=369492528]
-layout_mode = 1
-offset_left = 100.0
-offset_top = 100.0
-offset_right = 300.0
-offset_bottom = 180.0
-theme = ExtResource("3_dsmso")
-theme_override_font_sizes/font_size = 32
-text = "Settings"
-script = ExtResource("4_t8p2w")
-
-[node name="ProfileButton" type="Button" parent="MainMenu/MenuUI" unique_id=914265886]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -300.0
-offset_top = 100.0
-offset_right = -100.0
-offset_bottom = 180.0
-grow_horizontal = 0
-theme = ExtResource("3_dsmso")
-theme_override_font_sizes/font_size = 32
-text = "Profile"
-script = ExtResource("5_krje8")
-
 [node name="Logo" type="ColorRect" parent="MainMenu/MenuUI" unique_id=913635870]
 layout_mode = 1
 anchors_preset = -1
@@ -134,6 +108,32 @@ theme_override_fonts/font = ExtResource("6_dd46u")
 theme_override_font_sizes/font_size = 69
 text = "BALL-ISTICS"
 horizontal_alignment = 1
+
+[node name="SettingsButton" type="Button" parent="MainMenu/MenuUI" unique_id=369492528]
+layout_mode = 1
+offset_left = 100.0
+offset_top = 100.0
+offset_right = 300.0
+offset_bottom = 180.0
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 32
+text = "Settings"
+script = ExtResource("4_t8p2w")
+
+[node name="ProfileButton" type="Button" parent="MainMenu/MenuUI" unique_id=914265886]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 100.0
+offset_right = -100.0
+offset_bottom = 180.0
+grow_horizontal = 0
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 32
+text = "Profile"
+script = ExtResource("5_krje8")
 
 [node name="BottomButtons" type="VBoxContainer" parent="MainMenu/MenuUI" unique_id=860984698]
 layout_mode = 1
