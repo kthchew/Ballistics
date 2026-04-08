@@ -17,10 +17,9 @@ enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED}
 const STATIC_TICKS_THRESHOLD: int = 60
 
 var has_aimed := false
-# physics defaults to 60 ticks per second
 var cur_static_ticks = 0
 var player_ind: int = 0
-# TODO: score is unnecessary, just calculate as needed from balls_sunk[] and whether teams have been assigned
+
 var scores: Array[int] = [0, 0]
 var game_state: GameState = GameState.AIMING
 var turn_num: int = 0

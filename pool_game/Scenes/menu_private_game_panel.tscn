@@ -1,0 +1,106 @@
+[gd_scene format=3 uid="uid://l3mdu1f62vct"]
+
+[ext_resource type="Script" uid="uid://c6lwa1r4iieqm" path="res://Scripts/menu_private_game_panel.gd" id="1_f7d3v"]
+[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="2_2lfyo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f7d3v"]
+bg_color = Color(0.6, 0.6, 0.6, 0.6627451)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ktlje"]
+font_size = 80
+
+[node name="PrivateGamePanel" type="Panel" unique_id=725213517]
+offset_right = 1920.0
+offset_bottom = 1064.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_f7d3v")
+script = ExtResource("1_f7d3v")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=994321267]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="CreateGameContainer" type="VBoxContainer" parent="HBoxContainer" unique_id=1877532407]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="HBoxContainer/CreateGameContainer" unique_id=687956446]
+layout_mode = 2
+text = "Create Game"
+label_settings = SubResource("LabelSettings_ktlje")
+horizontal_alignment = 1
+
+[node name="PoolButton" type="Button" parent="HBoxContainer/CreateGameContainer" unique_id=1600130821]
+custom_minimum_size = Vector2(500, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("2_2lfyo")
+theme_override_font_sizes/font_size = 44
+text = "Pool"
+
+[node name="CrazyPoolButton" type="Button" parent="HBoxContainer/CreateGameContainer" unique_id=2021953659]
+custom_minimum_size = Vector2(500, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = ExtResource("2_2lfyo")
+theme_override_font_sizes/font_size = 44
+text = "Crazy Pool"
+
+[node name="KnockoutButton" type="Button" parent="HBoxContainer/CreateGameContainer" unique_id=1216286838]
+custom_minimum_size = Vector2(500, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = ExtResource("2_2lfyo")
+theme_override_font_sizes/font_size = 44
+text = "Knockout"
+
+[node name="JoinGameContainer" type="VBoxContainer" parent="HBoxContainer" unique_id=1514696615]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="HBoxContainer/JoinGameContainer" unique_id=660937233]
+layout_mode = 2
+text = "Join Game"
+label_settings = SubResource("LabelSettings_ktlje")
+horizontal_alignment = 1
+
+[node name="RoomCodeInput" type="LineEdit" parent="HBoxContainer/JoinGameContainer" unique_id=1314912955]
+custom_minimum_size = Vector2(600, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 36
+placeholder_text = "Room Code"
+
+[node name="JoinRoomButton" type="Button" parent="HBoxContainer/JoinGameContainer" unique_id=400776031]
+custom_minimum_size = Vector2(500, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = ExtResource("2_2lfyo")
+theme_override_font_sizes/font_size = 44
+text = "Join Room"
+
+[node name="CloseButton" type="Button" parent="." unique_id=565429506]
+custom_minimum_size = Vector2(300, 100)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = -8.0
+offset_right = 4.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_2lfyo")
+theme_override_font_sizes/font_size = 64
+text = "Close
+"

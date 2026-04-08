@@ -3,8 +3,8 @@
 [ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://wall.tres" id="1_q33ou"]
 [ext_resource type="PhysicsMaterial" uid="uid://cdapvl7elmtrh" path="res://absorbent_wall.tres" id="2_8iwpp"]
 [ext_resource type="PhysicsMaterial" uid="uid://da8ohqxk1g88s" path="res://table.tres" id="3_2ca2e"]
-[ext_resource type="PackedScene" uid="uid://cu4vrdboa7shh" path="res://pool_table8.glb" id="3_7x25y"]
-[ext_resource type="Script" uid="uid://drgap37og6e1t" path="res://hole.gd" id="4_2ca2e"]
+[ext_resource type="PackedScene" uid="uid://cu4vrdboa7shh" path="res://Scenes/pool_table8.glb" id="3_7x25y"]
+[ext_resource type="Script" uid="uid://drgap37og6e1t" path="res://Scripts/hole.gd" id="4_2ca2e"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mlwoa"]
 size = Vector3(300, 50, 150)

@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://b6fdpto356141"]
+
+[ext_resource type="Script" uid="uid://cssnh1u5fgqs3" path="res://Scripts/mp_lobby.gd" id="1_so7ii"]
+[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="2_k551y"]
+
+[node name="MultiplayerLobby" type="Node3D" unique_id=1602364776]
+script = ExtResource("1_so7ii")
+
+[node name="ClientUI" type="Panel" parent="." unique_id=2002990612]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ClientUI" unique_id=2099020088]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="ClientUI/VBoxContainer" unique_id=2120607784]
+layout_mode = 2
+theme_override_font_sizes/font_size = 96
+text = "Waiting for connection..."
+horizontal_alignment = 1
+
+[node name="InfoLabel" type="RichTextLabel" parent="ClientUI/VBoxContainer" unique_id=418551038]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 64
+theme_override_font_sizes/bold_font_size = 64
+theme_override_font_sizes/bold_italics_font_size = 64
+theme_override_font_sizes/italics_font_size = 64
+theme_override_font_sizes/mono_font_size = 64
+text = "Connecting to the server..."
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+
+[node name="ExitButton" type="Button" parent="ClientUI/VBoxContainer" unique_id=1065870861]
+layout_mode = 2
+theme = ExtResource("2_k551y")
+theme_override_font_sizes/font_size = 64
+text = "Return to Title"
+
+[node name="Games" type="Node3D" parent="." unique_id=1468780630]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1760525304]
+_spawnable_scenes = PackedStringArray("uid://wvkvj1pke8gv")
+spawn_path = NodePath("../Games")

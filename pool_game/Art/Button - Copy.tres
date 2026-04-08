@@ -1,0 +1,77 @@
+[gd_resource type="Theme" format=3 uid="uid://dj2dcaj8br367"]
+
+[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="1_2w5lt"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kdrop"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.08, 0.08, 0.05, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.56, 0.18, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2w5lt"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.05, 0.05, 0.04, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76, 0.42, 0.1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_53mc0"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.05, 0.05, 0.04, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.56, 0.18, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k2c1c"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.1, 0.1, 0.07, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.92, 0.68, 0.32, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qcq4j"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.07, 0.07, 0.05, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.95, 0.75, 0.35, 1)
+
+[resource]
+Button/colors/font_color = Color(0.78, 0.95, 0.72, 1)
+Button/colors/font_hover_color = Color(1, 0.8, 0.52, 1)
+Button/colors/font_pressed_color = Color(1, 0.7, 0.3, 1)
+Button/colors/icon_hover_color = Color(1, 0.8, 0.52, 1)
+Button/colors/icon_hover_pressed_color = Color(1, 0.7, 0.3, 1)
+Button/colors/icon_normal_color = Color(0.78, 0.95, 0.72, 1)
+Button/fonts/font = ExtResource("1_2w5lt")
+Button/styles/hover = SubResource("StyleBoxFlat_kdrop")
+Button/styles/hover_pressed = SubResource("StyleBoxFlat_2w5lt")
+Button/styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_53mc0")
+Button/styles/normal = SubResource("StyleBoxFlat_k2c1c")
+Button/styles/pressed = SubResource("StyleBoxFlat_qcq4j")
