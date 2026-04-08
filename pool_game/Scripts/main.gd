@@ -119,6 +119,10 @@ func save() -> Dictionary:
 	for ball in ball_manager.balls:
 		ball_states.append(ball.save())
 
+	var object_power_states: Array = []
+	if has_node("pUI/placementController"):
+		object_power_states = $pUI/placementController.save_object_powers()
+
 	var current_username := ""
 	var solids_username := ""
 	var winner_username := ""
@@ -144,6 +148,7 @@ func save() -> Dictionary:
 		"game_state": int(game_state),
 		"player_usernames": persistence_usernames.duplicate(),
 		"balls": ball_states,
+		"object_powers": object_power_states,
 		
 		"game_type": int(game_type),
 		"money": money.duplicate(),
@@ -234,6 +239,14 @@ func load(save_dict: Dictionary) -> void:
 				$pUI/placementController.rpc_apply_modifier.rpc(modifier, ball.get_path())
 			
 			ball.show()
+
+	if has_node("pUI/placementController"):
+		var placement_controller = $pUI/placementController
+		var saved_object_powers = save_dict.get("object_powers", [])
+		if saved_object_powers is Array:
+			placement_controller.load_object_powers(saved_object_powers)
+		else:
+			placement_controller.load_object_powers([])
 
 	cur_static_ticks = 0
 
