@@ -321,6 +321,8 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, occupie
 			rpc("rpc_apply_modifier", pName, target.get_path())
 
 	finish_placement.rpc_id(sender)
+	if game_root and game_root.has_method("persist_game_state"):
+		game_root.persist_game_state()
 
 
 @rpc("any_peer", "call_local")

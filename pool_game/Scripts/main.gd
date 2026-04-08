@@ -259,7 +259,7 @@ func _get_persistence_token() -> String:
 			return token
 	return ""
 
-func _persist_game_state() -> void:
+func persist_game_state() -> void:
 	if not multiplayer.is_server() or not persistence_enabled or persist_in_flight:
 		return
 
@@ -600,7 +600,7 @@ func end_game(winning_player: int) -> void:
 	self.winner = winning_player
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
-	_persist_game_state()
+	persist_game_state()
 		
 func start_round(scratched_prev: bool = false) -> void:
 	if scratched_prev:
@@ -684,7 +684,7 @@ func end_round() -> void:
 		else:
 			play_again = false
 			start_round(scratched)
-			await _persist_game_state()
+			await persist_game_state()
 			stopped_moving.emit()
 			return
 	
@@ -692,7 +692,7 @@ func end_round() -> void:
 	turn_num += 1
 	player_ind = 1 - player_ind
 	start_round(scratched)
-	await _persist_game_state()
+	await persist_game_state()
 	stopped_moving.emit()
 	
 func process_midturn():
