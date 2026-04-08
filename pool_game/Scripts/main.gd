@@ -546,10 +546,19 @@ func start_game() -> void:
 	target_hole = -1
 	active_power_objects = 0
 	
+	reset_local_state.rpc()
+	
 	requesting_reset = [false, false]
 	
 	ball_manager.start_game()
 	start_round()
+	
+@rpc("call_local")
+func reset_local_state():
+	aim_guide.hide()
+	
+	$pUI/placementController.remove_all_placed_powers()
+	ball_manager.clear_crazy_modifiers()
 			
 func _on_aim_input(touch_pos: Vector2):
 	if not is_your_turn():

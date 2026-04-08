@@ -238,6 +238,13 @@ func load_object_powers(saved_object_powers: Array) -> void:
 @rpc("any_peer", "reliable")
 func rpc_spawn_power(power_type: String, pName: String, pos: Vector3, rot: Vector3):
 	_spawn_power_local(power_type, pName, pos, rot)
+	
+func remove_all_placed_powers():
+	if not preview_container:
+		return
+
+	for child in preview_container.get_children():
+		child.queue_free()
 
 func _get_node_by_global_path(path: String) -> Node:
 	if path == "":
