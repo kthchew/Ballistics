@@ -3,8 +3,8 @@ extends Node3D
 @onready var randPoolButton = $MainMenu/MenuUI/BottomButtons/RandomPoolButton
 @onready var randCrazyButton = $MainMenu/MenuUI/BottomButtons/RandomCrazyPoolButton
 @onready var resume_button = $MainMenu/MenuUI/BottomButtons/ResumeGameButton
-
 @onready var priv_button = $MainMenu/MenuUI/BottomButtons/PrivateGameButton
+
 @onready var backend_requests = $MainMenu/MenuUI/AccountScreen/BackendRequests
 
 const mp_lobby_scene: PackedScene = preload("res://Scenes/mp_lobby.tscn")

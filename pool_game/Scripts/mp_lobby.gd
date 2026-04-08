@@ -35,6 +35,7 @@ const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
 const reg_game_scene = preload("res://Scenes/main.tscn")
 const isolated_game = preload("res://Scenes/isolated_game.tscn")
 
+@onready var title_label = $ClientUI/VBoxContainer/TitleLabel
 @onready var info_label = $ClientUI/VBoxContainer/InfoLabel
 @onready var exit_button = $ClientUI/VBoxContainer/ExitButton
 @onready var backend_requests = $BackendRequests
@@ -92,9 +93,8 @@ func queue_random_match() -> void:
 	pending_room_code = ""
 	_request_selected_matchmaking()
 
-func create_private_room() -> void:
-	# FIXME: don't assume normal game
-	matchmaking_mode = Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE
+func create_private_room(mode: Utils.MatchmakingMode = Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE) -> void:
+	matchmaking_mode = mode
 	pending_room_code = ""
 	_request_selected_matchmaking()
 
@@ -134,7 +134,8 @@ func _on_peer_disconnected(peer: int):
 		close_game_at(slot)
 
 func _on_server_disconnected():
-	pass
+	title_label.text = "Server Disconnected"
+	info_label.text = "Disconnected from the server."
 
 func start_client(host: String, port: int = 18361) -> void:
 	print("Connecting to server %s:%d" % [host, port])
@@ -144,8 +145,11 @@ func start_client(host: String, port: int = 18361) -> void:
 	multiplayer.connect("connected_to_server", _on_connected_to_server)
 	multiplayer.connect("connection_failed", _on_connection_failed)
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
+	$ClientUI.show()
 
 func _on_connected_to_server():
+	title_label.text = "Connected"
+	info_label.text = "Requesting a match..."
 	var token := ""
 	var config := ConfigFile.new()
 	if config.load("user://account.cfg") == OK:
@@ -156,7 +160,8 @@ func _on_connected_to_server():
 	_request_selected_matchmaking()
 	
 func _on_connection_failed():
-	pass
+	title_label.text = "Connection Failed"
+	info_label.text = "Failed to connect to the server."
 
 func _request_selected_matchmaking() -> void:
 	if multiplayer.multiplayer_peer == null:
@@ -164,16 +169,22 @@ func _request_selected_matchmaking() -> void:
 	if multiplayer.is_server():
 		return
 
+	title_label.text = "Waiting for opponent..."
 	match matchmaking_mode:
 		Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE:
-			request_create_private_room.rpc()
+			info_label.text = "Creating normal private room..."
+			request_create_private_room.rpc(Utils.GameType.EIGHT_BALL_MULTIPLAYER)
 		Utils.MatchmakingMode.PRIVATE_CRAZY_CREATE:
-			request_create_private_room.rpc()
+			info_label.text = "Creating crazy private room..."
+			request_create_private_room.rpc(Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER)
 		Utils.MatchmakingMode.PRIVATE_JOIN:
+			info_label.text = "Joining private room..."
 			request_join_private_room.rpc(pending_room_code)
 		Utils.MatchmakingMode.RANDOM_NORMAL:
+			info_label.text = "In random normal queue"
 			enter_random_regular_queue.rpc()
 		Utils.MatchmakingMode.RANDOM_CRAZY:
+			info_label.text = "In random crazy queue"
 			enter_random_crazy_queue.rpc()
 		Utils.MatchmakingMode.RESUME:
 			request_resume_game.rpc(resume_game_id)
@@ -205,16 +216,17 @@ func enter_random_crazy_queue():
 	_try_match_crazy_queue()
 
 @rpc("any_peer")
-func request_create_private_room():
+func request_create_private_room(game_type: Utils.GameType):
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_remove_from_random_queue(sender_id)
+	_remove_from_crazy_queue(sender_id)
 	_remove_from_private_room(sender_id, false)
 	_remove_from_resume_wait(sender_id, true)
 
 	var code := _generate_unique_room_code()
-	private_rooms[code] = {"host_id": sender_id, "guest_id": 0}
+	private_rooms[code] = {"host_id": sender_id, "guest_id": 0, "game_type": game_type}
 	room_by_peer[sender_id] = code
 	private_room_created.rpc_id(sender_id, code)
 
@@ -246,6 +258,8 @@ func request_join_private_room(code: String):
 		private_room_join_failed.rpc_id(sender_id, "Room is already full.")
 		return
 
+	var room_game_type: Utils.GameType = room.get("game_type", Utils.GameType.EIGHT_BALL_MULTIPLAYER)
+
 	room["guest_id"] = sender_id
 	private_rooms[normalized_code] = room
 	room_by_peer[sender_id] = normalized_code
@@ -255,8 +269,7 @@ func request_join_private_room(code: String):
 	private_rooms.erase(normalized_code)
 	room_by_peer.erase(host_id)
 	room_by_peer.erase(sender_id)
-	# FIXME: set appropriate type not just normal game
-	_start_game_for_peers([host_id, sender_id], false)
+	_start_game_for_peers([host_id, sender_id], room_game_type)
 
 @rpc("any_peer")
 func request_resume_game(requested_game_id: String):
@@ -320,7 +333,7 @@ func _try_match_resume_game(game_id: String) -> void:
 		resume_waiting_by_game_id[game_id] = waiting
 		_remove_from_resume_wait(first, false)
 		_remove_from_resume_wait(second, false)
-		_start_game_for_peers([first, second], false, game_id)
+		_start_game_for_peers([first, second], Utils.GameType.EIGHT_BALL_MULTIPLAYER, game_id)
 
 	if waiting.is_empty() and resume_waiting_by_game_id.has(game_id):
 		resume_waiting_by_game_id.erase(game_id)
@@ -345,7 +358,8 @@ func request_leave_matchmaking():
 @rpc("authority", "call_remote", "reliable")
 func private_room_created(code: String):
 	print("Private room created: %s" % code)
-	info_label.text = code
+	title_label.text = "Waiting for opponent..."
+	info_label.text = "Room code: %s" % code
 	emit_signal("private_room_code_ready", code)
 
 @rpc("authority", "call_remote", "reliable")
@@ -372,35 +386,32 @@ func resume_game_failed(reason: String):
 	info_label.text = "Resume failed: %s" % reason
 
 @rpc("authority", "call_remote", "reliable")
-func send_to_game(slot: int, peers: Array, crazy: bool):
+func send_to_game(slot: int, peers: Array, game_type: Utils.GameType):
 	var container = games.get_node("GameContainer%s/SubViewportContainer" % slot)
 	container.visible = true
 	var game = container.get_node("SubViewport/Game")
-	game.crazy = crazy
+	game.game_type = game_type
 	game.visible = true
 	game.connected_peers = peers
 	var camera = game.get_node("CameraPivot/Camera3D")
 	camera.make_current()
-	$ClientUI.hide()
+	$ClientUI/VBoxContainer/TitleLabel.text = "In game"
+	$ClientUI/VBoxContainer/InfoLabel.text = "Currently playing a game"
 
 func _try_match_random_queue() -> void:
 	while regular_queue.size() >= 2:
 		var first = regular_queue.pop_front()
 		var second = regular_queue.pop_front()
-		_start_game_for_peers([first, second], false)
+		_start_game_for_peers([first, second], Utils.GameType.EIGHT_BALL_MULTIPLAYER)
 		
 func _try_match_crazy_queue() -> void:
 	while crazy_queue.size() >= 2:
 		var first = crazy_queue.pop_front()
 		var second = crazy_queue.pop_front()
-		_start_game_for_peers([first, second], true)
+		_start_game_for_peers([first, second], Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER)
 
-func _start_game_for_peers(peers: Array, is_crazy: bool, forced_game_id: String = "") -> void:
-	var game
-	if is_crazy:
-		game = spawn_new_crazy_game()
-	else:
-		game = spawn_new_regular_game()
+func _start_game_for_peers(peers: Array, game_type: Utils.GameType, forced_game_id: String = "") -> void:
+	var game = _spawn_new_game(game_type)
 	var persistence_context := await _build_persistence_context(peers)
 	if forced_game_id != "":
 		persistence_context["game_id"] = forced_game_id
@@ -413,7 +424,7 @@ func _start_game_for_peers(peers: Array, is_crazy: bool, forced_game_id: String 
 	game.connected_peers = peers
 	for peer_id in peers:
 		peer_to_slot[peer_id] = game.lobby_slot
-		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers, is_crazy)
+		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers, game_type)
 
 	if game.persistence_enabled and game.persisted_game_id != "":
 		var load_token: String = str(persistence_context["load_token"])
@@ -425,7 +436,7 @@ func _start_game_for_peers(peers: Array, is_crazy: bool, forced_game_id: String 
 			game.set_visibility.rpc()
 	else:
 		game.start_game()
-	
+		
 func register_game_id_for_pair(pair_key: String, game_id: String) -> void:
 	if pair_key == "" or game_id == "":
 		return
@@ -571,23 +582,32 @@ func auth(token: String):
 	else:
 		player_info.erase(sender_id)
 
-func spawn_new_regular_game() -> Node:
+func _spawn_new_game(game_type: Utils.GameType) -> Node:
 	var spot = free_spots[0]
 	free_spots.remove_at(0)
 
 	var isolated: Node3D = isolated_game.instantiate()
 	isolated.name = "GameContainer%s" % spot
 	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
-	regular_games[spot] = game
+	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
+		crazy_games[spot] = game
+	else:
+		regular_games[spot] = game
 	game.lobby_slot = spot
-	game.crazy = false
+	game.game_type = game_type
 	games.add_child(isolated)
 
-	print("putting game in spot " + str(spot))
+	print("putting game in spot " + str(spot) + " type " + str(game_type))
 	if free_spots.size() == 0:
 		free_spots.append(spot + 1)
 	return game
 	
+func spawn_new_regular_game() -> Node:
+	return _spawn_new_game(Utils.GameType.EIGHT_BALL_MULTIPLAYER)
+	
+func spawn_new_crazy_game() -> Node:
+	return _spawn_new_game(Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER)
+
 @rpc
 func send_to_menu():
 	if games.get_child_count() > 0:
@@ -596,23 +616,6 @@ func send_to_menu():
 		game.about_to_exit = true
 		await game.get_tree().create_timer(5).timeout
 	get_tree().change_scene_to_file("res://Menu.tscn")
-	
-func spawn_new_crazy_game() -> Node:
-	var spot = free_spots[0]
-	free_spots.remove_at(0)
-
-	var isolated: Node3D = isolated_game.instantiate()
-	isolated.name = "GameContainer%s" % spot
-	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
-	crazy_games[spot] = game
-	game.lobby_slot = spot
-	game.crazy = true
-	games.add_child(isolated)
-
-	print("putting CRAZY game in spot " + str(spot))
-	if free_spots.size() == 0:
-		free_spots.append(spot + 1)
-	return game
 
 func close_game_at(spot: int):
 	var game = regular_games.get(spot, null)
