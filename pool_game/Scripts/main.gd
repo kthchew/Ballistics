@@ -180,9 +180,13 @@ func load(save_dict: Dictionary) -> void:
 	
 	game_type = int(save_dict.get("game_type", Utils.GameType.EIGHT_BALL_MULTIPLAYER)) as Utils.GameType
 	money = save_dict.get("money", [0, 0])
-	power_shop_options = save_dict.get("power_shop_options", []).duplicate()
+	var opt_string_arr: Array[String]
+	opt_string_arr.assign(save_dict.get("power_shop_options", []).duplicate())
+	power_shop_options = opt_string_arr
 	power_shop_costs = save_dict.get("power_shop_costs", {}).duplicate()
-	power_shop_used = save_dict.get("power_shop_used", []).duplicate()
+	var used_string_arr: Array[String]
+	used_string_arr.assign(save_dict.get("power_shop_used", []).duplicate())
+	power_shop_used = used_string_arr
 	
 	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
 		cashout_owner_ind = 1 - player_ind
@@ -701,6 +705,7 @@ func end_round() -> void:
 					show_cashout_menu(money, cashout_owner_ind)
 				else:
 					show_cashout_menu.rpc_id(cashout_peer_id, money, cashout_owner_ind)
+			await persist_game_state()
 			return
 		else:
 			play_again = false
