@@ -227,15 +227,15 @@ func _request_selected_matchmaking() -> void:
 		Utils.MatchmakingMode.PRIVATE_NORMAL_CREATE:
 			info_label.text = "Creating normal private room..."
 			if pending_room_code.strip_edges().is_empty():
-				request_create_private_room.rpc()
+				request_create_private_room.rpc(Utils.GameType.EIGHT_BALL_MULTIPLAYER)
 			else:
-				request_create_private_room_with_code.rpc(pending_room_code)
+				request_create_private_room_with_code.rpc(pending_room_code, Utils.GameType.EIGHT_BALL_MULTIPLAYER)
 		Utils.MatchmakingMode.PRIVATE_CRAZY_CREATE:
 			info_label.text = "Creating crazy private room..."
 			if pending_room_code.strip_edges().is_empty():
-				request_create_private_room.rpc()
+				request_create_private_room.rpc(Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER)
 			else:
-				request_create_private_room_with_code.rpc(pending_room_code)
+				request_create_private_room_with_code.rpc(pending_room_code, Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER)
 		Utils.MatchmakingMode.PRIVATE_JOIN:
 			info_label.text = "Joining private room..."
 			request_join_private_room.rpc(pending_room_code)
@@ -286,7 +286,7 @@ func request_create_private_room(game_type: Utils.GameType):
 	private_room_created.rpc_id(sender_id, code)
 
 @rpc("any_peer")
-func request_create_private_room_with_code(requested_code: String):
+func request_create_private_room_with_code(requested_code: String, game_type: Utils.GameType):
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
@@ -302,7 +302,7 @@ func request_create_private_room_with_code(requested_code: String):
 		private_room_join_failed.rpc_id(sender_id, "Room code already in use.")
 		return
 
-	private_rooms[code] = {"host_id": sender_id, "guest_id": 0}
+	private_rooms[code] = {"host_id": sender_id, "guest_id": 0, "game_type": game_type}
 	room_by_peer[sender_id] = code
 	private_room_created.rpc_id(sender_id, code)
 
