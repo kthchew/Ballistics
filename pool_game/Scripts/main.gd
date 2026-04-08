@@ -66,7 +66,7 @@ func _ready() -> void:
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_input)
 	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
-	hole_buttons.hole_selected.connect(_on_hole_selected)
+	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
 	classical_ai.ai_aimed.connect(_on_ai_aimed)
 	classical_ai.ai_placed_cue_ball.connect(_on_ai_placed_cue_ball)
 	classical_ai.ai_picked_pocket.connect(_on_ai_picked_pocket)
