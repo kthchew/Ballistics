@@ -199,6 +199,9 @@ func _apply_modifier(pName: String, modified_path: String) -> void:
 	if not target:
 		return
 
+	if "modifiers" in target:
+		target.modifiers.append(pName)
+
 	if pName == "tnt":
 		var low = target.name.to_lower()
 		if not low.contains("ball") and not low.contains("table"):

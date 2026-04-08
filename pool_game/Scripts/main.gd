@@ -17,7 +17,6 @@ signal stopped_moving
 @onready var ball_manager = $BallManager
 @onready var cashout = false
 
-var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
@@ -36,6 +35,7 @@ var cur_static_ticks = 0
 var requesting_reset: Array[bool] = [false, false] # index is player index
 
 
+@export var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 @export var lobby_slot: int = -1
 @export var player_ind: int = 0
 @export var scores: Array[int] = [0, 0]
@@ -144,6 +144,9 @@ func save() -> Dictionary:
 		"game_state": int(game_state),
 		"player_usernames": persistence_usernames.duplicate(),
 		"balls": ball_states,
+		
+		"game_type": int(game_type),
+		"money": money.duplicate(),
 	}
 	return save_dict
 
@@ -161,6 +164,9 @@ func load(save_dict: Dictionary) -> void:
 	solids_player = int(save_dict.get("solids_player", -1))
 	winner = int(save_dict.get("winner", -1))
 	game_state = int(save_dict.get("game_state", GameState.AIMING)) as GameState
+	
+	game_type = int(save_dict.get("game_type", Utils.GameType.EIGHT_BALL_MULTIPLAYER)) as Utils.GameType
+	money = save_dict.get("money", [0, 0])
 
 	var saved_scores = save_dict.get("scores", [0, 0])
 	if saved_scores is Array and saved_scores.size() == 2:
@@ -222,6 +228,11 @@ func load(save_dict: Dictionary) -> void:
 			ball.potted = bool(state.get("potted", false))
 			if ball.potted:
 				ball.freeze = true
+				
+			for modifier in state.get("modifiers", []):
+				$pUI/placementController._apply_modifier(modifier, ball.get_path())
+				$pUI/placementController.rpc_apply_modifier.rpc(modifier, ball.get_path())
+			
 			ball.show()
 
 	cur_static_ticks = 0

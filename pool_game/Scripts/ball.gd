@@ -13,12 +13,14 @@ var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
 var potted: bool = false
 
+var modifiers: Array[String] = []
+
 func _ready() -> void:
 	HoleSound.max_db = 80.0
 	BallCollide.max_db = 80.0
 	
 func save() -> Dictionary:
-	var save_dict = {
+	var save_dict: Dictionary[Variant, Variant] = {
 		"ball_num": ball_num,
 		"pos_x": position.x,
 		"pos_y": position.y,
@@ -26,7 +28,9 @@ func save() -> Dictionary:
 		"rot_x": rotation.x,
 		"rot_y": rotation.y,
 		"rot_z": rotation.z,
-		"potted": potted
+		"potted": potted,
+		
+		"modifiers": modifiers.duplicate(),
 	}
 	return save_dict
 
