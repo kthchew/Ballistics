@@ -167,6 +167,7 @@ func load(save_dict: Dictionary) -> void:
 	turn_num = int(save_dict.get("turn_num", 0))
 	round_num = int(save_dict.get("round_num", 0))
 	solids_player = int(save_dict.get("solids_player", -1))
+	next_solids_player = int(save_dict.get("solids_player", -1))
 	winner = int(save_dict.get("winner", -1))
 	game_state = int(save_dict.get("game_state", GameState.AIMING)) as GameState
 	
