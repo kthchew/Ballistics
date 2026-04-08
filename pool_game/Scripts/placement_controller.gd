@@ -312,7 +312,7 @@ func _process(delta):
 		if rotated:
 			rpc("rpc_update_preview", preview.global_position, preview.global_rotation)
 
-		set_preview_illegal(not preview.power())
+		set_preview_illegal(not preview.canPlace())
 
 func _on_rotate_left_button_down(): rotating_left = true
 func _on_rotate_left_button_up(): rotating_left = false

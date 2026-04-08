@@ -10,5 +10,5 @@ func _on_area_3d_area_entered(area: Area3D) -> void:
 func _on_area_3d_area_exited(area: Area3D) -> void:
 	occupied -=1
 
-func power() -> bool:
+func canPlace() -> bool:
 	return occupied == 0

@@ -31,3 +31,18 @@ func power() -> bool:
 
 	print("TNT cannot delete:", obj.name)
 	return false
+	
+func canPlace() -> bool:
+	var areas = $Area3D.get_overlapping_areas()
+	print(areas)
+	if len(areas) != 1:
+		return false
+	
+	var obj = areas[0].get_parent()
+
+	var name_lower = obj.name.to_lower()
+
+	if not name_lower.contains("ball") and not name_lower.contains("table"):
+		return true
+
+	return false
