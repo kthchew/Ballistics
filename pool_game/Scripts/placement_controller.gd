@@ -129,6 +129,11 @@ func rpc_update_preview(pos: Vector3, rot: Vector3):
 		preview.global_position = pos
 		preview.global_rotation = rot
 
+func _get_node_by_global_path(path: String) -> Node:
+	if path == "":
+		return null
+	return get_tree().get_root().get_node_or_null(path)
+
 func _on_place_button_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
@@ -160,11 +165,10 @@ func _on_place_button_pressed():
 		preview.power_type,
 		preview.global_position,
 		preview.global_rotation,
-		preview.occupied,
+		preview.canPlace(),
 		preview.power_scene_name,
 		target_path
 	)
-
 
 func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Vector3) -> Node:
 	var scene = power_scenes[pName]
@@ -194,64 +198,38 @@ func _get_node_by_global_path(path: String) -> Node:
 	var root = get_tree().get_root()
 	return root.get_node_or_null(path)
 
-func _apply_modifier(pName: String, modified_path: String) -> void:
-	var target = _get_node_by_global_path(modified_path)
+@rpc("any_peer", "reliable")
+func rpc_apply_modifier(pName: String, target_path: String):
+	var target = _get_node_by_global_path(target_path)
 	if not target:
 		return
 
-	if pName == "tnt":
-		var low = target.name.to_lower()
-		if not low.contains("ball") and not low.contains("table"):
-			target.queue_free()
-			game_root.objects = max(0, game_root.objects - 1)
-
-	elif pName == "tungsten":
-		if target is RigidBody3D:
-			target.mass = 11
-			var mesh = target.get_node_or_null("MeshInstance3D")
-			if mesh:
-				var mat = mesh.get_active_material(0)
-				if mat:
-					mat = mat.duplicate()
-					mat.albedo_color = Color.GRAY
-					mat.metallic = 1.0
-					mat.roughness = 0.1
-					mesh.set_surface_override_material(0, mat)
+	var inst = power_scenes[pName].instantiate()
+	inst.apply_to(target)
+	inst.queue_free()
 
 @rpc("any_peer", "reliable")
-func rpc_apply_modifier(pName: String, modified_path: String) -> void:
-	_apply_modifier(pName, modified_path)
-
-@rpc("any_peer", "reliable")
-func request_place_power(power_type: String, pos: Vector3, rot: Vector3, occupied: int, pName: String, target_path: String = ""):
+func request_place_power(power_type: String, pos: Vector3, rot: Vector3, canPlace: bool, pName: String, target_path: String = ""):
 	if not multiplayer.is_server():
 		return
 
 	var sender = multiplayer.get_remote_sender_id()
 	if sender != owner_peer_id:
 		return
-
-	if power_type == "Object" and occupied > 0:
-		return
-	if power_type == "Modifier" and occupied != 1:
+	if not canPlace:
 		return
 
 	if power_type == "Object":
 		_spawn_power_local(power_type, pName, pos, rot)
 		rpc("rpc_spawn_power", power_type, pName, pos, rot)
-
 	else:
 		var target = _get_node_by_global_path(target_path)
-		if not target:
-			var obj = _spawn_power_local(power_type, pName, pos, rot)
-			var area = obj.get_node_or_null("Area3D")
-			if area and area.get_overlapping_areas().size() == 1:
-				target = area.get_overlapping_areas()[0].get_parent()
-			obj.queue_free()
-
 		if target:
-			_apply_modifier(pName, target.get_path())
-			rpc("rpc_apply_modifier", pName, target.get_path())
+			var inst = power_scenes[pName].instantiate()
+			inst.apply_to(target)
+			inst.queue_free()
+
+		rpc("rpc_apply_modifier", pName, target_path)
 
 	finish_placement.rpc_id(sender)
 
