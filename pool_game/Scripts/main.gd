@@ -152,10 +152,17 @@ func save() -> Dictionary:
 		
 		"game_type": int(game_type),
 		"money": money.duplicate(),
+		"power_shop_options": power_shop_options.duplicate(),
+		"power_shop_costs": power_shop_costs.duplicate(),
+		"power_shop_used": power_shop_used.duplicate(),
 	}
 	return save_dict
 
 func load(save_dict: Dictionary) -> void:
+	set_visibility()
+	set_visibility.rpc_id(connected_peers[0])
+	set_visibility.rpc_id(connected_peers[1])
+	
 	has_aimed = false
 	aim_visuals.hide()
 	cue_stick.hide()
@@ -173,6 +180,19 @@ func load(save_dict: Dictionary) -> void:
 	
 	game_type = int(save_dict.get("game_type", Utils.GameType.EIGHT_BALL_MULTIPLAYER)) as Utils.GameType
 	money = save_dict.get("money", [0, 0])
+	power_shop_options = save_dict.get("power_shop_options", []).duplicate()
+	power_shop_costs = save_dict.get("power_shop_costs", {}).duplicate()
+	power_shop_used = save_dict.get("power_shop_used", []).duplicate()
+	
+	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
+		cashout_owner_ind = 1 - player_ind
+		set_cashout_owner.rpc(cashout_owner_ind)
+		$pUI/placementController.set_cashout_owner.rpc(connected_peers[cashout_owner_ind])
+		if game_state == GameState.CASHOUT:
+			show_cashout_wait_menu.rpc(connected_peers[cashout_owner_ind])
+			show_cashout_menu.rpc_id(connected_peers[cashout_owner_ind], money, cashout_owner_ind)
+		elif game_state == GameState.CRAZY:
+			start_crazy_mode.rpc_id(connected_peers[cashout_owner_ind])
 
 	var saved_scores = save_dict.get("scores", [0, 0])
 	if saved_scores is Array and saved_scores.size() == 2:
