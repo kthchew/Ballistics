@@ -87,10 +87,6 @@ func turn_on_light():
 	$OverheadLight/Light.light_energy = 1000
 	$UI.visible = true
 	$LabelLayer.visible = true
-
-func place_cue_ball_after_scratch(pos: Vector3):
-	ball_manager.reset_cue_ball(pos)
-	start_round()
 	
 func _on_ai_aimed(dir: Vector2):
 	aim(dir)
@@ -344,6 +340,7 @@ func rpc_aim_cue(dir_from_cue: Vector2):
 
 func aim_cue(dir_from_cue: Vector2):
 	#cast_aim_ray(dir_from_cue.normalized())
+	#aim_visuals.show()
 	#aim_guide.show()
 	
 	has_aimed = true
