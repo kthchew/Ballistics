@@ -6,9 +6,6 @@
 [ext_resource type="Script" uid="uid://gyxaumhi00lm" path="res://Scripts/settings_button.gd" id="4_t8p2w"]
 [ext_resource type="Script" uid="uid://bx1tkuogm56hn" path="res://Scripts/profile_button.gd" id="5_krje8"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="6_dd46u"]
-[ext_resource type="Script" uid="uid://cilditpup8xa4" path="res://Scripts/random_pool_button.gd" id="7_n3nbb"]
-[ext_resource type="Script" uid="uid://bqxay25tpcrue" path="res://Scripts/random_crazy_pool_button.gd" id="8_dm44m"]
-[ext_resource type="Script" uid="uid://btp8svy42xa5p" path="res://Scripts/random_knockout_button.gd" id="9_du1yi"]
 [ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="10_c0stj"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="11_3feh0"]
 [ext_resource type="PackedScene" uid="uid://x10c7um8tidx" path="res://Scenes/settings_screen.tscn" id="11_dsmso"]
@@ -157,7 +154,6 @@ size_flags_vertical = 3
 theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Random Pool"
-script = ExtResource("7_n3nbb")
 
 [node name="RandomCrazyPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1049916798]
 layout_mode = 2
@@ -165,16 +161,13 @@ size_flags_vertical = 3
 theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Random Crazy Pool"
-script = ExtResource("8_dm44m")
 
 [node name="RandomKnockoutButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1786141284]
-visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Random Knockout"
-script = ExtResource("9_du1yi")
 
 [node name="PrivateGameButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=51089289]
 layout_mode = 2
@@ -182,6 +175,13 @@ size_flags_vertical = 3
 theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Private Game"
+
+[node name="AIPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=252345252]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 44
+text = "Pool Against an AI"
 
 [node name="AccountScreen" parent="MainMenu/MenuUI" unique_id=2040582154 instance=ExtResource("10_c0stj")]
 visible = false

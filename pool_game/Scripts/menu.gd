@@ -3,6 +3,7 @@ extends Node3D
 @onready var randPoolButton = $MainMenu/MenuUI/BottomButtons/RandomPoolButton
 @onready var randCrazyButton = $MainMenu/MenuUI/BottomButtons/RandomCrazyPoolButton
 @onready var priv_button = $MainMenu/MenuUI/BottomButtons/PrivateGameButton
+@onready var ai_pool_button = $MainMenu/MenuUI/BottomButtons/AIPoolButton
 @onready var crazy = false
 
 var lobby_scene: PackedScene = preload("res://Scenes/mp_lobby.tscn")
@@ -25,7 +26,6 @@ func prepare_to_exit():
 	$MainMenu.hide()
 	await get_tree().create_timer(0.5).timeout
 	
-	
 func _on_priv_pressed():
 	$MainMenu/MenuUI/PrivateGamePanel.show()
 	
@@ -39,4 +39,10 @@ func _on_Cpool_pressed():
 	prepare_to_exit()
 	var lobby := lobby_scene.instantiate()
 	lobby.matchmaking_mode = Utils.MatchmakingMode.RANDOM_CRAZY
+	get_tree().change_scene_to_node(lobby)
+	
+func _on_ai_pool_pressed():
+	prepare_to_exit()
+	var lobby := lobby_scene.instantiate()
+	lobby.matchmaking_mode = Utils.MatchmakingMode.AI_NORMAL
 	get_tree().change_scene_to_node(lobby)

@@ -168,6 +168,9 @@ func _request_selected_matchmaking() -> void:
 		Utils.MatchmakingMode.RANDOM_CRAZY:
 			info_label.text = "In random crazy queue"
 			enter_random_crazy_queue.rpc()
+		Utils.MatchmakingMode.AI_NORMAL:
+			info_label.text = "Joining normal game against AI"
+			enter_ai_normal_game.rpc()
 		_:
 			print("Unknown matchmaking mode: %d" % matchmaking_mode)
 	$ClientUI.show()
@@ -193,6 +196,14 @@ func enter_random_crazy_queue():
 		return
 	crazy_queue.append(sender_id)
 	_try_match_crazy_queue()
+	
+@rpc("any_peer")
+func enter_ai_normal_game():
+	if not multiplayer.is_server():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	_remove_from_private_room(sender_id, false)
+	_start_game_for_peers([1, sender_id], true)
 
 @rpc("any_peer")
 func request_create_private_room():
