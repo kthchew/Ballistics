@@ -124,10 +124,10 @@ func aim(dir: Vector2):
 	aim_guide.show()
 	
 	aim_cue(dir)
-	rpc_aim_cue.rpc_id(1, dir)
+	var other_peer = connected_peers[1 - player_ind]
+	rpc_aim_cue.rpc_id(other_peer, dir)
 	if not single_player:
-		var other_peer = connected_peers[1 - player_ind]
-		rpc_aim_cue.rpc_id(other_peer, dir)
+		rpc_aim_cue.rpc_id(1, dir)
 	
 func calc_offset_3d(dir: Vector3):
 	var up = Vector3.UP
@@ -345,6 +345,10 @@ func rpc_aim_cue(dir_from_cue: Vector2):
 	aim_cue(dir_from_cue)
 
 func aim_cue(dir_from_cue: Vector2):
+	#cast_aim_ray(dir_from_cue.normalized())
+	#aim_visuals.show()
+	#aim_guide.show()
+	
 	has_aimed = true
 
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
