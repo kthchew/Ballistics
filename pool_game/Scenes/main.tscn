@@ -521,7 +521,7 @@ layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("6_ee4r6")
 theme_override_font_sizes/font_size = 44
-text = "No!"
+text = "No! (+3 Money)"
 
 [node name="pUI" type="CanvasLayer" parent="." unique_id=1463384008]
 visible = false
