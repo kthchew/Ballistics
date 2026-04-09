@@ -1,17 +1,10 @@
 extends HTTPRequest
 
 
+const SESSION_CONFIG_PATH := "user://settings.cfg"
 var config := ConfigFile.new()
 
 var session: String
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	# TODO: probably should not be stored in plaintext in a config file
-	if config.load("user://settings.cfg") == OK:
-		session = config.get_value("account", "session", "")
-	request_completed.connect(_on_request_completed)
-
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -34,6 +27,38 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	print("Request completed with result: " + str(result) + ", response code: " + str(response_code))
 	print("Headers: " + str(headers))
 	print("Body: " + str(body.get_string_from_utf8()))
+
+func _load_session() -> void:
+	config = ConfigFile.new()
+	var err := config.load(SESSION_CONFIG_PATH)
+	if err != OK:
+		return
+	session = str(config.get_value("auth", "session", ""))
+
+func _save_session() -> void:
+	config.set_value("auth", "session", session)
+	config.save(SESSION_CONFIG_PATH)
+
+func _update_session_from_headers(response: Dictionary) -> void:
+	if not ("headers" in response):
+		return
+	for header in response["headers"]:
+		if not str(header).begins_with("Set-Cookie:"):
+			continue
+		var cookie_value = str(header).substr("Set-Cookie: ".length()).strip_edges()
+		for part in cookie_value.split("; "):
+			if part.begins_with("session="):
+				session = part.substr("session=".length()).strip_edges()
+				_save_session()
+				return
+
+func _parse_json_body(response: Dictionary, fallback: Variant) -> Variant:
+	if not ("result" in response):
+		return fallback
+	var parsed = JSON.parse_string(str(response["result"]))
+	if parsed == null:
+		return fallback
+	return parsed
 	
 # not sure if doing this is necessary but I want to avoid possible race conditions for multiple requests at the same time
 func _make_request(url: String, method: int, json_body: Dictionary = {}, session_token = null) -> Dictionary:
@@ -71,6 +96,7 @@ func register(username: String, password: String) -> Dictionary:
 	var url: String = backend_url() + "/register"
 	var body: Dictionary[Variant, Variant] = {"username": username, "password": password}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
+	_update_session_from_headers(response)
 	print(response)
 	return response
 	
@@ -78,20 +104,89 @@ func login(username: String, password: String) -> Dictionary:
 	var url: String = backend_url() + "/login"
 	var body: Dictionary[Variant, Variant] = {"username": username, "password": password}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
-	if "headers" in response and "response_code" in response and response["response_code"] == 200:
-		for header in response["headers"]:
-			if header.begins_with("Set-Cookie:"):
-				var cookie_value = header.substr("Set-Cookie: ".length()).strip_edges()
-				cookie_value = cookie_value.split("; ")
-				for part in cookie_value:
-					if part.begins_with("session="):
-						session = part.substr("session=".length()).strip_edges()
-						config.set_value("account", "session", session)
-						config.save("user://account.cfg")
-						break
+	if "response_code" in response and response["response_code"] == 200:
+		_update_session_from_headers(response)
 	else:
 		print("Login failed with response code: " + str(response["response_code"]))
 	return response
+
+func get_session_state() -> Dictionary:
+	var response: Dictionary = await _make_request(backend_url() + "/session", HTTPClient.METHOD_GET)
+	if response.get("response_code", 0) != 200:
+		return {"logged_in": false, "username": ""}
+	var payload = _parse_json_body(response, {})
+	if typeof(payload) != TYPE_DICTIONARY:
+		return {"logged_in": false, "username": ""}
+	return payload
+
+func logout() -> Dictionary:
+	var response: Dictionary = await _make_request(backend_url() + "/logout", HTTPClient.METHOD_POST, {})
+	session = ""
+	_save_session()
+	return response
+
+func get_friends() -> Array:
+	var response: Dictionary = await _make_request(backend_url() + "/friends", HTTPClient.METHOD_GET)
+	var payload = _parse_json_body(response, [])
+	if typeof(payload) != TYPE_ARRAY:
+		return []
+	return payload
+
+func send_friend_request(to_user: String) -> Dictionary:
+	return await _make_request(
+		backend_url() + "/friendRequests/send",
+		HTTPClient.METHOD_POST,
+		{"to_user": to_user}
+	)
+
+func get_friend_requests() -> Array:
+	var response: Dictionary = await _make_request(backend_url() + "/friendRequests", HTTPClient.METHOD_GET)
+	var payload = _parse_json_body(response, [])
+	if typeof(payload) != TYPE_ARRAY:
+		return []
+	return payload
+
+func accept_friend_request(from_user: String) -> Dictionary:
+	return await _make_request(
+		backend_url() + "/friendRequests/accept",
+		HTTPClient.METHOD_POST,
+		{"from_user": from_user}
+	)
+
+func reject_friend_request(from_user: String) -> Dictionary:
+	return await _make_request(
+		backend_url() + "/friendRequests/reject",
+		HTTPClient.METHOD_POST,
+		{"from_user": from_user}
+	)
+
+func send_game_invite(to_user: String, room_code: String) -> Dictionary:
+	return await _make_request(
+		backend_url() + "/gameInvites/send",
+		HTTPClient.METHOD_POST,
+		{"to_user": to_user, "room_code": room_code}
+	)
+
+func get_game_invites() -> Array:
+	var response: Dictionary = await _make_request(backend_url() + "/gameInvites", HTTPClient.METHOD_GET)
+	var payload = _parse_json_body(response, [])
+	if typeof(payload) != TYPE_ARRAY:
+		return []
+	return payload
+
+func remove_game_invite(from_user: String, room_code: String) -> Dictionary:
+	return await _make_request(
+		backend_url() + "/gameInvites/remove",
+		HTTPClient.METHOD_POST,
+		{"from_user": from_user, "room_code": room_code}
+	)
+
+func cancel_game_invite(to_user: String, room_code: String) -> Dictionary:
+	return await _make_request(
+		backend_url() + "/gameInvites/cancel",
+		HTTPClient.METHOD_POST,
+		{"to_user": to_user, "room_code": room_code}
+	)
 	
 func info_for_account(token: String) -> Dictionary:
 	var url: String = backend_url() + "/profile"
@@ -113,6 +208,10 @@ func join_game(token: String, game_id: String) -> bool:
 	var body = {"game_id": game_id}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body, token)
 	return response["response_code"] == 200
+
+func _ready() -> void:
+	_load_session()
+	request_completed.connect(_on_request_completed)
 	
 func leave_game(token: String) -> bool:
 	var url = backend_url() + "/leaveGame"

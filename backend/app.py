@@ -6,12 +6,20 @@ from bson import ObjectId
 import accounts
 import game
 import json
+import random
+import string
 
 from flask import Flask, session, request, jsonify
 from game import GameInstance
 
 app = Flask(__name__)
 app.secret_key = os.environ['BALLISTIC_SERV_SECRET_KEY']
+
+
+def _generate_room_code() -> str:
+    alphabet = string.ascii_uppercase + string.digits
+    chunks = ["".join(random.choice(alphabet) for _ in range(4)) for _ in range(3)]
+    return "-".join(chunks)
 
 
 @app.post("/register")
@@ -41,6 +49,20 @@ def login_with_password():
         return "User logged in successfully", 200
     else:
         return "Invalid username or password", 401
+
+
+@app.post("/logout")
+def logout():
+    session.pop('username', None)
+    return "Logged out", 200
+
+
+@app.get("/session")
+def get_session_state():
+    username = session.get('username')
+    if username is None:
+        return jsonify({'logged_in': False, 'username': None})
+    return jsonify({'logged_in': True, 'username': username})
 
 
 @app.get("/profile")
@@ -218,6 +240,87 @@ def reject_friend_request():
         return f"Friend request from {from_user_name} rejected", 200
     else:
         return "Failed to reject friend request", 500
+
+
+@app.get("/gameInvites")
+def get_game_invites():
+    if 'username' not in session:
+        return "Unauthorized", 401
+    username = session['username']
+    user_id = accounts.username_to_id(username)
+    if user_id is None:
+        return "User not found", 401
+
+    invites = []
+    for invite in accounts.list_game_invites(user_id):
+        from_username = accounts.id_to_username(invite['from_user'])
+        if from_username is None:
+            continue
+        invites.append({
+            'from_user': from_username,
+            'room_code': invite['room_code'],
+            'date': invite['date']
+        })
+    return jsonify(invites)
+
+
+@app.post("/gameInvites/send")
+def send_game_invite():
+    if 'username' not in session:
+        return "Unauthorized", 401
+    json_data = request.get_json()
+    if 'to_user' not in json_data:
+        return "Bad request", 400
+
+    to_user_name = json_data['to_user']
+    room_code = json_data.get('room_code', _generate_room_code())
+    from_user_id = accounts.username_to_id(session['username'])
+    if from_user_id is None:
+        return "User not found", 401
+
+    if accounts.send_game_invite(from_user_id, to_user_name, room_code):
+        return jsonify({'message': f'Game invite sent to {to_user_name}', 'room_code': room_code}), 200
+    return "Failed to send game invite", 500
+
+
+@app.post("/gameInvites/remove")
+def remove_game_invite():
+    if 'username' not in session:
+        return "Unauthorized", 401
+    json_data = request.get_json()
+    if 'from_user' not in json_data or 'room_code' not in json_data:
+        return "Bad request", 400
+
+    from_user_name = json_data['from_user']
+    room_code = json_data['room_code']
+    to_user_id = accounts.username_to_id(session['username'])
+    from_user_id = accounts.username_to_id(from_user_name)
+    if to_user_id is None or from_user_id is None:
+        return "User not found", 401
+
+    if accounts.remove_game_invite(to_user_id, from_user_id, room_code):
+        return "Game invite removed", 200
+    return "Failed to remove game invite", 500
+
+
+@app.post("/gameInvites/cancel")
+def cancel_sent_game_invite():
+    if 'username' not in session:
+        return "Unauthorized", 401
+    json_data = request.get_json()
+    if 'to_user' not in json_data or 'room_code' not in json_data:
+        return "Bad request", 400
+
+    to_user_name = json_data['to_user']
+    room_code = json_data['room_code']
+    from_user_id = accounts.username_to_id(session['username'])
+    if from_user_id is None:
+        return "User not found", 401
+
+    removed = accounts.cancel_sent_game_invite(from_user_id, to_user_name, room_code)
+    if removed:
+        return "Game invite cancelled", 200
+    return "Game invite was already cleared", 200
 
 # FIXME: anything below this should be restricted to requests from a trusted Godot game server
 @app.post("/newGame")
