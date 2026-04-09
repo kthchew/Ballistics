@@ -54,6 +54,7 @@ theme_override_font_sizes/font_size = 44
 text = "Crazy Pool"
 
 [node name="KnockoutButton" type="Button" parent="HBoxContainer/CreateGameContainer" unique_id=1216286838]
+visible = false
 custom_minimum_size = Vector2(500, 100)
 layout_mode = 2
 size_flags_horizontal = 4

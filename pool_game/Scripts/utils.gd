@@ -6,13 +6,20 @@ enum MatchmakingMode {
 	PRIVATE_NORMAL_CREATE,
 	PRIVATE_CRAZY_CREATE,
 	PRIVATE_JOIN,
-	AI_NORMAL,
+	SINGLE_PLAYER,
 }
 
 enum PlayerRole {STRIPES = 1, SOLIDS}
 enum GameType {EIGHT_BALL_MULTIPLAYER = 1, EIGHT_BALL_SINGLEPLAYER, CRAZY_EIGHT_BALL_MULTIPLAYER, CRAZY_EIGHT_BALL_SINGLEPLAYER}
 
 var word_list: Array = []
+
+func matchmaking_mode_to_game_type(mode: MatchmakingMode) -> GameType:
+	match mode:
+		MatchmakingMode.RANDOM_CRAZY, MatchmakingMode.PRIVATE_CRAZY_CREATE:
+			return GameType.CRAZY_EIGHT_BALL_MULTIPLAYER
+		_:
+			return GameType.EIGHT_BALL_MULTIPLAYER
 
 func _ready() -> void:
 	var file := FileAccess.open("res://Resources/word_list.txt", FileAccess.READ)

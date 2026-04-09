@@ -4,7 +4,6 @@ extends Node3D
 @onready var randCrazyButton = $MainMenu/MenuUI/BottomButtons/RandomCrazyPoolButton
 @onready var priv_button = $MainMenu/MenuUI/BottomButtons/PrivateGameButton
 @onready var ai_pool_button = $MainMenu/MenuUI/BottomButtons/AIPoolButton
-@onready var crazy = false
 
 var lobby_scene: PackedScene = preload("res://Scenes/mp_lobby.tscn")
 
@@ -45,5 +44,5 @@ func _on_Cpool_pressed():
 func _on_ai_pool_pressed():
 	prepare_to_exit()
 	var lobby := lobby_scene.instantiate()
-	lobby.matchmaking_mode = Utils.MatchmakingMode.AI_NORMAL
+	lobby.matchmaking_mode = Utils.MatchmakingMode.SINGLE_PLAYER
 	get_tree().change_scene_to_node(lobby)

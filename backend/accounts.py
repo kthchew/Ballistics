@@ -49,7 +49,15 @@ def register_user(username: str, password: str) -> bool:
     users_collection = database.db['users']
     salt = secrets.token_urlsafe(16)
     hashed_password = hash(password, salt=salt)
-    result = users_collection.insert_one({'username': username, 'password': hashed_password, 'salt': salt})
+    result = users_collection.insert_one({
+        'username': username,
+        'password': hashed_password,
+        'salt': salt,
+        'current_game_id': None,
+        'friends': [],
+        'friend_requests': [],
+        'game_invites': []
+    })
     return result.acknowledged
 
 def check_valid_login(username: str, password: str) -> bool:
@@ -88,6 +96,13 @@ def list_friend_requests(user_id: ObjectId) -> list:
         return []
     return user.get('friend_requests', [])
 
+def list_game_invites(user_id: ObjectId) -> list:
+    users_collection = database.db['users']
+    user = users_collection.find_one({'_id': user_id})
+    if user is None:
+        return []
+    return user.get('game_invites', [])
+
 def send_friend_request(from_user_id: ObjectId, to_user_name: str) -> bool:
     users_collection = database.db['users']
     from_user = users_collection.find_one({'_id': from_user_id})
@@ -101,6 +116,70 @@ def send_friend_request(from_user_id: ObjectId, to_user_name: str) -> bool:
         return False
     friend_request = FriendRequest(from_user['_id'], date=datetime.now().isoformat())
     result = users_collection.update_one({'username': to_user_name}, {'$push': {'friend_requests': friend_request.__dict__}})
+    return result.modified_count > 0
+
+def send_game_invite(from_user_id: ObjectId, to_user_name: str, room_code: str) -> bool:
+    users_collection = database.db['users']
+    from_user = users_collection.find_one({'_id': from_user_id})
+    if from_user is None or from_user['username'] == to_user_name:
+        return False
+
+    to_user = users_collection.find_one({'username': to_user_name})
+    if to_user is None:
+        return False
+
+    # Only friends can send game invites.
+    if from_user_id not in to_user.get('friends', []):
+        return False
+
+    normalized_room_code = room_code.strip().upper()
+    if normalized_room_code == '':
+        return False
+
+    duplicate_invite = users_collection.find_one({
+        '_id': to_user['_id'],
+        'game_invites.from_user': from_user_id,
+        'game_invites.room_code': normalized_room_code
+    })
+    if duplicate_invite is not None:
+        return True
+
+    result = users_collection.update_one(
+        {'_id': to_user['_id']},
+        {'$push': {'game_invites': {
+            'from_user': from_user_id,
+            'room_code': normalized_room_code,
+            'date': datetime.now().isoformat()
+        }}}
+    )
+    return result.modified_count > 0
+
+def remove_game_invite(to_user_id: ObjectId, from_user_id: ObjectId, room_code: str) -> bool:
+    users_collection = database.db['users']
+    normalized_room_code = room_code.strip().upper()
+    result = users_collection.update_one(
+        {'_id': to_user_id},
+        {'$pull': {'game_invites': {
+            'from_user': from_user_id,
+            'room_code': normalized_room_code
+        }}}
+    )
+    return result.modified_count > 0
+
+def cancel_sent_game_invite(from_user_id: ObjectId, to_user_name: str, room_code: str) -> bool:
+    users_collection = database.db['users']
+    to_user = users_collection.find_one({'username': to_user_name})
+    if to_user is None:
+        return False
+
+    normalized_room_code = room_code.strip().upper()
+    result = users_collection.update_one(
+        {'_id': to_user['_id']},
+        {'$pull': {'game_invites': {
+            'from_user': from_user_id,
+            'room_code': normalized_room_code
+        }}}
+    )
     return result.modified_count > 0
 
 def accept_friend_request(to_user_id: ObjectId, from_user_id: ObjectId) -> bool:

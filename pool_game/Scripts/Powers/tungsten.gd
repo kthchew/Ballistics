@@ -32,3 +32,13 @@ func power() -> bool:
 				mesh.set_surface_override_material(0, mat)
 		return true
 	return false
+	
+func canPlace() -> bool:
+	var bodies = $Area3D.get_overlapping_areas()
+	print(bodies)
+	if len(bodies) != 1:
+		return false
+	var object = bodies[0].get_parent()
+	if object is RigidBody3D:
+		return true
+	return false

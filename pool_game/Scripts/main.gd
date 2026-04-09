@@ -15,8 +15,7 @@ class_name Main extends Node3D
 @onready var classical_ai = $ClassicalAI
 @onready var cashout = false
 
-var crazy: bool
-var single_player: bool
+var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
@@ -56,7 +55,7 @@ const ball_shape = preload("res://ball_shape.tres")
 func _ready() -> void:
 	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
 	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
-	print("MAIN READY PATH:", get_path(), "\nCRAZY:", crazy)
+	print("MAIN READY PATH:", get_path(), "\nGAME TYPE:", game_type)
 	if init_peer != null:
 		multiplayer.multiplayer_peer = init_peer
 	
@@ -117,13 +116,13 @@ func aim(dir: Vector2):
 	cast_aim_ray(dir.normalized())
 	aim_guide.show()
 	var other_peer = connected_peers[1 - player_ind]
-	if Constants.AI_DRAW_AIM_GUIDE and single_player and connected_peers[player_ind] == 1:
+	if Constants.AI_DRAW_AIM_GUIDE and game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER and connected_peers[player_ind] == 1:
 		cast_aim_ray.rpc_id(other_peer, dir.normalized())
 		set_aim_guide_visibility.rpc_id(other_peer, true)
 	
 	aim_cue(dir)
 	rpc_aim_cue.rpc_id(other_peer, dir)
-	if not single_player:
+	if not game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
 		rpc_aim_cue.rpc_id(1, dir)
 	
 func calc_offset_3d(dir: Vector3):
@@ -145,9 +144,9 @@ func calc_dir():
 	return dir
 
 @rpc
-func change_hole_button_visibility(is_visible: bool) -> void:
-	hole_buttons.visible = is_visible
-	
+func change_hole_button_visibility(visible_state: bool) -> void:
+	hole_buttons.visible = visible_state
+
 @rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PICKPOCKET:
@@ -170,7 +169,7 @@ func reset_request() -> void:
 	var changer_ind = connected_peers.find(sender) if sender != 0 else connected_peers.find(multiplayer.get_unique_id())
 	var this_ind = connected_peers.find(multiplayer.get_unique_id())
 	
-	if single_player:
+	if game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
 		requesting_reset = [true, true]
 	else:
 		requesting_reset[changer_ind] = not requesting_reset[changer_ind]
@@ -417,7 +416,7 @@ func rpc_fire_cue():
 func fire_cue():
 	if game_state != GameState.AIMING or not has_aimed:
 		return
-	if Constants.AI_DRAW_AIM_GUIDE and single_player:
+	if Constants.AI_DRAW_AIM_GUIDE and game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
 		set_aim_guide_visibility.rpc_id(connected_peers[1 - player_ind], false)
 		classical_ai.circle_artist.clear_all()
 	var dir = calc_dir()
@@ -453,13 +452,13 @@ func fire_cue():
 		shake_camera(0.5, 0.1)
 		sway_light(7, 7)
 	
-func end_game(winner: int) -> void:
-	self.winner = winner
+func end_game(winning_player: int) -> void:
+	self.winner = winning_player
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
 		
 func is_ai_turn():
-	return single_player and connected_peers[player_ind] == 1
+	return game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER and connected_peers[player_ind] == 1
 	
 func ai_play():
 	await get_tree().create_timer(1.0).timeout
@@ -543,7 +542,7 @@ func end_round() -> void:
 		start_round(scratched)
 		return
 	if not scratched and play_again:
-		if solids_player != -1 and crazy:
+		if solids_player != -1 and game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
 			cashout = true
 			cashout_owner_ind = 1 - player_ind
 			set_cashout_owner.rpc(cashout_owner_ind)
@@ -613,7 +612,7 @@ func fill_debug_label() -> void:
 	label_txt += "\nFirst Hit: " + str(ball_manager.cue_ball.first_hit_ball_num)
 	label_txt += "\nFirst Hit Scratch: " + str(ball_manager.first_hit_scratch)
 	
-	if crazy:
+	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
 		label_txt += "\nSolids Crazy Currency: " + str(money[0])
 		label_txt += "\nStripes Crazy Currency: " + str(money[1])
 	debug_label.text = label_txt

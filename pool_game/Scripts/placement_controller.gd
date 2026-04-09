@@ -2,12 +2,20 @@ extends Control
 
 @export var table_plane_y := 0.0
 var preview: Node3D = null
+var illegalMat: Material
+var legalMat: Material
 var dragging := false
 var owner_peer_id := -1
 
 var game_root: Node = null
 var preview_container: Node = null
 var power_name = null
+
+const power_scenes: Dictionary[String, Resource] = {
+	"block": preload("res://Scenes/Powers/Block.tscn"),
+	"tnt": preload("res://Scenes/Powers/TNT.tscn"),
+	"tungsten": preload("res://Scenes/Powers/Tungsten.tscn")
+}
 
 func _ready():
 	game_root = get_node("../..")
@@ -26,7 +34,7 @@ func _on_power_1_pressed():
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(load("res://Scenes/Powers/%s.tscn" % power_name))
+	start_placement(power_name)
 
 func _on_power_2_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
@@ -37,7 +45,7 @@ func _on_power_2_pressed():
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(load("res://Scenes/Powers/%s.tscn" % power_name))
+	start_placement(power_name)
 
 func _on_power_3_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
@@ -48,21 +56,37 @@ func _on_power_3_pressed():
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(load("res://Scenes/Powers/%s.tscn" % power_name))
+	start_placement(power_name)
 
 
-func start_placement(scene: PackedScene):
+func start_placement(power_key: String):
+	var scene: Resource = power_scenes[power_key]
 	preview = scene.instantiate()
 	preview.visible = true
 	preview_container.add_child(preview)
+	illegalMat = preview.get_node_or_null("MeshInstance3D").get_active_material(0).duplicate()
+	illegalMat.albedo_color = Color(1, 0.3, 0.3)
+	illegalMat.emission_enabled = true
+	illegalMat.emission = Color(1, 0, 0)
+	legalMat = preview.get_node_or_null("MeshInstance3D").get_active_material(0)
 
-	rpc("rpc_spawn_preview", scene.resource_path)
+	rpc_spawn_preview.rpc(power_key)
+
+func set_preview_illegal(illegal: bool):
+	var mesh = preview.get_node_or_null("MeshInstance3D")
+	if not mesh:
+		return
+
+	if illegal:
+		mesh.set_surface_override_material(0, illegalMat)
+	else:
+		mesh.set_surface_override_material(0, legalMat)
 
 @rpc("any_peer", "call_remote")
-func rpc_spawn_preview(scene_path: String):
+func rpc_spawn_preview(power_key: String):
 	if multiplayer.get_unique_id() == owner_peer_id:
 		return
-	var scene = load(scene_path)
+	var scene = power_scenes[power_key]
 	preview = scene.instantiate()
 	preview.visible = true
 	preview_container.add_child(preview)
@@ -143,7 +167,7 @@ func _on_place_button_pressed():
 
 
 func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Vector3) -> Node:
-	var scene = load("res://Scenes/Powers/%s.tscn" % pName)
+	var scene = power_scenes[pName]
 	var obj = scene.instantiate()
 
 	preview_container.add_child(obj)
@@ -288,6 +312,7 @@ func _process(delta):
 		if rotated:
 			rpc("rpc_update_preview", preview.global_position, preview.global_rotation)
 
+		set_preview_illegal(not preview.canPlace())
 
 func _on_rotate_left_button_down(): rotating_left = true
 func _on_rotate_left_button_up(): rotating_left = false
