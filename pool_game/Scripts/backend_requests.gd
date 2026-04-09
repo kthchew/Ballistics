@@ -8,7 +8,7 @@ var session: String
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	# TODO: probably should not be stored in plaintext in a config file
-	if config.load("user://account.cfg") == OK:
+	if config.load("user://settings.cfg") == OK:
 		session = config.get_value("account", "session", "")
 	request_completed.connect(_on_request_completed)
 
