@@ -154,6 +154,8 @@ func calc_hole_ind_from_pos(pos: Vector3) -> int:
 	return hole_ind
 	
 func _on_ball_sunk(ball):
+	if not multiplayer.is_server():
+			return
 	if ball.is_eight_ball():
 		var hole_ind = calc_hole_ind_from_pos(ball.position)
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
@@ -162,8 +164,6 @@ func _on_ball_sunk(ball):
 			end_game(1 - player_ind)
 	
 	elif not ball.is_cue_ball():
-		if not multiplayer.is_server():
-			return
 		if solids_player == -1 \
 		or (solids_player == player_ind and ball.is_solid()) \
 		or (solids_player == 1 - player_ind and ball.is_stripe()):
