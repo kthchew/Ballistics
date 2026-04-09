@@ -67,6 +67,7 @@ func _ready() -> void:
 	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
+	
 	classical_ai.ai_aimed.connect(_on_ai_aimed)
 	classical_ai.ai_placed_cue_ball.connect(_on_ai_placed_cue_ball)
 	classical_ai.ai_picked_pocket.connect(_on_ai_picked_pocket)
@@ -103,28 +104,30 @@ func _on_ai_aimed(dir: Vector2):
 	fire_cue()
 	
 func _on_ai_placed_cue_ball(pos: Vector3):
-	_on_place_cue_ball.rpc_id(1, pos)
+	place_cue_ball(pos)
 	
 func _on_ai_picked_pocket(hole_ind: int):
 	var path_str = "UI/HoleButtons/HoleButton" + str(hole_ind + 1)
 	var hole_btn = get_node(path_str)
+	
 	hole_btn.toggle_mode = true
 	hole_btn.button_pressed = true
 	await get_tree().create_timer(0.5).timeout
 	hole_btn.toggle_mode = false
 	hole_btn.button_pressed = false
-	_on_hole_selected(hole_ind)
+	
+	select_hole(hole_ind)
 
 func aim(dir: Vector2):
 	cast_aim_ray(dir.normalized())
 	aim_visuals.show()
 	aim_guide.show()
 	
-	_on_aim_changed(dir)
-	_on_aim_changed.rpc_id(1, dir)
+	aim_cue(dir)
+	rpc_aim_cue.rpc_id(1, dir)
 	if not single_player:
 		var other_peer = connected_peers[1 - player_ind]
-		_on_aim_changed.rpc_id(other_peer, dir)
+		rpc_aim_cue.rpc_id(other_peer, dir)
 	
 func calc_offset_3d(dir: Vector3):
 	var up = Vector3.UP
@@ -147,11 +150,14 @@ func calc_dir():
 @rpc
 func change_hole_button_visibility(is_visible: bool) -> void:
 	hole_buttons.visible = is_visible
-
+	
 @rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PICKPOCKET:
 		return
+	select_hole(hole_ind)
+
+func select_hole(hole_ind: int) -> void:
 	target_hole = hole_ind
 	change_hole_button_visibility.rpc_id(multiplayer.get_remote_sender_id(), false)
 	start_round()
@@ -167,7 +173,10 @@ func reset_request() -> void:
 	var changer_ind = connected_peers.find(sender) if sender != 0 else connected_peers.find(multiplayer.get_unique_id())
 	var this_ind = connected_peers.find(multiplayer.get_unique_id())
 	
-	requesting_reset[changer_ind] = not requesting_reset[changer_ind]
+	if single_player:
+		requesting_reset = [true, true]
+	else:
+		requesting_reset[changer_ind] = not requesting_reset[changer_ind]
 	$UI/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
 	
 	if requesting_reset[this_ind]:
@@ -309,6 +318,8 @@ func _on_aim_input(touch_pos: Vector2):
 			and abs(intersection.z) < 44.5:
 			_on_place_cue_ball.rpc_id(1, intersection)
 	elif game_state == GameState.AIMING:
+		if ball_manager.check_cue_ball_potted_by_pos():
+			return
 		# calculate difference between cue ball position and touch pos, use that to set cue stick angle
 		# this is done so that the vector provided to the server is consistent even if the window's size or aspect ratio is different
 		var ball_center_3d = ball_manager.get_cue_ball_global_pos()
@@ -321,17 +332,19 @@ func _on_aim_input(touch_pos: Vector2):
 func _on_place_cue_ball(place_global_pos: Vector3):
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PLACING:
 		return
+	place_cue_ball(place_global_pos)
+
+func place_cue_ball(place_global_pos: Vector3):
 	ball_manager.reset_cue_ball(place_global_pos)
 	start_round()
 
 @rpc("any_peer", "reliable")
-func _on_aim_changed(dir_from_cue: Vector2):
-	if (multiplayer.get_remote_sender_id() != 0 and connected_peers[player_ind] != multiplayer.get_remote_sender_id()) \
-	or game_state != GameState.AIMING \
-	or dir_from_cue.length() < 20 \
-	or ball_manager.check_cue_ball_potted_by_pos():
+func rpc_aim_cue(dir_from_cue: Vector2):
+	if multiplayer.get_remote_sender_id() != 0 and connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
-	
+	aim_cue(dir_from_cue)
+
+func aim_cue(dir_from_cue: Vector2):
 	has_aimed = true
 
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
@@ -395,14 +408,13 @@ func _on_fire_pressed():
 
 @rpc("any_peer", "reliable")
 func rpc_fire_cue():
-	if not multiplayer.is_server() \
-	   or connected_peers[player_ind] != multiplayer.get_remote_sender_id() \
-	   or game_state != GameState.AIMING \
-	   or not has_aimed:
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
 	fire_cue()
 	
 func fire_cue():
+	if game_state != GameState.AIMING or not has_aimed:
+		return
 	var dir = calc_dir()
 	var offset_3d = calc_offset_3d(dir)
 	var strength = cue_stick.strength * 100
