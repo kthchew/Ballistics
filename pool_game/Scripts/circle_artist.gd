@@ -1,15 +1,25 @@
-extends Node2D
+class_name CircleArtist extends Node2D
 
 # We store the data of what needs to be drawn here
 var _circles: Array[Dictionary] = []
 
 # This is the simple function you will call from your other scripts!
 func circle(pos: Vector2, radius: float, color: Color):
+	if Constants.AI_DRAW_AIM_GUIDE:
+		_rpc_add_circle.rpc(pos, radius, color)
+	
+@rpc("any_peer", "call_local")
+func _rpc_add_circle(pos: Vector2, radius: float, color: Color):
 	_circles.append({"pos": pos, "radius": radius, "color": color})
 	queue_redraw() # Tells Godot to update the canvas
 
 # If you ever want to wipe the drawings off the screen
 func clear_all():
+	if Constants.AI_DRAW_AIM_GUIDE:
+		_rpc_clear_all.rpc()
+	
+@rpc("any_peer", "call_local")
+func _rpc_clear_all():
 	_circles.clear()
 	queue_redraw()
 

@@ -114,11 +114,10 @@ func _on_ai_picked_pocket(hole_ind: int):
 	select_hole(hole_ind)
 
 func aim(dir: Vector2):
-	
 	cast_aim_ray(dir.normalized())
 	aim_guide.show()
 	var other_peer = connected_peers[1 - player_ind]
-	if single_player and connected_peers[player_ind] == 1:
+	if Constants.AI_DRAW_AIM_GUIDE and single_player and connected_peers[player_ind] == 1:
 		cast_aim_ray.rpc_id(other_peer, dir.normalized())
 		set_aim_guide_visibility.rpc_id(other_peer, true)
 	
@@ -418,6 +417,9 @@ func rpc_fire_cue():
 func fire_cue():
 	if game_state != GameState.AIMING or not has_aimed:
 		return
+	if Constants.AI_DRAW_AIM_GUIDE and single_player:
+		set_aim_guide_visibility.rpc_id(connected_peers[1 - player_ind], false)
+		classical_ai.circle_artist.clear_all()
 	var dir = calc_dir()
 	var offset_3d = calc_offset_3d(dir)
 	var strength = cue_stick.strength * 100

@@ -466,7 +466,7 @@ width = 3.0
 points = PackedVector2Array(0, 0, 0, 0)
 width = 3.0
 
-[node name="Node2D" type="Node2D" parent="UI/AimVisuals" unique_id=895442796]
+[node name="CircleArtist" type="Node2D" parent="UI/AimVisuals" unique_id=895442796]
 script = ExtResource("11_pdsj5")
 
 [node name="CashOut" type="CanvasLayer" parent="." unique_id=276110570]

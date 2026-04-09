@@ -5,6 +5,7 @@ signal ai_placed_cue_ball(pos: Vector3)
 signal ai_picked_pocket(hole_ind: int)
 
 @onready var camera = $"../CameraPivot/Camera3D"
+@onready var circle_artist = $"../UI/AimVisuals/CircleArtist"
 
 var hole_locs: Array[Vector3]
 var cached_shot: Shot
@@ -81,7 +82,7 @@ func shoot():
 			color = Color.RED
 		if cached_shot.potting:
 			color = calc_ai_color(i, len(cached_shot.obj_balls))
-		Draw.circle(camera.unproject_position(cached_shot.target_positions[i]), 10.0, color)
+		circle_artist.circle(camera.unproject_position(cached_shot.target_positions[i]), 10.0, color)
 	
 	var cue_ball_target = cached_shot.target_positions[0]
 	var force = calc_shot(cached_shot.cue_ball, cue_ball_target)
@@ -112,7 +113,7 @@ func reset_shot():
 	cached_shot = null
 
 func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
-	Draw.clear_all()
+	circle_artist.clear_all()
 	if cached_shot != null:
 		return
 	
@@ -125,7 +126,7 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	choose_random_shot(cue_ball)
 	
 func choose_random_shot(cue_ball: Ball):
-	var shot = Shot.new(cue_ball, [], Vector3.INF, camera)
+	var shot = Shot.new(cue_ball, [], Vector3.INF, camera, circle_artist)
 	var angle = randf_range(0, 2 * 3.14)
 	shot.target_positions.append(
 		cue_ball.global_position + 2 * Constants.BALL_RADIUS * Vector3(cos(angle), 0, -sin(angle))
@@ -137,7 +138,7 @@ func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	var perms = generate_ball_perms(obj_balls)
 	for perm in perms:
 		for hole_loc in hole_locs:
-			var shot = Shot.new(cue_ball, perm, hole_loc, camera)
+			var shot = Shot.new(cue_ball, perm, hole_loc, camera, circle_artist)
 			if shot.poss:
 				print_shot(shot)
 				cached_shot = shot
@@ -146,7 +147,7 @@ func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	
 func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	for obj_ball in obj_balls:
-		var shot = Shot.new(cue_ball, [obj_ball], Vector3.INF, camera)
+		var shot = Shot.new(cue_ball, [obj_ball], Vector3.INF, camera, circle_artist)
 		if shot.poss:
 			print_shot(shot)
 			cached_shot = shot

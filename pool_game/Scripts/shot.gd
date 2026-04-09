@@ -9,8 +9,8 @@ var scratched: bool
 var poss: bool
 var target_positions: Array[Vector3]
 var potting: bool
-
-@onready var camera = $/root/Main/CameraPivot/Camera3D
+var circle_artist: CircleArtist
+var camera: Camera3D
 
 static func calc_hole_ind_from_pos(pos: Vector3) -> int:
 	var hole_ind = 0
@@ -48,7 +48,7 @@ func shapecast_in_place(pos: Vector3) -> bool:
 	shape_cast.collision_mask = 1 << 2
 	shape_cast.force_shapecast_update()
 	
-	Draw.circle(camera.unproject_position(pos), 10, Color.BLUE)
+	circle_artist.circle(camera.unproject_position(pos), 10, Color.BLUE)
 	
 	var colliding = shape_cast.is_colliding()
 	return not colliding
@@ -69,17 +69,18 @@ func shapecast_placing_cue_ball(obj_ball: Ball, target_pos: Vector3) -> bool:
 	var start_pos = calc_ghost_ball_pos(obj_ball, target_pos, -2.0)
 	var path_is_clear = shapecast(start_pos, target_pos) and shapecast_in_place(start_pos)
 	print("shape casting placing cue ball after scratch: obj ball num=", obj_ball.ball_num, ", path_is_clear=", path_is_clear)
-	Draw.circle(camera.unproject_position(start_pos), 5, Color.RED)
-	Draw.circle(camera.unproject_position(target_pos), 5, Color.RED)
+	circle_artist.circle(camera.unproject_position(start_pos), 5, Color.RED)
+	circle_artist.circle(camera.unproject_position(target_pos), 5, Color.RED)
 	return path_is_clear
 
-func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, camera):
+func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, camera: Camera3D, circle_artist: CircleArtist):
 	self.cue_ball = cue_ball
 	self.obj_balls = obj_balls
 	self.hole_loc = hole_loc
 	self.scratched = cue_ball.potted
 	self.potting = hole_loc != Vector3.INF
 	self.camera = camera
+	self.circle_artist = circle_artist
 	if self.potting:
 		self.poss = check_pot_possible()
 	elif len(obj_balls) > 0:
