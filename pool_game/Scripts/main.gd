@@ -35,7 +35,6 @@ var cur_static_ticks = 0
 var requesting_reset: Array[bool] = [false, false] # index is player index
 
 
-@export var what: int = -1
 @export var lobby_slot: int = -1
 @export var player_ind: int = 0
 @export var scores: Array[int] = [0, 0]
@@ -95,8 +94,8 @@ func place_cue_ball_after_scratch(pos: Vector3):
 func _on_ai_aimed(dir: Vector2):
 	aim(dir)
 	slider.value = 50
-	_on_force_changed(slider.value)
-	await get_tree().create_timer(1.0).timeout
+	_on_force_changed.rpc_id(1, slider.value)
+	#await get_tree().create_timer(1.0).timeout
 	_on_fire_pressed()
 	
 func _on_ai_placed_cue_ball(pos: Vector3):
@@ -113,25 +112,14 @@ func _on_ai_picked_pocket(hole_ind: int):
 	_on_hole_selected(hole_ind)
 
 func aim(dir: Vector2):
-	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
-	var ball_screen_pos = camera.unproject_position(ball_center_3d)
-	has_aimed = true
-
-	var angle = dir.angle()
-	var dir_norm = dir.normalized()
-	
-	cast_aim_ray(dir_norm)
-
-	var ball_edge_3d = ball_center_3d + Vector3(5, 0, 0)
-	var center_screen = camera.unproject_position(ball_center_3d)
-	var edge_screen = camera.unproject_position(ball_edge_3d)
-	var ball_radius_px = (edge_screen - center_screen).length()
-	var cue_pos = ball_screen_pos - dir_norm * ball_radius_px
-	
+	cast_aim_ray(dir.normalized())
 	aim_visuals.show()
-	cue_stick.show()
-	cue_stick.update_position(ball_center_3d)
-	cue_stick.set_angle(angle)
+	aim_guide.show()
+	
+	_on_aim_changed(dir)
+	_on_aim_changed.rpc_id(1, dir)
+	var other_peer = connected_peers[1 - player_ind]
+	_on_aim_changed.rpc_id(other_peer, dir)
 	
 func calc_offset_3d(dir: Vector3):
 	var up = Vector3.UP
@@ -299,6 +287,7 @@ func start_game() -> void:
 	requesting_reset = [false, false]
 	
 	ball_manager.start_game()
+	start_round()
 			
 func _on_aim_input(touch_pos: Vector2):
 	if not is_your_turn():
@@ -321,13 +310,7 @@ func _on_aim_input(touch_pos: Vector2):
 		var ball_screen_pos: Vector2 = camera.unproject_position(ball_center_3d)
 		var dir: Vector2 = ball_screen_pos - touch_pos
 		if dir.length() >= 20:
-			var other_peer = connected_peers[1 - player_ind]
-			_on_aim_changed(dir)
-			cast_aim_ray(dir.normalized())
-			aim_visuals.show()
-			aim_guide.show()
-			_on_aim_changed.rpc_id(1, dir)
-			_on_aim_changed.rpc_id(other_peer, dir)
+			aim(dir)
 
 @rpc("any_peer")
 func _on_place_cue_ball(place_global_pos: Vector3):
@@ -352,10 +335,11 @@ func _on_aim_changed(dir_from_cue: Vector2):
 	cue_stick.update_position(ball_center_3d)
 	cue_stick.set_angle(angle)
 	cue_stick.show()
+	
 
-@rpc("any_peer", "reliable")
+@rpc("any_peer", "reliable", "call_local")
 func _on_force_changed(value):
-	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
+	if not multiplayer.is_server() or (connected_peers[player_ind] != multiplayer.get_remote_sender_id() and multiplayer.get_remote_sender_id() != 1):
 		return
 	var normalized = value / $UI/ForceSlider.max_value
 	cue_stick.set_force_strength(normalized)
@@ -395,6 +379,7 @@ func _on_fire_pressed():
 	# need to set the strength in case it was changed by other player's turn
 	_on_force_changed.rpc_id(1, slider.value)
 	fire_cue.rpc_id(1)
+	#fire_cue()
 	aim_guide.hide()
 	
 	has_aimed = false
@@ -402,10 +387,10 @@ func _on_fire_pressed():
 	cue_stick.set_force_strength(0.0)
 	aimer._reset_knob()
 	
-@rpc("any_peer", "reliable")
+@rpc("any_peer", "reliable", "call_local")
 func fire_cue():
 	if not multiplayer.is_server() \
-	   or connected_peers[player_ind] != multiplayer.get_remote_sender_id() \
+	   or (connected_peers[player_ind] != multiplayer.get_remote_sender_id() and multiplayer.get_remote_sender_id() != 1) \
 	   or game_state != GameState.AIMING \
 	   or not has_aimed:
 		return
@@ -583,7 +568,7 @@ func _process(delta: float) -> void:
 
 func is_your_turn() -> bool:
 	if connected_peers and connected_peers.size() > player_ind:
-		return connected_peers[player_ind] == multiplayer.get_unique_id()
+		return connected_peers[player_ind] == multiplayer.get_unique_id() or 1 == multiplayer.get_unique_id()
 	return false
 	
 func fill_debug_label() -> void:

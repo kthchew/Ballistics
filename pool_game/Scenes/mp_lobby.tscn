@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b6fdpto356141"]
 
-[ext_resource type="Script" uid="uid://cssnh1u5fgqs3" path="res://Scripts/mp_lobby.gd" id="1_so7ii"]
+[ext_resource type="Script" uid="uid://cpw47582mk53i" path="res://Scripts/mp_lobby.gd" id="1_so7ii"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="2_k551y"]
 
 [node name="MultiplayerLobby" type="Node3D" unique_id=1602364776]

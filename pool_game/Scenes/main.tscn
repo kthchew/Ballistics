@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dtwea76x43glo"]
 
-[ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://main.gd" id="1_h1bgf"]
+[ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://Scripts/main.gd" id="1_h1bgf"]
 [ext_resource type="Script" uid="uid://c4sxyc4s6jmc6" path="res://Scripts/aim_input_region.gd" id="2_b3802"]
 [ext_resource type="Texture2D" uid="uid://cf7ybetd226g5" path="res://Art/slider.png" id="3_fevyy"]
 [ext_resource type="Script" uid="uid://cra25iytidhf0" path="res://Scripts/force_slider.gd" id="4_hibaj"]
@@ -752,7 +752,6 @@ script = ExtResource("15_vivmo")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1750200922]
 transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.9107674, 0.41267863, 0.05280001, -0.4128225, 0.9092798, -14.222816, 97.954666, 209.47566)
-visible = false
 projection = 1
 size = 130.0
 
