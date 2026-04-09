@@ -324,11 +324,11 @@ func _try_match_crazy_queue() -> void:
 func _start_game_for_peers(peers: Array, is_crazy: bool, single_player: bool) -> void:
 	var game
 	if single_player:
-		game = spawn_new_single_player_game()
+		game = spawn_new_game(single_player_games, is_crazy, single_player, "single player")
 	elif is_crazy:
-		game = spawn_new_crazy_game()
+		game = spawn_new_game(crazy_games, is_crazy, single_player, "CRAZY")
 	else:
-		game = spawn_new_regular_game()
+		game = spawn_new_game(regular_games, is_crazy, single_player)
 	for peer_id in peers:
 		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers, is_crazy)
 	game.connected_peers = peers
@@ -382,57 +382,21 @@ func _generate_unique_room_code() -> String:
 		if not private_rooms.has(code):
 			return code
 	return "ROOM-%d" % Time.get_unix_time_from_system()
-
-func spawn_new_regular_game() -> Node:
-	var spot = free_spots[0]
-	free_spots.remove_at(0)
-
-	var isolated: Node3D = isolated_game.instantiate()
-	isolated.name = "GameContainer%s" % spot
-	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
-	regular_games[spot] = game
-	game.lobby_slot = spot
-	game.crazy = false
-	game.single_player = false
-	games.add_child(isolated)
-
-	print("putting game in spot " + str(spot))
-	if free_spots.size() == 0:
-		free_spots.append(spot + 1)
-	return game
 	
-func spawn_new_crazy_game() -> Node:
+func spawn_new_game(game_container: Dictionary, crazy: bool, single_player: bool, log_adjective: String = "") -> Node:
 	var spot = free_spots[0]
 	free_spots.remove_at(0)
 
 	var isolated: Node3D = isolated_game.instantiate()
 	isolated.name = "GameContainer%s" % spot
 	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
-	crazy_games[spot] = game
+	game_container[spot] = game
 	game.lobby_slot = spot
-	game.crazy = true
-	game.single_player = false
+	game.crazy = crazy
+	game.single_player = single_player
 	games.add_child(isolated)
 
-	print("putting CRAZY game in spot " + str(spot))
-	if free_spots.size() == 0:
-		free_spots.append(spot + 1)
-	return game
-	
-func spawn_new_single_player_game() -> Node:
-	var spot = free_spots[0]
-	free_spots.remove_at(0)
-
-	var isolated: Node3D = isolated_game.instantiate()
-	isolated.name = "GameContainer%s" % spot
-	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
-	single_player_games[spot] = game
-	game.lobby_slot = spot
-	game.crazy = false
-	game.single_player = true
-	games.add_child(isolated)
-
-	print("putting single player game in spot " + str(spot))
+	print("Placing ", log_adjective, " game in spot: ", spot)
 	if free_spots.size() == 0:
 		free_spots.append(spot + 1)
 	return game
