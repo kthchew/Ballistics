@@ -204,7 +204,7 @@ func enter_ai_normal_game():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_remove_from_private_room(sender_id, false)
-	_start_game_for_peers([sender_id, 1], false, true)
+	_start_game_for_peers([1, sender_id], false, true)
 
 @rpc("any_peer")
 func request_create_private_room():

@@ -94,10 +94,13 @@ func place_cue_ball_after_scratch(pos: Vector3):
 	
 func _on_ai_aimed(dir: Vector2):
 	aim(dir)
+	
 	slider.value = 50
-	_on_force_changed.rpc_id(1, slider.value)
-	#await get_tree().create_timer(1.0).timeout
-	_on_fire_pressed()
+	change_force(slider.value)
+	
+	await get_tree().create_timer(1.0).timeout
+	
+	fire_cue()
 	
 func _on_ai_placed_cue_ball(pos: Vector3):
 	_on_place_cue_ball.rpc_id(1, pos)
@@ -119,8 +122,9 @@ func aim(dir: Vector2):
 	
 	_on_aim_changed(dir)
 	_on_aim_changed.rpc_id(1, dir)
-	var other_peer = connected_peers[1 - player_ind]
-	_on_aim_changed.rpc_id(other_peer, dir)
+	if not single_player:
+		var other_peer = connected_peers[1 - player_ind]
+		_on_aim_changed.rpc_id(other_peer, dir)
 	
 func calc_offset_3d(dir: Vector3):
 	var up = Vector3.UP
@@ -322,26 +326,28 @@ func _on_place_cue_ball(place_global_pos: Vector3):
 
 @rpc("any_peer", "reliable")
 func _on_aim_changed(dir_from_cue: Vector2):
-	if (multiplayer.get_remote_sender_id() != 0 and connected_peers[player_ind] != multiplayer.get_remote_sender_id()) or game_state != GameState.AIMING:
+	if (multiplayer.get_remote_sender_id() != 0 and connected_peers[player_ind] != multiplayer.get_remote_sender_id()) \
+	or game_state != GameState.AIMING \
+	or dir_from_cue.length() < 20 \
+	or ball_manager.check_cue_ball_potted_by_pos():
 		return
-
-	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
 	
-	if dir_from_cue.length() < 20 or ball_manager.check_cue_ball_potted_by_pos():
-		return
 	has_aimed = true
 
+	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
 	var angle: float = dir_from_cue.angle()
-	
+
 	cue_stick.update_position(ball_center_3d)
 	cue_stick.set_angle(angle)
 	cue_stick.show()
-	
 
 @rpc("any_peer", "reliable")
-func _on_force_changed(value):
-	if not multiplayer.is_server() or (connected_peers[player_ind] != multiplayer.get_remote_sender_id() and multiplayer.get_remote_sender_id() != 1):
+func _on_force_changed(value: float):
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
+	change_force(value)
+		
+func change_force(value: float):
 	var normalized = value / $UI/ForceSlider.max_value
 	cue_stick.set_force_strength(normalized)
 
@@ -379,22 +385,24 @@ func _on_fire_pressed():
 		return
 	# need to set the strength in case it was changed by other player's turn
 	_on_force_changed.rpc_id(1, slider.value)
-	fire_cue.rpc_id(1)
+	rpc_fire_cue.rpc_id(1)
 	aim_guide.hide()
 	
 	has_aimed = false
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)
 	aimer._reset_knob()
-	
+
 @rpc("any_peer", "reliable")
-func fire_cue():
+func rpc_fire_cue():
 	if not multiplayer.is_server() \
-	   or (connected_peers[player_ind] != multiplayer.get_remote_sender_id() and multiplayer.get_remote_sender_id() != 1) \
+	   or connected_peers[player_ind] != multiplayer.get_remote_sender_id() \
 	   or game_state != GameState.AIMING \
 	   or not has_aimed:
 		return
+	fire_cue()
 	
+func fire_cue():
 	var dir = calc_dir()
 	var offset_3d = calc_offset_3d(dir)
 	var strength = cue_stick.strength * 100
@@ -435,7 +443,7 @@ func end_game(winner: int) -> void:
 	ball_manager.freeze_balls()
 		
 func is_ai_turn():
-	return single_player and player_ind == 1
+	return single_player and connected_peers[player_ind] == 1
 	
 func ai_play():
 	await get_tree().create_timer(1.0).timeout
