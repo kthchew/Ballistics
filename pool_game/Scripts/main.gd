@@ -114,11 +114,15 @@ func _on_ai_picked_pocket(hole_ind: int):
 	select_hole(hole_ind)
 
 func aim(dir: Vector2):
+	
 	cast_aim_ray(dir.normalized())
 	aim_guide.show()
+	var other_peer = connected_peers[1 - player_ind]
+	if single_player and connected_peers[player_ind] == 1:
+		cast_aim_ray.rpc_id(other_peer, dir.normalized())
+		set_aim_guide_visibility.rpc_id(other_peer, true)
 	
 	aim_cue(dir)
-	var other_peer = connected_peers[1 - player_ind]
 	rpc_aim_cue.rpc_id(other_peer, dir)
 	if not single_player:
 		rpc_aim_cue.rpc_id(1, dir)
@@ -219,7 +223,12 @@ func shapecast_point_to_point(origin: Vector3, rel_target: Vector3) -> bool:
 	shape_cast.collision_mask = 1 << 2
 	shape_cast.force_shapecast_update()
 	return not shape_cast.is_colliding()
-	
+
+@rpc("any_peer")
+func set_aim_guide_visibility(visible: bool):
+	aim_guide.visible = visible
+
+@rpc("any_peer")	
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
@@ -339,10 +348,6 @@ func rpc_aim_cue(dir_from_cue: Vector2):
 	aim_cue(dir_from_cue)
 
 func aim_cue(dir_from_cue: Vector2):
-	#cast_aim_ray(dir_from_cue.normalized())
-	#aim_visuals.show()
-	#aim_guide.show()
-	
 	has_aimed = true
 
 	var ball_center_3d = ball_manager.get_cue_ball_global_pos()

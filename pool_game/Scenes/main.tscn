@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://Scripts/cue_stick.gd" id="9_u50mg"]
 [ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://Scripts/aim_guide_circle.gd" id="10_cbgmd"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_1w6v2"]
+[ext_resource type="Script" uid="uid://bjwyxti52ing3" path="res://Scripts/circle_artist.gd" id="11_pdsj5"]
 [ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://Scripts/PowerButton.gd" id="12_ueoa1"]
 [ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://Scripts/placement_controller.gd" id="13_6vcvc"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="14_7k868"]
@@ -464,6 +465,9 @@ width = 3.0
 [node name="AimGuideLine2" type="Line2D" parent="UI/AimVisuals/AimGuide" unique_id=1448096911]
 points = PackedVector2Array(0, 0, 0, 0)
 width = 3.0
+
+[node name="Node2D" type="Node2D" parent="UI/AimVisuals" unique_id=895442796]
+script = ExtResource("11_pdsj5")
 
 [node name="CashOut" type="CanvasLayer" parent="." unique_id=276110570]
 visible = false
