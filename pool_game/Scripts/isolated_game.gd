@@ -20,9 +20,13 @@ func _sync_subviewport_size() -> void:
 	if subviewport.size != target_size:
 		subviewport.size = target_size
 	var game: Node = subviewport.get_node("Game")
+	var camera: Camera3D = game.get_node("CameraPivot/Camera3D")
 	var hole_buttons: Node = game.get_node("UI/HoleButtons")
+	var table_group: Node = game.get_node("TableGroup")
 	var cue_stick: Node = game.get_node("UI/AimVisuals/CueStick")
 	var safe_area_container: Node = game.get_node("UI/SafeAreaContainer")
+	
+	_fit_camera_to_table(camera, table_group as Node3D, subviewport.size)
 	
 	hole_buttons.reposition_hole_buttons()
 	
@@ -45,4 +49,20 @@ func _sync_subviewport_size() -> void:
 		safe_area_container.position.y = margin_top
 		safe_area_container.size.x = subviewport_rect.size.x - margin_left - margin_right
 		safe_area_container.size.y = subviewport_rect.size.y - margin_top - margin_bottom
-	
+
+func _fit_camera_to_table(camera: Camera3D, table_group: Node3D, viewport_size: Vector2) -> void:
+	if camera == null or table_group == null or viewport_size.y <= 0.0:
+		return
+	if camera.projection == Camera3D.PROJECTION_ORTHOGONAL:
+		const WIDTH_SIZE: float = 150.0
+		const HEIGHT_SIZE: float = 260.0
+		# decide which dimension to fit based on which will fit the table better within the viewport
+		var aspect: float = max(0.001, viewport_size.y / viewport_size.x)
+		var table_aspect: float = WIDTH_SIZE / HEIGHT_SIZE
+		if aspect >= table_aspect:
+			camera.keep_aspect = Camera3D.KEEP_WIDTH
+			camera.size = HEIGHT_SIZE
+		else:
+			camera.keep_aspect = Camera3D.KEEP_HEIGHT
+			camera.size = WIDTH_SIZE
+		return
