@@ -7,7 +7,6 @@ class_name Main extends Node3D
 @onready var aimer = $UI/Aimer
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
-@onready var aim_visuals = $UI/AimVisuals
 @onready var aim_guide = $UI/AimVisuals/AimGuide
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var reroll_button: Button = $pUI/Panel/HBoxContainer2/RerollButton
@@ -61,7 +60,7 @@ func _ready() -> void:
 	if init_peer != null:
 		multiplayer.multiplayer_peer = init_peer
 	
-	aim_visuals.hide()
+	aim_guide.hide()
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_input)
 	slider.value_changed.connect(_on_force_changed.rpc)
@@ -120,7 +119,6 @@ func _on_ai_picked_pocket(hole_ind: int):
 
 func aim(dir: Vector2):
 	cast_aim_ray(dir.normalized())
-	aim_visuals.show()
 	aim_guide.show()
 	
 	aim_cue(dir)
@@ -278,7 +276,7 @@ func start_game() -> void:
 	set_visibility.rpc_id(connected_peers[0])
 	set_visibility.rpc_id(connected_peers[1])
 	
-	aim_visuals.hide()
+	aim_guide.hide()
 	cue_stick.hide()
 	hole_buttons.hide()
 	
@@ -346,7 +344,6 @@ func rpc_aim_cue(dir_from_cue: Vector2):
 
 func aim_cue(dir_from_cue: Vector2):
 	#cast_aim_ray(dir_from_cue.normalized())
-	#aim_visuals.show()
 	#aim_guide.show()
 	
 	has_aimed = true
@@ -440,7 +437,6 @@ func fire_cue():
 		.set_trans(Tween.TRANS_CUBIC)\
 		.set_ease(Tween.EASE_IN_OUT)
 	tween.tween_callback(func():
-		aim_visuals.hide()
 		aim_guide.hide()
 		cue_stick.hide()
 		cue_stick.striking = false
