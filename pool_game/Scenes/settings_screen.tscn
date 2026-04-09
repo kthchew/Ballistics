@@ -76,6 +76,21 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 placeholder_text = "18361"
 
+[node name="AccountAddress" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=812949414]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/AccountAddress" unique_id=1312757929]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Account Server URL"
+
+[node name="LineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/AccountAddress" unique_id=1259131307]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+placeholder_text = "127.0.0.1"
+
 [node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1849299776]
 custom_minimum_size = Vector2(320, 64)
 layout_mode = 2

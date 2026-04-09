@@ -2,6 +2,7 @@ extends Control
 
 @onready var server_address_edit: LineEdit = $MarginContainer/VBoxContainer/ServerAddress/LineEdit
 @onready var server_port_edit: LineEdit = $MarginContainer/VBoxContainer/ServerPort/LineEdit
+@onready var backend_url_edit: LineEdit = $MarginContainer/VBoxContainer/AccountAddress/LineEdit
 
 @onready var save_button: Button = $MarginContainer/VBoxContainer/SaveButton
 
@@ -19,6 +20,7 @@ func _ready() -> void:
 		
 	server_address_edit.text = config.get_value("network", "server_address", "127.0.0.1")
 	server_port_edit.text = str(config.get_value("network", "server_port", 18361))
+	backend_url_edit.text = config.get_value("network", "backend_url", "http://127.0.0.1:5000")
 	
 	save_button.pressed.connect(_on_save_button_pressed)
 
@@ -27,6 +29,8 @@ func _on_save_button_pressed():
 	config.set_value("network", "server_address", server_addr)
 	var server_port := int(server_port_edit.text)
 	config.set_value("network", "server_port", server_port)
+	var backend_url := backend_url_edit.text
+	config.set_value("network", "backend_url", backend_url)
 	var err := config.save(config_path)
 	if err != OK:
 		print("Error saving config: %s" % err)

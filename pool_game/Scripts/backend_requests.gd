@@ -2,8 +2,6 @@ extends HTTPRequest
 
 
 var config := ConfigFile.new()
-# TODO: use env var or config
-const BACKEND_URL := "http://127.0.0.1:5000"
 
 var session: String
 
@@ -18,6 +16,9 @@ func _ready() -> void:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
+
+func backend_url() -> String:
+	return config.get_value("network", "backend_url", "http://127.0.0.1:5000")
 
 class GameInstance:
 	var game_id: String
@@ -67,14 +68,14 @@ func _make_request(url: String, method: int, json_body: Dictionary = {}, session
 	return {"result": body_text_resp, "response_code": response_code, "headers": resp_headers}
 
 func register(username: String, password: String) -> Dictionary:
-	var url: String = BACKEND_URL + "/register"
+	var url: String = backend_url() + "/register"
 	var body: Dictionary[Variant, Variant] = {"username": username, "password": password}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
 	print(response)
 	return response
 	
 func login(username: String, password: String) -> Dictionary:
-	var url: String = BACKEND_URL + "/login"
+	var url: String = backend_url() + "/login"
 	var body: Dictionary[Variant, Variant] = {"username": username, "password": password}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
 	if "headers" in response and "response_code" in response and response["response_code"] == 200:
@@ -93,7 +94,7 @@ func login(username: String, password: String) -> Dictionary:
 	return response
 	
 func info_for_account(token: String) -> Dictionary:
-	var url: String = BACKEND_URL + "/profile"
+	var url: String = backend_url() + "/profile"
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_GET, {}, token)
 	print(response)
 	if "result" in response:
@@ -108,20 +109,20 @@ func info_for_account(token: String) -> Dictionary:
 		return {}
 	
 func join_game(token: String, game_id: String) -> bool:
-	var url = BACKEND_URL + "/joinGame"
+	var url = backend_url() + "/joinGame"
 	var body = {"game_id": game_id}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body, token)
 	return response["response_code"] == 200
 	
 func leave_game(token: String) -> bool:
-	var url = BACKEND_URL + "/leaveGame"
+	var url = backend_url() + "/leaveGame"
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, {}, token)
 	return response["response_code"] == 200
 	
 
 ## Saves a new game to the backend and returns the game ID. This should only be called from the game server.
 func create_new_game(game_state: Dictionary) -> String:
-	var url = BACKEND_URL + "/newGame"
+	var url = backend_url() + "/newGame"
 	var body = {"game_state": game_state}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
 	if "result" in response:
@@ -142,7 +143,7 @@ func create_new_game(game_state: Dictionary) -> String:
 		return ""
 
 func get_game_state(token: String, game_id: String) -> Dictionary:
-	var url = BACKEND_URL + "/getGame"
+	var url = backend_url() + "/getGame"
 	var body = {"token": token, "game_id": game_id}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_GET, body, token)
 	if not response.has("result"):
@@ -158,7 +159,7 @@ func get_game_state(token: String, game_id: String) -> Dictionary:
 		return {}
 
 func set_game_state(state: Dictionary, game_id: String) -> bool:
-	var url = BACKEND_URL + "/updateGame"
+	var url = backend_url() + "/updateGame"
 	var body = {"game_state": state, "game_id": game_id}
 	var response: Dictionary = await _make_request(url, HTTPClient.METHOD_POST, body)
 	return response["response_code"] == 200
