@@ -127,17 +127,18 @@ func reset_request() -> void:
 	var this_ind = connected_peers.find(multiplayer.get_unique_id())
 	
 	requesting_reset[changer_ind] = not requesting_reset[changer_ind]
-	$UI/SafeAreaContainer/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
+	var request_label = $UI/PauseMenu/GridContainer/ResetInfo/ResetRequestedLabel
+	request_label.visible = requesting_reset[changer_ind]
 	
 	if requesting_reset[this_ind]:
-		$UI/SafeAreaContainer/ResetButton/ResetRequestedLabel.text = "Requested reset"
+		request_label.text = "You have requested a reset."
 	else:
-		$UI/SafeAreaContainer/ResetButton/ResetRequestedLabel.text = "Opponent requested reset"
+		request_label.text = "Your opponent requests a reset."
 	
 	if requesting_reset[0] and requesting_reset[1]:
 		if multiplayer.is_server():
 			start_game()
-		$UI/SafeAreaContainer/ResetButton/ResetRequestedLabel.visible = false
+		request_label.visible = false
 		requesting_reset = [false, false]
 
 func _on_first_hit_ball_changed():
@@ -770,3 +771,16 @@ func start_crazy_mode() -> void:
 	$pUI.visible = true
 	initialize_powerup_shop()
 	update_powerup_shop()
+
+
+func _on_menu_button_pressed() -> void:
+	$UI/PauseMenu.show()
+
+
+func _on_menu_resume_button_pressed() -> void:
+	$UI/PauseMenu.hide()
+
+
+func _on_menu_exit_button_pressed() -> void:
+	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")

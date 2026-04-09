@@ -448,32 +448,103 @@ offset_bottom = 5.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_dg77c")
 
-[node name="ResetButton" type="Button" parent="UI/SafeAreaContainer" unique_id=1937985300]
+[node name="MenuButton" type="Button" parent="UI/SafeAreaContainer" unique_id=1895410663]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -180.0
-offset_top = 36.0
-offset_right = -27.0
-offset_bottom = 108.0
+offset_left = -154.0
+offset_top = 24.0
+offset_right = -26.0
+offset_bottom = 152.0
 grow_horizontal = 0
 theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 64
+text = "| |"
+
+[node name="PauseMenu" type="Panel" parent="UI" unique_id=2117890982]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="UI/PauseMenu" unique_id=1919848133]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 126.0
+theme_override_font_sizes/font_size = 92
+text = "Menu"
+horizontal_alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="UI/PauseMenu" unique_id=1044821535]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -760.0
+offset_top = -109.5
+offset_right = 760.0
+offset_bottom = 109.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 40
+theme_override_constants/v_separation = 50
+columns = 2
+
+[node name="ResumeButton" type="Button" parent="UI/PauseMenu/GridContainer" unique_id=996647201]
+layout_mode = 2
+theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 48
+text = "Resume"
+
+[node name="ResumeLabel" type="Label" parent="UI/PauseMenu/GridContainer" unique_id=357021096]
+custom_minimum_size = Vector2(648, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Return to the game."
+autowrap_mode = 3
+
+[node name="ResetButton" type="Button" parent="UI/PauseMenu/GridContainer" unique_id=1937985300]
+layout_mode = 2
+size_flags_vertical = 4
+theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 48
 text = "Request Reset"
 
-[node name="ResetRequestedLabel" type="Label" parent="UI/SafeAreaContainer/ResetButton" unique_id=556853298]
+[node name="ResetInfo" type="VBoxContainer" parent="UI/PauseMenu/GridContainer" unique_id=577611387]
+custom_minimum_size = Vector2(648, 0)
+layout_mode = 2
+
+[node name="ResetLabel" type="Label" parent="UI/PauseMenu/GridContainer/ResetInfo" unique_id=556853298]
+custom_minimum_size = Vector2(960, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Ask your opponent to reset the game. The game resets if all players agree."
+autowrap_mode = 3
+
+[node name="ResetRequestedLabel" type="Label" parent="UI/PauseMenu/GridContainer/ResetInfo" unique_id=243222137]
 visible = false
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -138.0
-offset_top = 80.0
-offset_right = -12.0
-offset_bottom = 103.0
-grow_horizontal = 0
-text = "Reset requested"
-horizontal_alignment = 1
+custom_minimum_size = Vector2(960, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+autowrap_mode = 3
+
+[node name="ExitButton" type="Button" parent="UI/PauseMenu/GridContainer" unique_id=1951831453]
+layout_mode = 2
+theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 48
+text = "Main Menu"
+
+[node name="ExitLabel" type="Label" parent="UI/PauseMenu/GridContainer" unique_id=841987785]
+custom_minimum_size = Vector2(648, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Exit this round and return to the main menu. If all players are logged in, you can resume later."
+autowrap_mode = 3
 
 [node name="CashOut" type="CanvasLayer" parent="." unique_id=276110570]
 visible = false
@@ -773,7 +844,10 @@ size = 130.0
 replication_config = SubResource("SceneReplicationConfig_efxa6")
 public_visibility = false
 
-[connection signal="pressed" from="UI/SafeAreaContainer/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="UI/SafeAreaContainer/MenuButton" to="." method="_on_menu_button_pressed"]
+[connection signal="pressed" from="UI/PauseMenu/GridContainer/ResumeButton" to="." method="_on_menu_resume_button_pressed"]
+[connection signal="pressed" from="UI/PauseMenu/GridContainer/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="UI/PauseMenu/GridContainer/ExitButton" to="." method="_on_menu_exit_button_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power1" to="pUI/placementController" method="_on_power_1_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power3" to="pUI/placementController" method="_on_power_3_pressed"]
