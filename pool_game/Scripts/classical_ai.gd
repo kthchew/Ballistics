@@ -19,7 +19,7 @@ func fill_hole_locs():
 	var hole_rad = 3
 	var dx = [-1, 1, 0, 0]
 	var dz = [0, 0, -1, 1]
-	for hole_ind in range(1):
+	for hole_ind in range(6):
 		var path_str = "../TableGroup/Table/Holes/Hole" + str(hole_ind + 1) + "/HoleMarker"
 		var hole_marker = get_node(path_str)
 		var pos = hole_marker.global_position
