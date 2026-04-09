@@ -2,9 +2,9 @@ extends Node3D
 
 @onready var debug_label: Label = $LabelLayer/DebugLabel
 @onready var info_label: Label = $LabelLayer/InfoLabel
-@onready var slider = $UI/ForceSlider
-@onready var fire_button = $UI/FireButton
-@onready var aimer = $UI/Aimer
+@onready var slider = $UI/SafeAreaContainer/ForceSlider
+@onready var fire_button = $UI/SafeAreaContainer/FireButton
+@onready var aimer = $UI/SafeAreaContainer/Aimer
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_visuals = $UI/AimVisuals
@@ -127,17 +127,17 @@ func reset_request() -> void:
 	var this_ind = connected_peers.find(multiplayer.get_unique_id())
 	
 	requesting_reset[changer_ind] = not requesting_reset[changer_ind]
-	$UI/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
+	$UI/SafeAreaContainer/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
 	
 	if requesting_reset[this_ind]:
-		$UI/ResetButton/ResetRequestedLabel.text = "Requested reset"
+		$UI/SafeAreaContainer/ResetButton/ResetRequestedLabel.text = "Requested reset"
 	else:
-		$UI/ResetButton/ResetRequestedLabel.text = "Opponent requested reset"
+		$UI/SafeAreaContainer/ResetButton/ResetRequestedLabel.text = "Opponent requested reset"
 	
 	if requesting_reset[0] and requesting_reset[1]:
 		if multiplayer.is_server():
 			start_game()
-		$UI/ResetButton/ResetRequestedLabel.visible = false
+		$UI/SafeAreaContainer/ResetButton/ResetRequestedLabel.visible = false
 		requesting_reset = [false, false]
 
 func _on_first_hit_ball_changed():
@@ -313,7 +313,7 @@ func _on_aim_changed(dir_from_cue: Vector2):
 func _on_force_changed(value):
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
-	var normalized = value / $UI/ForceSlider.max_value
+	var normalized = value / $UI/SafeAreaContainer/ForceSlider.max_value
 	cue_stick.set_force_strength(normalized)
 
 func shake_camera(intensity: float, duration: float) -> void:
