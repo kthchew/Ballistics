@@ -16,7 +16,8 @@ class_name Main extends Node3D
 @onready var classical_ai = $ClassicalAI
 @onready var cashout = false
 
-var crazy
+var crazy: bool
+var single_player: bool
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
@@ -337,7 +338,7 @@ func _on_aim_changed(dir_from_cue: Vector2):
 	cue_stick.show()
 	
 
-@rpc("any_peer", "reliable", "call_local")
+@rpc("any_peer", "reliable")
 func _on_force_changed(value):
 	if not multiplayer.is_server() or (connected_peers[player_ind] != multiplayer.get_remote_sender_id() and multiplayer.get_remote_sender_id() != 1):
 		return
@@ -379,7 +380,6 @@ func _on_fire_pressed():
 	# need to set the strength in case it was changed by other player's turn
 	_on_force_changed.rpc_id(1, slider.value)
 	fire_cue.rpc_id(1)
-	#fire_cue()
 	aim_guide.hide()
 	
 	has_aimed = false
@@ -387,7 +387,7 @@ func _on_fire_pressed():
 	cue_stick.set_force_strength(0.0)
 	aimer._reset_knob()
 	
-@rpc("any_peer", "reliable", "call_local")
+@rpc("any_peer", "reliable")
 func fire_cue():
 	if not multiplayer.is_server() \
 	   or (connected_peers[player_ind] != multiplayer.get_remote_sender_id() and multiplayer.get_remote_sender_id() != 1) \
@@ -435,8 +435,7 @@ func end_game(winner: int) -> void:
 	ball_manager.freeze_balls()
 		
 func is_ai_turn():
-	return true
-	#return player_ind == 1
+	return single_player and player_ind == 1
 	
 func ai_play():
 	await get_tree().create_timer(1.0).timeout

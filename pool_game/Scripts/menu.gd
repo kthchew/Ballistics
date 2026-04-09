@@ -18,6 +18,7 @@ func _ready() -> void:
 	randPoolButton.pressed.connect(_on_Rpool_pressed)
 	randCrazyButton.pressed.connect(_on_Cpool_pressed)
 	priv_button.pressed.connect(_on_priv_pressed)
+	ai_pool_button.pressed.connect(_on_ai_pool_pressed)
 
 func prepare_to_exit():
 	$OverheadLight/Light/AudioStreamPlayer3D.play()

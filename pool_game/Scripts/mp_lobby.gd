@@ -9,6 +9,7 @@ var regular_games = {}
 var regular_queue = []
 var crazy_queue = []
 var crazy_games = {}
+var single_player_games = {}
 var private_rooms = {}
 var room_by_peer = {}
 
@@ -203,7 +204,7 @@ func enter_ai_normal_game():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_remove_from_private_room(sender_id, false)
-	_start_game_for_peers([1, sender_id], true)
+	_start_game_for_peers([sender_id, 1], false, true)
 
 @rpc("any_peer")
 func request_create_private_room():
@@ -255,7 +256,7 @@ func request_join_private_room(code: String):
 	room_by_peer.erase(host_id)
 	room_by_peer.erase(sender_id)
 	# FIXME: set appropriate type not just normal game
-	_start_game_for_peers([host_id, sender_id], false)
+	_start_game_for_peers([host_id, sender_id], false, false)
 
 @rpc("any_peer")
 func request_cancel_private_room():
@@ -312,17 +313,19 @@ func _try_match_random_queue() -> void:
 	while regular_queue.size() >= 2:
 		var first = regular_queue.pop_front()
 		var second = regular_queue.pop_front()
-		_start_game_for_peers([first, second], false)
+		_start_game_for_peers([first, second], false, false)
 		
 func _try_match_crazy_queue() -> void:
 	while crazy_queue.size() >= 2:
 		var first = crazy_queue.pop_front()
 		var second = crazy_queue.pop_front()
-		_start_game_for_peers([first, second], true)
+		_start_game_for_peers([first, second], true, false)
 
-func _start_game_for_peers(peers: Array, is_crazy: bool) -> void:
+func _start_game_for_peers(peers: Array, is_crazy: bool, single_player: bool) -> void:
 	var game
-	if is_crazy:
+	if single_player:
+		game = spawn_new_single_player_game()
+	elif is_crazy:
 		game = spawn_new_crazy_game()
 	else:
 		game = spawn_new_regular_game()
@@ -390,6 +393,7 @@ func spawn_new_regular_game() -> Node:
 	regular_games[spot] = game
 	game.lobby_slot = spot
 	game.crazy = false
+	game.single_player = false
 	games.add_child(isolated)
 
 	print("putting game in spot " + str(spot))
@@ -407,9 +411,28 @@ func spawn_new_crazy_game() -> Node:
 	crazy_games[spot] = game
 	game.lobby_slot = spot
 	game.crazy = true
+	game.single_player = false
 	games.add_child(isolated)
 
 	print("putting CRAZY game in spot " + str(spot))
+	if free_spots.size() == 0:
+		free_spots.append(spot + 1)
+	return game
+	
+func spawn_new_single_player_game() -> Node:
+	var spot = free_spots[0]
+	free_spots.remove_at(0)
+
+	var isolated: Node3D = isolated_game.instantiate()
+	isolated.name = "GameContainer%s" % spot
+	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
+	single_player_games[spot] = game
+	game.lobby_slot = spot
+	game.crazy = false
+	game.single_player = true
+	games.add_child(isolated)
+
+	print("putting single player game in spot " + str(spot))
 	if free_spots.size() == 0:
 		free_spots.append(spot + 1)
 	return game

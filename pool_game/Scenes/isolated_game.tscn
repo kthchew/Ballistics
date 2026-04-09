@@ -2,7 +2,6 @@
 
 [ext_resource type="PackedScene" uid="uid://dtwea76x43glo" path="res://Scenes/main.tscn" id="1_h0f3o"]
 [ext_resource type="Script" uid="uid://cihy6o58yvicj" path="res://Scripts/isolated_game.gd" id="2_is6v0"]
-[ext_resource type="Script" uid="uid://cqs0fw04i353c" path="res://Scripts/main.gd" id="3_w6yo4"]
 
 [node name="IsolatedRegGame" type="Node3D" unique_id=2021762876]
 script = ExtResource("2_is6v0")
@@ -20,17 +19,3 @@ render_target_update_mode = 0
 
 [node name="Game" parent="SubViewportContainer/SubViewport" unique_id=1362962675 instance=ExtResource("1_h0f3o")]
 visible = false
-script = ExtResource("3_w6yo4")
-lobby_slot = -1
-player_ind = 0
-scores = Array[int]([0, 0])
-game_state = 6
-turn_num = 0
-round_num = 0
-solids_player = -1
-next_solids_player = -1
-winner = -1
-play_again = false
-target_hole = -1
-connected_peers = [-1, -1]
-money = Array[int]([0, 0])
