@@ -55,6 +55,9 @@ const ball_script = preload("res://Scripts/ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
+	if not OS.is_debug_build():
+		debug_label.hide()
+	
 	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
 	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
 	print("MAIN READY PATH:", get_path(), "\nGAME TYPE:", game_type)
@@ -526,7 +529,8 @@ func _physics_process(delta: float) -> void:
 	process_midturn()
 
 func _process(delta: float) -> void:
-	fill_debug_label()
+	if OS.is_debug_build():
+		fill_debug_label()
 	fill_info_label()
 	if $pUI and $pUI.visible:
 		update_powerup_shop()
