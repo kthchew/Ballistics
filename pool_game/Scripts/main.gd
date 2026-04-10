@@ -213,6 +213,10 @@ func _on_ball_sunk(ball):
 		if next_solids_player != -1:
 			scores[next_solids_player] = ball_manager.balls_sunk[0]
 			scores[1 - next_solids_player] = ball_manager.balls_sunk[1]
+			if ball.is_solid() and player_ind == solids_player:
+				money[1 - player_ind] += 10
+			elif ball.is_stripe() and player_ind != solids_player:
+				money[1 - player_ind] += 10
 
 func shapecast_point_to_point(origin: Vector3, rel_target: Vector3) -> bool:
 	shape_cast.global_position = origin
