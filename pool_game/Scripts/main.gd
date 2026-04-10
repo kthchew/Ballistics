@@ -5,6 +5,7 @@ extends Node3D
 @onready var slider = $UI/SafeAreaContainer/ForceSlider
 @onready var fire_button = $UI/SafeAreaContainer/FireButton
 @onready var aimer = $UI/SafeAreaContainer/Aimer
+@onready var menu_button = $UI/SafeAreaContainer/MenuButton
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_visuals = $UI/AimVisuals
@@ -134,12 +135,17 @@ func reset_request() -> void:
 		request_label.text = "You have requested a reset."
 	else:
 		request_label.text = "Your opponent requests a reset."
+		if request_label.visible:
+			menu_button.start_pulsing()
 	
 	if requesting_reset[0] and requesting_reset[1]:
 		if multiplayer.is_server():
 			start_game()
 		request_label.visible = false
 		requesting_reset = [false, false]
+	
+	if not request_label.visible:
+		menu_button.stop_pulsing()
 
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
@@ -811,7 +817,7 @@ func start_crazy_mode() -> void:
 
 func _on_menu_button_pressed() -> void:
 	$UI/PauseMenu.show()
-
+	menu_button.stop_pulsing()
 
 func _on_menu_resume_button_pressed() -> void:
 	$UI/PauseMenu.hide()
