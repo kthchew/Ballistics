@@ -155,6 +155,8 @@ func calc_hole_ind_from_pos(pos: Vector3) -> int:
 	return hole_ind
 	
 func _on_ball_sunk(ball):
+	if not multiplayer.is_server():
+			return
 	if ball.is_eight_ball():
 		var hole_ind = calc_hole_ind_from_pos(ball.position)
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
@@ -178,10 +180,13 @@ func _on_ball_sunk(ball):
 		if next_solids_player != -1:
 			scores[next_solids_player] = ball_manager.balls_sunk[0]
 			scores[1 - next_solids_player] = ball_manager.balls_sunk[1]
-			if ball.is_solid() and player_ind == solids_player:
-				money[1 - player_ind] += 10
-			elif ball.is_stripe() and player_ind != solids_player:
-				money[1 - player_ind] += 10
+		
+		if ball.is_solid() and player_ind == solids_player:
+			money[1 - player_ind] += 10
+			
+		elif ball.is_stripe() and player_ind != solids_player and solids_player != -1:
+			money[1 - player_ind] += 10
+	update_money_all.rpc(money)
 	
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
@@ -545,8 +550,8 @@ func fill_debug_label() -> void:
 	label_txt += "\nFirst Hit Scratch: " + str(ball_manager.first_hit_scratch)
 	
 	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
-		label_txt += "\nSolids Crazy Currency: " + str(money[0])
-		label_txt += "\nStripes Crazy Currency: " + str(money[1])
+		label_txt += "\nStripes Crazy Currency: " + str(money[0])
+		label_txt += "\nSolids Crazy Currency: " + str(money[1])
 	debug_label.text = label_txt
 
 func get_cashout_owner_peer_id() -> int:
@@ -677,9 +682,34 @@ func purchase_power(power_name: String, cost: int) -> bool:
 		return false
 	if cost > money[local_index]:
 		return false
-	money[local_index] -= cost
-	update_powerup_shop()
+	request_purchase_power.rpc(power_name, cost)
 	return true
+
+@rpc("authority", "call_local")
+func purchase_result(success: bool) -> void:
+	if success:
+		update_powerup_shop()
+	else:
+		print("Purchase failed")
+
+@rpc("any_peer", "reliable")
+func request_purchase_power(power_name: String, cost: int) -> void:
+	if not multiplayer.is_server():
+		return
+
+	var sender_id = multiplayer.get_remote_sender_id()
+	var buyer_index = connected_peers.find(sender_id)
+	if buyer_index == -1:
+		return
+
+	if cost <= 0 or cost > money[buyer_index]:
+		purchase_result.rpc_id(sender_id, false)
+		return
+
+	money[buyer_index] -= cost
+	update_money_all.rpc(money)
+	purchase_result.rpc_id(sender_id, true)
+
 
 func update_powerup_shop() -> void:
 	if not $pUI or not $pUI/Panel:
@@ -732,17 +762,23 @@ func update_powerup_shop() -> void:
 func request_cashout_no() -> void:
 	if not multiplayer.is_server():
 		return
+
 	var sender_id = multiplayer.get_remote_sender_id()
 	if cashout_owner_ind == -1 or sender_id != connected_peers[cashout_owner_ind]:
 		return
+
+	money[cashout_owner_ind] += 3
+	update_money_all.rpc(money)
 	hide_cashout_menu.rpc_id(sender_id)
-	rpc("restore_ui_after_cashout")
+	restore_ui_after_cashout.rpc()
 	cashout = false
+
 	if play_again:
 		play_again = false
 		start_round()
 	else:
 		end_round()
+
 
 @rpc("any_peer", "reliable")
 func request_cashout_yes() -> void:
@@ -784,3 +820,7 @@ func _on_menu_resume_button_pressed() -> void:
 func _on_menu_exit_button_pressed() -> void:
 	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
+
+@rpc("any_peer", "reliable")
+func update_money_all(server_money: Array) -> void:
+	money = server_money.duplicate()
