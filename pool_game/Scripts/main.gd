@@ -2,9 +2,10 @@ extends Node3D
 
 @onready var debug_label: Label = $LabelLayer/DebugLabel
 @onready var info_label: Label = $LabelLayer/InfoLabel
-@onready var slider = $UI/ForceSlider
-@onready var fire_button = $UI/FireButton
-@onready var aimer = $UI/Aimer
+@onready var slider = $UI/SafeAreaContainer/ForceSlider
+@onready var fire_button = $UI/SafeAreaContainer/FireButton
+@onready var aimer = $UI/SafeAreaContainer/Aimer
+@onready var menu_button = $UI/SafeAreaContainer/MenuButton
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_visuals = $UI/AimVisuals
@@ -127,18 +128,24 @@ func reset_request() -> void:
 	var this_ind = connected_peers.find(multiplayer.get_unique_id())
 	
 	requesting_reset[changer_ind] = not requesting_reset[changer_ind]
-	$UI/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
+	var request_label = $UI/PauseMenu/GridContainer/ResetInfo/ResetRequestedLabel
+	request_label.visible = requesting_reset[changer_ind]
 	
 	if requesting_reset[this_ind]:
-		$UI/ResetButton/ResetRequestedLabel.text = "Requested reset"
+		request_label.text = "You have requested a reset."
 	else:
-		$UI/ResetButton/ResetRequestedLabel.text = "Opponent requested reset"
+		request_label.text = "Your opponent requests a reset."
+		if request_label.visible:
+			menu_button.start_pulsing()
 	
 	if requesting_reset[0] and requesting_reset[1]:
 		if multiplayer.is_server():
 			start_game()
-		$UI/ResetButton/ResetRequestedLabel.visible = false
+		request_label.visible = false
 		requesting_reset = [false, false]
+	
+	if not request_label.visible:
+		menu_button.stop_pulsing()
 
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
@@ -318,7 +325,7 @@ func _on_aim_changed(dir_from_cue: Vector2):
 func _on_force_changed(value):
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
-	var normalized = value / $UI/ForceSlider.max_value
+	var normalized = value / $UI/SafeAreaContainer/ForceSlider.max_value
 	cue_stick.set_force_strength(normalized)
 
 func shake_camera(intensity: float, duration: float) -> void:
@@ -806,6 +813,19 @@ func start_crazy_mode() -> void:
 	$pUI.visible = true
 	initialize_powerup_shop()
 	update_powerup_shop()
+
+
+func _on_menu_button_pressed() -> void:
+	$UI/PauseMenu.show()
+	menu_button.stop_pulsing()
+
+func _on_menu_resume_button_pressed() -> void:
+	$UI/PauseMenu.hide()
+
+
+func _on_menu_exit_button_pressed() -> void:
+	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
 
 @rpc("any_peer", "reliable")
 func update_money_all(server_money: Array) -> void:
