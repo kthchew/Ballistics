@@ -23,6 +23,12 @@ func get_target() -> String:
 		return str(closest_target.get_path())
 	return ""
 
+func apply_to(target: Node) -> void:
+	var low = target.name.to_lower()
+	if not low.contains("ball") and not low.contains("table"):
+		target.queue_free()
+		get_node("/root/Main").objects -= 1
+
 func canPlace() -> bool:
 	var valid_targets = []
 	var root = get_tree().get_root()
@@ -48,4 +54,5 @@ func _find_targets_in_tree(node: Node, result: Array) -> void:
 		result.append(node)
 	
 	for child in node.get_children():
+		_find_targets_in_tree(child, result)
 		_find_targets_in_tree(child, result)

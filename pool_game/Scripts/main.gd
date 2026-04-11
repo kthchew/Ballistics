@@ -20,7 +20,7 @@ enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED,
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
 var continue_after_crazy: bool = false
-const POWER_BASE_COSTS := {"block": 5, "tungsten": 8, "tnt": 10}
+const POWER_BASE_COSTS := {"block": 5, "tungsten": 8, "tnt": 10, "aerogel": 8}
 const POWER_COST_VARIATION_PERCENT: int = 10
 var power_shop_options: Array[String] = []
 var power_shop_costs: Dictionary = {}
@@ -626,9 +626,9 @@ func _on_reroll_powerup_pressed() -> void:
 
 func initialize_powerup_shop() -> void:
 	if objects > 0:
-		power_shop_options = ["block", "tungsten", "tnt"]
+		power_shop_options = ["block", "tungsten", "tnt", "aerogel"]
 	else:
-		power_shop_options = ["block", "tungsten"]
+		power_shop_options = ["block", "tungsten", "aerogel"]
 	power_shop_options.shuffle()
 	power_shop_used.clear()
 	power_shop_costs.clear()
