@@ -130,37 +130,36 @@ func rpc_update_preview(pos: Vector3, rot: Vector3):
 		preview.global_rotation = rot
 
 func _on_place_button_pressed():
+
 	if multiplayer.get_unique_id() != owner_peer_id:
+		print("multiplayer.get_unique_id() != owner_peer_id")
 		return
 	if not preview:
+		print("not preview")
 		return
 
-	var power_cost = 0
-	for name in ["Power1", "Power2", "Power3"]:
-		var path = "../Panel/HBoxContainer/%s" % name
-		var button = get_node(path)
-
-		if button.get_meta("power_name") == power_name:
-			power_cost = button.get_meta("power_cost")
-			break
+	var power_cost = preview.cost
+	
 	if power_cost <= 0:
+		print("power_cost <= 0")
 		return
 	if not game_root or not game_root.purchase_power(power_name, power_cost):
+		if not game_root:
+			print("not game_root")
+		if not game_root.purchase_power(power_name, power_cost):
+			print("not game_root.purchase_power(power_name, power_cost)")
 		return
 
-	var target_path := ""
+	var target_path = ""
 	if preview.power_type == "Modifier":
-		var area = preview.get_node_or_null("Area3D")
-		if area:
-			var overlaps = area.get_overlapping_areas()
-			if overlaps.size() == 1:
-				target_path = overlaps[0].get_parent().get_path()
-
+		target_path = preview.get_target()
+		
+	print("reached end")
+	print(preview.global_position)
 	request_place_power.rpc(
 		preview.power_type,
 		preview.global_position,
 		preview.global_rotation,
-		preview.occupied,
 		preview.power_scene_name,
 		target_path
 	)
@@ -199,41 +198,46 @@ func _apply_modifier(pName: String, modified_path: String) -> void:
 	if not target:
 		return
 
-	if pName == "tnt":
-		var low = target.name.to_lower()
-		if not low.contains("ball") and not low.contains("table"):
-			target.queue_free()
-			game_root.objects = max(0, game_root.objects - 1)
+	var scene: PackedScene = power_scenes.get(pName)
+	if not scene:
+		return
 
-	elif pName == "tungsten":
-		if target is RigidBody3D:
-			target.mass = 11
-			var mesh = target.get_node_or_null("MeshInstance3D")
-			if mesh:
-				var mat = mesh.get_active_material(0)
-				if mat:
-					mat = mat.duplicate()
-					mat.albedo_color = Color.GRAY
-					mat.metallic = 1.0
-					mat.roughness = 0.1
-					mesh.set_surface_override_material(0, mat)
+	var power_instance = scene.instantiate()
+	preview_container.add_child(power_instance)
+
+	if power_instance.has_method("apply_to"):
+		power_instance.apply_to(target)
+
+	power_instance.queue_free()
 
 @rpc("any_peer", "reliable")
 func rpc_apply_modifier(pName: String, modified_path: String) -> void:
 	_apply_modifier(pName, modified_path)
 
 @rpc("any_peer", "reliable")
-func request_place_power(power_type: String, pos: Vector3, rot: Vector3, occupied: int, pName: String, target_path: String = ""):
+func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, target_path: String = ""):
+	print(pos)
 	if not multiplayer.is_server():
+		print("not a server")
 		return
-
+	
+	print("server")
 	var sender = multiplayer.get_remote_sender_id()
 	if sender != owner_peer_id:
+		print("sender != owner_peer_id")
 		return
 
-	if power_type == "Object" and occupied > 0:
+	var scene: PackedScene = power_scenes.get(pName)
+	if not scene:
+		print("not scene")
 		return
-	if power_type == "Modifier" and occupied != 1:
+	var power_instance = scene.instantiate()
+
+	power_instance.global_position = pos
+	power_instance.global_rotation = rot
+
+	if not power_instance.canPlace():
+		print("not power_instance.canPlace()")
 		return
 
 	if power_type == "Object":
@@ -252,7 +256,7 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, occupie
 		if target:
 			_apply_modifier(pName, target.get_path())
 			rpc("rpc_apply_modifier", pName, target.get_path())
-
+	print("finish placement")
 	finish_placement.rpc_id(sender)
 
 
@@ -312,7 +316,7 @@ func _process(delta):
 		if rotated:
 			rpc("rpc_update_preview", preview.global_position, preview.global_rotation)
 
-		set_preview_illegal(not preview.canPlace())
+		# set_preview_illegal(not preview.canPlace())
 
 func _on_rotate_left_button_down(): rotating_left = true
 func _on_rotate_left_button_up(): rotating_left = false

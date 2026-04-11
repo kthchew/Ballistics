@@ -46,7 +46,7 @@ var requesting_reset: Array[bool] = [false, false] # index is player index
 @export var play_again: bool = false
 @export var target_hole: int = -1
 @export var connected_peers = [-1, -1]
-@export var money = [0,0]
+@export var money = [10,10]
 
 var first_hit_scratch: bool = false
 const ball_scene = preload("res://Scenes/ball.tscn")
@@ -254,7 +254,7 @@ func start_game() -> void:
 	solids_player = -1
 	next_solids_player = -1
 	scores = [0, 0]
-	money = [0, 0]
+	money = [100, 100]
 	turn_num = 0
 	round_num = 0
 	play_again = false
@@ -675,11 +675,15 @@ func get_current_player_money() -> int:
 
 func purchase_power(power_name: String, cost: int) -> bool:
 	if cost <= 0:
+		print("cost<=0")
 		return false
 	var local_index = get_local_player_index()
 	if local_index == -1:
+		print("-1")
 		return false
 	if cost > money[local_index]:
+		print(money)
+		print("cost>money")
 		return false
 	request_purchase_power.rpc(power_name, cost)
 	return true
