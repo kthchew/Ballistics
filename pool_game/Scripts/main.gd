@@ -21,7 +21,7 @@ enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED,
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
 var continue_after_crazy: bool = false
-const POWER_BASE_COSTS := {"block": 5, "tungsten": 8, "tnt": 10, "aerogel": 8}
+const POWER_BASE_COSTS := {"block": 15, "tungsten": 8, "tnt": 8, "aerogel": 12, "bumper": 20, "eraser": 10}
 const POWER_COST_VARIATION_PERCENT: int = 10
 var power_shop_options: Array[String] = []
 var power_shop_costs: Dictionary = {}
@@ -740,28 +740,40 @@ func _on_yes_pressed() -> void:
 func _on_done_powerup_pressed() -> void:
 	$pUI.visible = false
 	$UI.visible = true
+	reroll_tax = 1
 	request_finish_powerup_selection.rpc()
 
+var reroll_tax = 1
 func _on_reroll_powerup_pressed() -> void:
 	if get_local_player_money() < 1:
 		return
 	var local_index = get_local_player_index()
 	if local_index == -1:
 		return
-	money[local_index] -= 1
+	money[local_index] -= reroll_tax
+	update_money_all.rpc(money)
+	reroll_tax += 1
 	initialize_powerup_shop()
 	update_powerup_shop()
+	
+func has_modifiers_placed() -> bool:
+	var modifiers = get_tree().get_nodes_in_group("modifiers")
+	print(modifiers)
+	return modifiers.size() > 0
 
 func initialize_powerup_shop() -> void:
+	power_shop_options = ["block", "tungsten", "aerogel", "bumper"]
 	if objects > 0:
-		power_shop_options = ["block", "tungsten", "tnt", "aerogel"]
-	else:
-		power_shop_options = ["block", "tungsten", "aerogel"]
+		power_shop_options.append("tnt")
+	if has_modifiers_placed():
+		power_shop_options.append("eraser")
+		
 	power_shop_options.shuffle()
 	power_shop_used.clear()
 	power_shop_costs.clear()
 	for power_name in power_shop_options:
 		power_shop_costs[power_name] = get_power_cost(power_name)
+	$pUI/Panel/HBoxContainer2/RerollButton.text = "Reroll (%s)" % reroll_tax
 
 func _on_no_pressed_local() -> void:
 	request_cashout_no.rpc()
@@ -803,15 +815,11 @@ func get_current_player_money() -> int:
 
 func purchase_power(power_name: String, cost: int) -> bool:
 	if cost <= 0:
-		print("cost<=0")
 		return false
 	var local_index = get_local_player_index()
 	if local_index == -1:
-		print("-1")
 		return false
 	if cost > money[local_index]:
-		print(money)
-		print("cost>money")
 		return false
 	request_purchase_power.rpc(power_name, cost)
 	return true

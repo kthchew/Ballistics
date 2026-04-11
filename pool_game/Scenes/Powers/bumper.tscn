@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://cm6gbx4a0m3ry"]
+
+[ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://wall.tres" id="1_agh85"]
+[ext_resource type="Script" uid="uid://gwmrru6rxsyb" path="res://Scripts/Powers/bumper.gd" id="2_agh85"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_3p4oq"]
+height = 10.0
+radius = 5.0
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_nm0xu"]
+height = 10.0
+radius = 5.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_d6c53"]
+top_radius = 5.0
+bottom_radius = 5.0
+height = 10.0
+
+[node name="Bumper" type="StaticBody3D" unique_id=814137853]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+disable_mode = 2
+collision_layer = 0
+collision_mask = 0
+physics_material_override = ExtResource("1_agh85")
+script = ExtResource("2_agh85")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1289563535]
+shape = SubResource("CylinderShape3D_3p4oq")
+debug_color = Color(1, 1, 1, 0.41960785)
+
+[node name="Area3D" type="Area3D" parent="." unique_id=589291689]
+collision_layer = 255
+collision_mask = 255
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=106656689]
+shape = SubResource("CylinderShape3D_nm0xu")
+debug_color = Color(1, 1, 1, 0.41960785)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1406007474]
+mesh = SubResource("CylinderMesh_d6c53")
+
+[connection signal="area_entered" from="Area3D" to="." method="_on_area_3d_area_entered"]
+[connection signal="area_exited" from="Area3D" to="." method="_on_area_3d_area_exited"]

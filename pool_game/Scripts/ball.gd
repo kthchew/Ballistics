@@ -32,6 +32,15 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var new_transform: Transform3D = Transform3D(new_basis)
 		new_transform.origin = teleport_pos
 		state.transform = new_transform
+	
+	# Handle bumper collision for extra ricochet force
+	for i in range(state.get_contact_count()):
+		var collider = state.get_contact_collider_object(i)
+		if collider and collider.is_in_group("bumpers"):
+			var normal = state.get_contact_local_normal(i)
+			var velocity = state.linear_velocity
+			var reflected = velocity.reflect(normal)
+			state.linear_velocity = reflected * 1.5  # Increase force by 50%
 		
 func reset(pos: Vector3):
 	teleport(pos)

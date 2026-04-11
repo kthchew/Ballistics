@@ -4,6 +4,9 @@ extends StaticBody3D
 @export var power_scene_name = "tnt"
 @export var cost = 10
 
+func _ready() -> void:
+	add_to_group("modifiers")
+
 func get_target() -> String:
 	var valid_targets = []
 	var root = get_tree().get_root()

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://brqj6ktexvsjk"]
 
-[ext_resource type="Script" uid="uid://crjk2lumnybdw" path="res://Scenes/Powers/aerogel.gd" id="1_4ty3t"]
+[ext_resource type="Script" uid="uid://crjk2lumnybdw" path="res://Scripts/Powers/aerogel.gd" id="1_4ty3t"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ab1if"]
 size = Vector3(2, 10, 2)

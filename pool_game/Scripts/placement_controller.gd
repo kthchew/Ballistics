@@ -15,7 +15,9 @@ const power_scenes: Dictionary[String, Resource] = {
 	"block": preload("res://Scenes/Powers/Block.tscn"),
 	"tnt": preload("res://Scenes/Powers/TNT.tscn"),
 	"tungsten": preload("res://Scenes/Powers/Tungsten.tscn"),
-	"aerogel": preload("res://Scenes/Powers/Aerogel.tscn")
+	"aerogel": preload("res://Scenes/Powers/Aerogel.tscn"),
+	"bumper": preload("res://Scenes/Powers/Bumper.tscn"),
+	"eraser": preload("res://Scenes/Powers/Eraser.tscn")
 }
 
 func _ready():
@@ -65,11 +67,16 @@ func start_placement(power_key: String):
 	preview = scene.instantiate()
 	preview.visible = true
 	preview_container.add_child(preview)
-	illegalMat = preview.get_node_or_null("MeshInstance3D").get_active_material(0).duplicate()
-	illegalMat.albedo_color = Color(1, 0.3, 0.3)
-	illegalMat.emission_enabled = true
-	illegalMat.emission = Color(1, 0, 0)
-	legalMat = preview.get_node_or_null("MeshInstance3D").get_active_material(0)
+
+	var mesh = preview.get_node_or_null("MeshInstance3D")
+	if mesh:
+		var active_mat = mesh.get_active_material(0)
+		if active_mat:
+			illegalMat = active_mat.duplicate()
+			illegalMat.albedo_color = Color(1, 0.3, 0.3)
+			illegalMat.emission_enabled = true
+			illegalMat.emission = Color(1, 0, 0)
+		legalMat = active_mat
 
 	rpc_spawn_preview.rpc(power_key)
 
@@ -116,7 +123,11 @@ func _gui_input(event):
 		var hit = from + dir * t
 
 		var shape = preview.get_node("CollisionShape3D").shape
-		var half_height = shape.size.y * 0.5
+		var half_height = 0
+		if shape is CylinderShape3D :
+			half_height = shape.height * 0.5
+		else:
+			half_height = shape.size.y * 0.5
 		preview.global_position = hit + Vector3(0, half_height, 0)
 
 		rpc("rpc_update_preview", preview.global_position, preview.global_rotation)
@@ -144,6 +155,7 @@ func _on_place_button_pressed():
 	if power_cost <= 0:
 		print("power_cost <= 0")
 		return
+		
 	if not game_root or not game_root.purchase_power(power_name, power_cost):
 		if not game_root:
 			print("not game_root")
@@ -155,8 +167,6 @@ func _on_place_button_pressed():
 	if preview.power_type == "Modifier":
 		target_path = preview.get_target()
 		
-	print("reached end")
-	print(preview.global_position)
 	request_place_power.rpc(
 		preview.power_type,
 		preview.global_position,
@@ -209,7 +219,7 @@ func _apply_modifier(pName: String, modified_path: String) -> void:
 	if power_instance.has_method("apply_to"):
 		power_instance.apply_to(target)
 
-	power_instance.queue_free()
+	power_instance.visible = false
 
 @rpc("any_peer", "reliable")
 func rpc_apply_modifier(pName: String, modified_path: String) -> void:
@@ -217,12 +227,10 @@ func rpc_apply_modifier(pName: String, modified_path: String) -> void:
 
 @rpc("any_peer", "reliable")
 func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, target_path: String = ""):
-	print(pos)
 	if not multiplayer.is_server():
 		print("not a server")
 		return
 	
-	print("server")
 	var sender = multiplayer.get_remote_sender_id()
 	if sender != owner_peer_id:
 		print("sender != owner_peer_id")
@@ -237,6 +245,10 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 	preview_container.add_child(power_instance)
 	power_instance.global_position = pos
 	power_instance.global_rotation = rot
+	
+	# Wait for physics to process collision detection for modifiers
+	if power_type == "Modifier":
+		await get_tree().physics_frame
 	
 	if not power_instance.canPlace():
 		print("not power_instance.canPlace()")
@@ -259,7 +271,6 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 		if target:
 			_apply_modifier(pName, target.get_path())
 			rpc("rpc_apply_modifier", pName, target.get_path())
-	print("finish placement")
 	finish_placement.rpc_id(sender)
 
 
@@ -319,7 +330,7 @@ func _process(delta):
 		if rotated:
 			rpc("rpc_update_preview", preview.global_position, preview.global_rotation)
 
-		# set_preview_illegal(not preview.canPlace())
+		set_preview_illegal(not preview.canPlace())
 
 func _on_rotate_left_button_down(): rotating_left = true
 func _on_rotate_left_button_up(): rotating_left = false

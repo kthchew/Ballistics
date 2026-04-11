@@ -4,6 +4,9 @@ extends StaticBody3D
 @export var power_scene_name = "tungsten"
 @export var cost = 8
 
+func _ready() -> void:
+	add_to_group("modifiers")
+
 func get_target() -> String:
 	var valid_balls = []
 	var root = get_tree().get_root()
