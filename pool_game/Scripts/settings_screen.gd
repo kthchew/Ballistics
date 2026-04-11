@@ -20,7 +20,7 @@ func _ready() -> void:
 		
 	server_address_edit.text = config.get_value("network", "server_address", Constants.DEFAULT_GAME_SERVER_ADDRESS_DEV if OS.is_debug_build() else Constants.DEFAULT_GAME_SERVER_ADDRESS)
 	server_port_edit.text = str(config.get_value("network", "server_port", 18361))
-	backend_url_edit.text = config.get_value("network", "backend_url", "http://127.0.0.1:5000")
+	backend_url_edit.text = config.get_value("network", "backend_url", Constants.DEFAULT_ACCOUNT_SERVER_URL_DEV if OS.is_debug_build() else Constants.DEFAULT_ACCOUNT_SERVER_URL)
 	
 	save_button.pressed.connect(_on_save_button_pressed)
 
