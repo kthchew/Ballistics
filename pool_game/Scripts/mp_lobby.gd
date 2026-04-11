@@ -724,7 +724,7 @@ func _spawn_new_game(game_type: Utils.GameType) -> Node:
 		regular_games[spot] = game
 	game.lobby_slot = spot
 	game.game_type = game_type
-	games.add_child(isolated)
+	games.add_child(isolated, true)
 
 	print("putting game in spot " + str(spot) + " type " + str(game_type))
 	if free_spots.size() == 0:
@@ -768,9 +768,13 @@ func despawn_game_at(spot: int):
 		peer_to_slot.erase(peer_id)
 		player_tokens.erase(peer_id)
 		send_to_menu.rpc_id(peer_id)
-	var game = regular_games[spot]
+	await get_tree().create_timer(5).timeout
 	regular_games.erase(spot)
-	var fs_pos = free_spots.bsearch(spot)
+	crazy_games.erase(spot)
+	single_player_games.erase(spot)
+	var fs_pos: int = free_spots.bsearch(spot)
 	free_spots.insert(fs_pos, spot)
-	games.remove_child(game)
-	game.queue_free()
+	var container = games.get_node("GameContainer%s" % spot)
+	if container != null:
+		games.remove_child(container)
+		container.queue_free()
