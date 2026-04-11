@@ -21,6 +21,8 @@ var config := ConfigFile.new()
 const CONFIG_PATH := "user://settings.cfg"
 const FRIEND_JOIN_RETRY_MAX := 3
 const TLS_CERT_RELOAD_INTERVAL_SEC := 10.0
+const TLS_ROTATION_WAIT_PERIOD_SEC := 15.0 * 60.0
+const TLS_MAINTENANCE_MESSAGE := "Server is in maintenance. Matchmaking is temporarily unavailable."
 
 @export var matchmaking_mode = Utils.MatchmakingMode.RANDOM_NORMAL
 @export var pending_room_code := ""
@@ -40,8 +42,12 @@ var tls_cert_path := ""
 var tls_key_path := ""
 var tls_cert_mtime := -1
 var tls_key_mtime := -1
+var tls_rotation_in_progress := false
+var tls_wait_period_active := false
+var server_port := 18361
 
 @onready var tls_reload_timer: Timer = Timer.new()
+@onready var tls_wait_timer: Timer = Timer.new()
 
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
@@ -61,6 +67,11 @@ func _ready() -> void:
 	tls_reload_timer.autostart = false
 	tls_reload_timer.timeout.connect(_on_tls_reload_timer_timeout)
 	add_child(tls_reload_timer)
+	tls_wait_timer.wait_time = TLS_ROTATION_WAIT_PERIOD_SEC
+	tls_wait_timer.one_shot = true
+	tls_wait_timer.autostart = false
+	tls_wait_timer.timeout.connect(_on_tls_wait_timer_timeout)
+	add_child(tls_wait_timer)
 	
 	if init_mp != null and init_slot != null and init_peers != null:
 		get_tree().set_multiplayer(init_mp)
@@ -188,6 +199,7 @@ func leave_matchmaking() -> void:
 
 func start_server(port: int = 18361) -> void:
 	print("Starting server on port %d" % port)
+	server_port = port
 	randomize()
 	var peer = ENetMultiplayerPeer.new()
 	peer.create_server(port, 32)
@@ -214,6 +226,8 @@ func _on_peer_disconnected(peer: int):
 		_remove_from_private_room(peer, true)
 
 func _on_server_disconnected():
+	if title_label.text == "Server Maintenance":
+		return
 	title_label.text = "Server Disconnected"
 	info_label.text = "Disconnected from the server."
 
@@ -316,15 +330,15 @@ func _apply_client_tls(peer: ENetMultiplayerPeer, host: String) -> void:
 	if normalized_host.is_empty():
 		return
 	# skip TLS for localhost because it would be annoying to set up TLS for dev environments
-	if normalized_host == "localhost" or normalized_host == "127.0.0.1":
-		return
+	#if normalized_host == "localhost" or normalized_host == "127.0.0.1":
+		#return
 
 	var host_connection: ENetConnection = peer.get_host()
 	if host_connection == null or not host_connection.has_method("dtls_client_setup"):
 		print("TLS warning: ENet host does not support DTLS client setup.")
 		return
 
-	var options := TLSOptions.client()
+	var options := TLSOptions.client_unsafe()
 	var err: int = host_connection.dtls_client_setup(normalized_host, options)
 	if err != OK:
 		print("TLS warning: DTLS client setup failed with error %d" % int(err))
@@ -336,8 +350,11 @@ func _on_tls_reload_timer_timeout() -> void:
 	if peer == null:
 		return
 	_reload_server_tls_if_changed(peer)
+	_try_finish_rotation_early()
 
 func _reload_server_tls_if_changed(peer: ENetMultiplayerPeer) -> void:
+	if tls_rotation_in_progress:
+		return
 	if tls_cert_path.is_empty() or tls_key_path.is_empty():
 		return
 	if not FileAccess.file_exists(tls_cert_path) or not FileAccess.file_exists(tls_key_path):
@@ -348,8 +365,119 @@ func _reload_server_tls_if_changed(peer: ENetMultiplayerPeer) -> void:
 	if cert_mtime == tls_cert_mtime and key_mtime == tls_key_mtime:
 		return
 
-	if _apply_server_tls(peer, tls_hostname):
-		print("TLS certificate reloaded from disk.")
+	_begin_tls_rotation_wait_period()
+
+func _begin_tls_rotation_wait_period() -> void:
+	tls_rotation_in_progress = true
+	tls_wait_period_active = true
+	_kick_all_queued_players(TLS_MAINTENANCE_MESSAGE)
+
+	if not _has_active_games():
+		print("TLS rotation: no active games, rotating certificate immediately.")
+		_rotate_server_peer_with_tls()
+		_end_tls_rotation_wait_period()
+		return
+
+	print("TLS rotation: waiting up to %d seconds for games to finish." % int(TLS_ROTATION_WAIT_PERIOD_SEC))
+	tls_wait_timer.start()
+
+func _on_tls_wait_timer_timeout() -> void:
+	if not tls_rotation_in_progress:
+		return
+
+	if _has_active_games():
+		print("TLS rotation: wait period expired with active games. Forcing full restart.")
+		_rotate_server_peer_with_tls()
+	else:
+		print("TLS rotation: games completed before timeout, rotating now.")
+		_rotate_server_peer_with_tls()
+
+	_end_tls_rotation_wait_period()
+
+func _try_finish_rotation_early() -> void:
+	if not tls_rotation_in_progress:
+		return
+	if not tls_wait_period_active:
+		return
+	if _has_active_games():
+		return
+
+	print("TLS rotation: all games finished during maintenance window, rotating now.")
+	tls_wait_timer.stop()
+	_rotate_server_peer_with_tls()
+	_end_tls_rotation_wait_period()
+
+func _has_active_games() -> bool:
+	for game in regular_games.values():
+		if is_instance_valid(game):
+			return true
+	for game in crazy_games.values():
+		if is_instance_valid(game):
+			return true
+	for game in single_player_games.values():
+		if is_instance_valid(game):
+			return true
+	return false
+
+func _rotate_server_peer_with_tls() -> void:
+	var old_peer := multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	if old_peer == null:
+		push_warning("TLS rotation skipped: no active server peer.")
+		return
+
+	_kick_all_queued_players(TLS_MAINTENANCE_MESSAGE)
+
+	clear_all_games()
+	for peer_id in multiplayer.get_peers():
+		maintenance_notice.rpc_id(int(peer_id), "Restarting server. Please reconnect in a few seconds.")
+	await get_tree().create_timer(0.04).timeout
+	for peer_id in multiplayer.get_peers():
+		old_peer.disconnect_peer(int(peer_id))
+
+	old_peer.close()
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	var new_peer := ENetMultiplayerPeer.new()
+	var create_err := new_peer.create_server(server_port, 32)
+	if create_err != OK:
+		push_error("TLS rotation failed: unable to create replacement server peer (%d)." % create_err)
+		return
+
+	if not _apply_server_tls(new_peer, tls_hostname):
+		push_error("TLS rotation failed: unable to apply TLS to replacement peer.")
+		new_peer.close()
+		return
+
+	multiplayer.multiplayer_peer = new_peer
+	old_peer.close()
+	print("TLS rotation complete: replacement peer is live on port %d." % server_port)
+
+func _end_tls_rotation_wait_period() -> void:
+	tls_wait_timer.stop()
+	tls_rotation_in_progress = false
+	tls_wait_period_active = false
+
+func _kick_all_queued_players(reason: String) -> void:
+	var notified := {}
+	for peer_id in regular_queue:
+		notified[int(peer_id)] = true
+	for peer_id in crazy_queue:
+		notified[int(peer_id)] = true
+	for code in private_rooms.keys():
+		var room: Dictionary = private_rooms[code]
+		var host_id := int(room.get("host_id", 0))
+		var guest_id := int(room.get("guest_id", 0))
+		if host_id != 0:
+			notified[host_id] = true
+		if guest_id != 0:
+			notified[guest_id] = true
+
+	regular_queue.clear()
+	crazy_queue.clear()
+	private_rooms.clear()
+	room_by_peer.clear()
+
+	for peer_id in notified.keys():
+		maintenance_notice.rpc_id(int(peer_id), reason)
 
 func _on_connected_to_server():
 	title_label.text = "Connected"
@@ -403,6 +531,9 @@ func enter_random_regular_queue():
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
+	if tls_wait_period_active:
+		maintenance_notice.rpc_id(sender_id, TLS_MAINTENANCE_MESSAGE)
+		return
 	_remove_from_private_room(sender_id, false)
 	if regular_queue.has(sender_id):
 		return
@@ -414,6 +545,9 @@ func enter_random_crazy_queue():
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
+	if tls_wait_period_active:
+		maintenance_notice.rpc_id(sender_id, TLS_MAINTENANCE_MESSAGE)
+		return
 	_remove_from_private_room(sender_id, false)
 	if crazy_queue.has(sender_id):
 		return
@@ -425,6 +559,9 @@ func enter_ai_normal_game():
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
+	if tls_wait_period_active:
+		maintenance_notice.rpc_id(sender_id, TLS_MAINTENANCE_MESSAGE)
+		return
 	_remove_from_private_room(sender_id, false)
 	_start_game_for_peers([1, sender_id], Utils.GameType.EIGHT_BALL_SINGLEPLAYER)
 
@@ -433,6 +570,9 @@ func request_create_private_room(game_type: Utils.GameType):
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
+	if tls_wait_period_active:
+		maintenance_notice.rpc_id(sender_id, TLS_MAINTENANCE_MESSAGE)
+		return
 	_remove_from_random_queue(sender_id)
 	_remove_from_crazy_queue(sender_id)
 	_remove_from_private_room(sender_id, false)
@@ -447,6 +587,9 @@ func request_create_private_room_with_code(requested_code: String, game_type: Ut
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
+	if tls_wait_period_active:
+		maintenance_notice.rpc_id(sender_id, TLS_MAINTENANCE_MESSAGE)
+		return
 	var code := _normalize_room_code(requested_code)
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, false)
@@ -468,6 +611,9 @@ func request_join_private_room(code: String):
 	if not multiplayer.is_server():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
+	if tls_wait_period_active:
+		maintenance_notice.rpc_id(sender_id, TLS_MAINTENANCE_MESSAGE)
+		return
 	var normalized_code := _normalize_room_code(code)
 	_remove_from_random_queue(sender_id)
 	_remove_from_private_room(sender_id, false)
@@ -551,6 +697,11 @@ func private_room_join_failed(reason: String):
 func private_room_closed(reason: String):
 	print("Private room closed: %s" % reason)
 	emit_signal("private_room_closed_notice", reason)
+
+@rpc("authority", "call_remote", "reliable")
+func maintenance_notice(message: String):
+	title_label.text = "Server Maintenance"
+	info_label.text = message
 
 @rpc("authority", "call_remote", "reliable")
 func send_to_game(slot: int, peers: Array, game_type: Utils.GameType):
@@ -672,3 +823,11 @@ func despawn_game_at(spot: int):
 	free_spots.insert(fs_pos, spot)
 	games.remove_child(game)
 	game.queue_free()
+
+func clear_all_games():
+	for spot in regular_games.keys():
+		despawn_game_at(spot)
+	for spot in crazy_games.keys():
+		despawn_game_at(spot)
+	for spot in single_player_games.keys():
+		despawn_game_at(spot)
