@@ -904,6 +904,11 @@ func fill_info_label() -> void:
 			info_label.text += "Decide whether to cash out and use power ups.\n"
 		else:
 			info_label.text += "Opponent is deciding whether to cash out.\n"
+	if game_state == GameState.CRAZY:
+		if is_local_cashout_owner():
+			info_label.text += "Buy and use powerups in the shop.\n"
+		else:
+			info_label.text += "Opponent is deciding which powerups to use before your next move.\n"
 	if game_state != GameState.MIDTURN and game_state != GameState.ENDED and game_state != GameState.NOT_STARTED:
 		if multiplayer.is_server():
 			info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
