@@ -58,10 +58,9 @@ func _process(delta: float) -> void:
 			move_to_position(Vector2.ZERO)
 
 func move_to_position(new_position: Vector2, duration: float = 0.1) -> void:
-	if keyboard_dodge_tween != null and keyboard_dodge_tween.is_valid():
-		keyboard_dodge_tween.stop_all()
-	else:
-		keyboard_dodge_tween = create_tween()
+	if keyboard_dodge_tween:
+		keyboard_dodge_tween.kill()
+	keyboard_dodge_tween = create_tween()
 	keyboard_dodge_tween.tween_property(self, "position", new_position, duration)
 
 func _refresh_session_view() -> void:
