@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dtrr880cbu3fe"
-path="res://.godot/imported/icon.png-c34cfe63d84bf94ef38d4af0e0cfbfaa.ctex"
+uid="uid://mgjy2jq3dr3w"
+path="res://.godot/imported/icon_apple_dark.png-0c348957072188b8c723b8ef5482abc5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Art/Ballistics.icon/Assets/icon.png"
-dest_files=["res://.godot/imported/icon.png-c34cfe63d84bf94ef38d4af0e0cfbfaa.ctex"]
+source_file="res://Art/icon_apple_dark.png"
+dest_files=["res://.godot/imported/icon_apple_dark.png-0c348957072188b8c723b8ef5482abc5.ctex"]
 
 [params]
 
