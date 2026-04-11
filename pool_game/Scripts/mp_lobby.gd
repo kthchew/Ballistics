@@ -435,6 +435,8 @@ func _try_match_crazy_queue() -> void:
 func _start_game_for_peers(peers: Array, game_type: Utils.GameType) -> void:
 	var game = _spawn_new_game(game_type)
 	for peer_id in peers:
+		if peer_id == 1:
+			continue
 		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers, game_type)
 	game.connected_peers = peers
 	game.start_game()
