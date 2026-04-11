@@ -1,14 +1,14 @@
 [gd_scene format=3 uid="uid://bpnsf6ju2q7jc"]
 
-[ext_resource type="PhysicsMaterial" uid="uid://da8ohqxk1g88s" path="res://table.tres" id="1_v3rjm"]
+[ext_resource type="PhysicsMaterial" uid="uid://da8ohqxk1g88s" path="res://Resources/table.tres" id="1_v3rjm"]
 [ext_resource type="PackedScene" uid="uid://cu4vrdboa7shh" path="res://Scenes/pool_table8.glb" id="2_xdsyc"]
 [ext_resource type="Script" uid="uid://drgap37og6e1t" path="res://Scripts/hole.gd" id="3_gxsbh"]
 [ext_resource type="Script" uid="uid://beipmpvv8h1k" path="res://Scripts/area_3d.gd" id="4_rcwpl"]
 [ext_resource type="AudioStream" uid="uid://cfk4cqd1xm3eo" path="res://Sounds/alex_jauk-billiard-hole-2-288420.mp3" id="5_k6q04"]
-[ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://wall.tres" id="6_2kx05"]
-[ext_resource type="PhysicsMaterial" uid="uid://cdapvl7elmtrh" path="res://absorbent_wall.tres" id="7_smgx2"]
-[ext_resource type="Shape3D" uid="uid://b5wk3p1etfdaw" path="res://angled_wall_2.tres" id="8_ggf2b"]
-[ext_resource type="Shape3D" uid="uid://c7fxfokw1hyct" path="res://angled_wall_1.tres" id="9_p3xjt"]
+[ext_resource type="PhysicsMaterial" uid="uid://8r4lkglrv56c" path="res://Resources/wall.tres" id="6_2kx05"]
+[ext_resource type="PhysicsMaterial" uid="uid://cdapvl7elmtrh" path="res://Resources/absorbent_wall.tres" id="7_smgx2"]
+[ext_resource type="Shape3D" uid="uid://b5wk3p1etfdaw" path="res://Resources/angled_wall_2.tres" id="8_ggf2b"]
+[ext_resource type="Shape3D" uid="uid://c7fxfokw1hyct" path="res://Resources/angled_wall_1.tres" id="9_p3xjt"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mlwoa"]
 size = Vector3(300, 50, 150)

@@ -51,7 +51,7 @@ var requesting_reset: Array[bool] = [false, false] # index is player index
 
 const ball_scene = preload("res://Scenes/ball.tscn")
 const ball_script = preload("res://Scripts/ball.gd")
-const ball_shape = preload("res://ball_shape.tres")
+const ball_shape = preload("res://Resources/ball_shape.tres")
 
 func _ready() -> void:
 	if not OS.is_debug_build():
