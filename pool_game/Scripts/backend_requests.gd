@@ -6,7 +6,7 @@ func _process(delta: float) -> void:
 	pass
 
 # TODO: use env var or config
-const BACKEND_URL: String = "http://127.0.0.1:5000"
+var BACKEND_URL: String = Constants.DEFAULT_ACCOUNT_SERVER_URL_DEV if OS.is_debug_build() else Constants.DEFAULT_ACCOUNT_SERVER_URL
 const SESSION_CONFIG_PATH := "user://auth_session.cfg"
 
 var session: String

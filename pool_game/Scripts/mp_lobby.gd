@@ -80,7 +80,8 @@ func _ready() -> void:
 			arg_seen = true
 			break
 	if not arg_seen:
-		start_client("127.0.0.1" if remote_addr == "" else remote_addr, remote_port)
+		var default := Constants.DEFAULT_GAME_SERVER_ADDRESS_DEV if OS.is_debug_build() else Constants.DEFAULT_GAME_SERVER_ADDRESS
+		start_client(default if remote_addr == "" else remote_addr, remote_port)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
