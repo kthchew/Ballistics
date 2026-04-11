@@ -9,6 +9,7 @@ var regular_games = {}
 var regular_queue = []
 var crazy_queue = []
 var crazy_games = {}
+var single_player_games = {}
 var private_rooms = {}
 var room_by_peer = {}
 var game_id_by_player_pair: Dictionary = {}
@@ -223,7 +224,7 @@ func _on_connected_to_server():
 	info_label.text = "Requesting a match..."
 	var token := ""
 	var config := ConfigFile.new()
-	if config.load("user://account.cfg") == OK:
+	if config.load("user://settings.cfg") == OK:
 		token = config.get_value("account", "session", "")
 	auth.rpc_id(1, token)
 	var peer = multiplayer.multiplayer_peer as ENetMultiplayerPeer
@@ -265,6 +266,9 @@ func _request_selected_matchmaking() -> void:
 			enter_random_crazy_queue.rpc()
 		Utils.MatchmakingMode.RESUME:
 			request_resume_game.rpc(resume_game_id)
+		Utils.MatchmakingMode.SINGLE_PLAYER:
+			info_label.text = "Joining normal game against AI"
+			enter_ai_normal_game.rpc()
 		_:
 			print("Unknown matchmaking mode: %d" % matchmaking_mode)
 	$ClientUI.show()
@@ -291,6 +295,14 @@ func enter_random_crazy_queue():
 		return
 	crazy_queue.append(sender_id)
 	_try_match_crazy_queue()
+	
+@rpc("any_peer")
+func enter_ai_normal_game():
+	if not multiplayer.is_server():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	_remove_from_private_room(sender_id, false)
+	_start_game_for_peers([1, sender_id], Utils.GameType.EIGHT_BALL_SINGLEPLAYER)
 
 @rpc("any_peer")
 func request_create_private_room(game_type: Utils.GameType):
@@ -532,6 +544,8 @@ func _start_game_for_peers(peers: Array, game_type: Utils.GameType, forced_game_
 	game.persisted_game_id = str(persistence_context["game_id"])
 	game.connected_peers = peers
 	for peer_id in peers:
+		if peer_id == 1:
+			continue
 		peer_to_slot[peer_id] = game.lobby_slot
 		send_to_game.rpc_id(int(peer_id), game.lobby_slot, peers, game_type)
 
@@ -704,6 +718,8 @@ func _spawn_new_game(game_type: Utils.GameType) -> Node:
 	var game = isolated.get_node("SubViewportContainer/SubViewport/Game")
 	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
 		crazy_games[spot] = game
+	elif game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
+		single_player_games[spot] = game
 	else:
 		regular_games[spot] = game
 	game.lobby_slot = spot
@@ -720,6 +736,9 @@ func spawn_new_regular_game() -> Node:
 	
 func spawn_new_crazy_game() -> Node:
 	return _spawn_new_game(Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER)
+	
+func spawn_new_single_player_game() -> Node:
+	return _spawn_new_game(Utils.GameType.EIGHT_BALL_SINGLEPLAYER)
 
 @rpc
 func send_to_menu():

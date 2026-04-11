@@ -4,6 +4,7 @@ extends Node3D
 @onready var randCrazyButton = $MainMenu/MenuUI/BottomButtons/RandomCrazyPoolButton
 @onready var resume_button = $MainMenu/MenuUI/BottomButtons/ResumeGameButton
 @onready var priv_button = $MainMenu/MenuUI/BottomButtons/PrivateGameButton
+@onready var ai_pool_button = $MainMenu/MenuUI/BottomButtons/AIPoolButton
 
 @onready var backend_requests = $MainMenu/MenuUI/AccountScreen/BackendRequests
 
@@ -25,6 +26,7 @@ func _ready() -> void:
 	randCrazyButton.pressed.connect(_on_Cpool_pressed)
 	resume_button.pressed.connect(_on_resume_pressed)
 	priv_button.pressed.connect(_on_priv_pressed)
+	ai_pool_button.pressed.connect(_on_ai_pool_pressed)
 	await _refresh_resume_button_state()
 
 func _refresh_resume_button_state() -> void:
@@ -32,7 +34,7 @@ func _refresh_resume_button_state() -> void:
 	resumable_game_id = ""
 
 	var config := ConfigFile.new()
-	if config.load("user://account.cfg") != OK:
+	if config.load("user://settings.cfg") != OK:
 		return
 
 	var token: String = str(config.get_value("account", "session", ""))
@@ -78,4 +80,10 @@ func _on_Cpool_pressed():
 	prepare_to_exit()
 	var lobby := lobby_scene.instantiate()
 	lobby.matchmaking_mode = Utils.MatchmakingMode.RANDOM_CRAZY
+	get_tree().change_scene_to_node(lobby)
+	
+func _on_ai_pool_pressed():
+	prepare_to_exit()
+	var lobby := lobby_scene.instantiate()
+	lobby.matchmaking_mode = Utils.MatchmakingMode.SINGLE_PLAYER
 	get_tree().change_scene_to_node(lobby)

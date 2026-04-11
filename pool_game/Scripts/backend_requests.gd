@@ -33,10 +33,10 @@ func _load_session() -> void:
 	var err := config.load(SESSION_CONFIG_PATH)
 	if err != OK:
 		return
-	session = str(config.get_value("auth", "session", ""))
+	session = str(config.get_value("account", "session", ""))
 
 func _save_session() -> void:
-	config.set_value("auth", "session", session)
+	config.set_value("account", "session", session)
 	config.save(SESSION_CONFIG_PATH)
 
 func _update_session_from_headers(response: Dictionary) -> void:
@@ -88,7 +88,7 @@ func _make_request(url: String, method: int, json_body: Dictionary = {}, session
 	req.queue_free()
 
 	if result != OK:
-		return {"error": "http_transport_error", "result": result, "response_code": response_code, "body": body_text_resp}
+		return {"error": "http_transport_error", "error_result": result, "response_code": response_code, "body": body_text_resp}
 
 	return {"result": body_text_resp, "response_code": response_code, "headers": resp_headers}
 
