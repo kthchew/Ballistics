@@ -753,7 +753,9 @@ func send_to_menu():
 func close_game_at(spot: int):
 	var game = regular_games.get(spot, null)
 	if game == null:
-		return
+		game = crazy_games.get(spot, null)
+	if game == null:
+		game = single_player_games.get(spot, null)
 	game.stopped_moving.connect(func():
 		despawn_game_at(spot)
 	)
