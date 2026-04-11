@@ -462,7 +462,6 @@ func _on_ball_sunk(ball):
 			
 		elif ball.is_stripe() and player_ind != solids_player and solids_player != -1:
 			money[1 - player_ind] += 10
-	update_money_all.rpc(money)
 
 func shapecast_point_to_point(origin: Vector3, rel_target: Vector3) -> bool:
 	shape_cast.global_position = origin
@@ -1097,7 +1096,6 @@ func request_cashout_no() -> void:
 		return
 
 	money[cashout_owner_index] += 3
-	update_money_all.rpc(money)
 	hide_cashout_menu.rpc_id(sender_id)
 	restore_ui_after_cashout.rpc()
 	if play_again:
@@ -1146,7 +1144,3 @@ func _on_menu_exit_button_pressed() -> void:
 	ball_manager.stop_synchronizing_all_balls()
 	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
-
-@rpc("any_peer", "reliable")
-func update_money_all(server_money: Array) -> void:
-	money = server_money.duplicate()
