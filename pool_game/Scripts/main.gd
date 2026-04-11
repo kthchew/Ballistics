@@ -1,18 +1,19 @@
-extends Node3D
+class_name Main extends Node3D
 
 @onready var debug_label: Label = $LabelLayer/DebugLabel
 @onready var info_label: Label = $LabelLayer/InfoLabel
-@onready var slider = $UI/ForceSlider
-@onready var fire_button = $UI/FireButton
-@onready var aimer = $UI/Aimer
+@onready var slider = $UI/SafeAreaContainer/ForceSlider
+@onready var fire_button = $UI/SafeAreaContainer/FireButton
+@onready var aimer = $UI/SafeAreaContainer/Aimer
+@onready var menu_button = $UI/SafeAreaContainer/MenuButton
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
-@onready var aim_visuals = $UI/AimVisuals
 @onready var aim_guide = $UI/AimVisuals/AimGuide
 @onready var cue_stick = $UI/AimVisuals/CueStick
 @onready var reroll_button: Button = $pUI/Panel/HBoxContainer2/RerollButton
 @onready var shape_cast = $ShapeCast3D
 @onready var ball_manager = $BallManager
+@onready var classical_ai = $ClassicalAI
 @onready var cashout = false
 
 var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
@@ -55,21 +56,28 @@ const ball_script = preload("res://Scripts/ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
+	if not OS.is_debug_build():
+		debug_label.hide()
+	
 	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
 	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
 	print("MAIN READY PATH:", get_path(), "\nGAME TYPE:", game_type)
 	if init_peer != null:
 		multiplayer.multiplayer_peer = init_peer
 	
-	aim_visuals.hide()
+	aim_guide.hide()
 	
 	$UI/AimInputRegion.aim_changed.connect(_on_aim_input)
 	slider.value_changed.connect(_on_force_changed.rpc)
 	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
 	
-	ball_manager.init()
+	if game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
+		classical_ai.ai_aimed.connect(_on_ai_aimed)
+		classical_ai.ai_placed_cue_ball.connect(_on_ai_placed_cue_ball)
+		classical_ai.ai_picked_pocket.connect(_on_ai_picked_pocket)
 	
+	ball_manager.init()
 	ball_manager.cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
 	ball_manager.ball_sunk.connect(_on_ball_sunk)
 	
@@ -85,6 +93,44 @@ func turn_on_light():
 	$OverheadLight/Light.light_energy = 1000
 	$UI.visible = true
 	$LabelLayer.visible = true
+	
+func _on_ai_aimed(dir: Vector2):
+	aim(dir)
+	
+	slider.value = 50
+	change_force(slider.value)
+	
+	await get_tree().create_timer(1.0).timeout
+	
+	fire_cue()
+	
+func _on_ai_placed_cue_ball(pos: Vector3):
+	place_cue_ball(pos)
+	
+func _on_ai_picked_pocket(hole_ind: int):
+	var path_str = "UI/HoleButtons/HoleButton" + str(hole_ind + 1)
+	var hole_btn = get_node(path_str)
+	
+	hole_btn.toggle_mode = true
+	hole_btn.button_pressed = true
+	await get_tree().create_timer(0.5).timeout
+	hole_btn.toggle_mode = false
+	hole_btn.button_pressed = false
+	
+	select_hole(hole_ind)
+
+func aim(dir: Vector2):
+	cast_aim_ray(dir.normalized())
+	aim_guide.show()
+	var other_peer = connected_peers[1 - player_ind]
+	if Constants.AI_DRAW_AIM_GUIDE and game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER and connected_peers[player_ind] == 1:
+		cast_aim_ray.rpc_id(other_peer, dir.normalized())
+		set_aim_guide_visibility.rpc_id(other_peer, true)
+	
+	aim_cue(dir)
+	rpc_aim_cue.rpc_id(other_peer, dir)
+	if not game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
+		rpc_aim_cue.rpc_id(1, dir)
 	
 func calc_offset_3d(dir: Vector3):
 	var up = Vector3.UP
@@ -112,6 +158,9 @@ func change_hole_button_visibility(visible_state: bool) -> void:
 func _on_hole_selected(hole_ind: int) -> void:
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PICKPOCKET:
 		return
+	select_hole(hole_ind)
+
+func select_hole(hole_ind: int) -> void:
 	target_hole = hole_ind
 	change_hole_button_visibility.rpc_id(multiplayer.get_remote_sender_id(), false)
 	start_round()
@@ -127,19 +176,67 @@ func reset_request() -> void:
 	var changer_ind = connected_peers.find(sender) if sender != 0 else connected_peers.find(multiplayer.get_unique_id())
 	var this_ind = connected_peers.find(multiplayer.get_unique_id())
 	
-	requesting_reset[changer_ind] = not requesting_reset[changer_ind]
-	$UI/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
+	if game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
+		requesting_reset = [true, true]
+	else:
+		requesting_reset[changer_ind] = not requesting_reset[changer_ind]
+	var request_label = $UI/PauseMenu/GridContainer/ResetInfo/ResetRequestedLabel
+	request_label.visible = requesting_reset[changer_ind]
 	
 	if requesting_reset[this_ind]:
-		$UI/ResetButton/ResetRequestedLabel.text = "Requested reset"
+		request_label.text = "You have requested a reset."
 	else:
-		$UI/ResetButton/ResetRequestedLabel.text = "Opponent requested reset"
+		request_label.text = "Your opponent requests a reset."
+		if request_label.visible:
+			menu_button.start_pulsing()
 	
 	if requesting_reset[0] and requesting_reset[1]:
 		if multiplayer.is_server():
 			start_game()
-		$UI/ResetButton/ResetRequestedLabel.visible = false
+		request_label.visible = false
 		requesting_reset = [false, false]
+		
+	if not request_label.visible:
+		menu_button.stop_pulsing()
+	
+	if not request_label.visible:
+		menu_button.stop_pulsing()
+
+func _on_cashout_vote_button_pressed() -> void:
+	cashout_vote_request.rpc_id(1)
+	cashout_vote_request.rpc_id(connected_peers[0])
+	cashout_vote_request.rpc_id(connected_peers[1])
+
+@rpc("any_peer", "call_local")
+func cashout_vote_request() -> void:
+	var sender = multiplayer.get_remote_sender_id()
+	var changer_ind = connected_peers.find(sender) if sender != 0 else connected_peers.find(multiplayer.get_unique_id())
+	var this_ind = connected_peers.find(multiplayer.get_unique_id())
+	
+	requesting_cashout_vote[changer_ind] = not requesting_cashout_vote[changer_ind]
+	$UI/CashoutVoteButton/CashoutRequestedLabel.visible = requesting_cashout_vote[changer_ind]
+	
+	if requesting_cashout_vote[this_ind]:
+		$UI/CashoutVoteButton/CashoutRequestedLabel.text = "Voted cashout"
+	else:
+		$UI/CashoutVoteButton/CashoutRequestedLabel.text = "Opponent voted cashout"
+	
+	if requesting_cashout_vote[0] and requesting_cashout_vote[1]:
+		if multiplayer.is_server():
+			# Randomly select one of the two players
+			var random_player_ind = randi() % 2
+			# Create the cashout event for the random player
+			cashout_owner_ind = random_player_ind
+			var cashout_peer_id = connected_peers[random_player_ind]
+			if cashout_peer_id != -1:
+				game_state = GameState.CASHOUT
+				show_cashout_wait_menu.rpc(cashout_peer_id)
+				if cashout_peer_id == multiplayer.get_unique_id():
+					show_cashout_menu(money, random_player_ind)
+				else:
+					show_cashout_menu.rpc_id(cashout_peer_id, money, random_player_ind)
+		$UI/CashoutVoteButton/CashoutRequestedLabel.visible = false
+		requesting_cashout_vote = [false, false]
 
 func _on_cashout_vote_button_pressed() -> void:
 	cashout_vote_request.rpc_id(1)
@@ -179,22 +276,12 @@ func cashout_vote_request() -> void:
 
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
-
-func calc_hole_ind_from_pos(pos: Vector3) -> int:
-	var hole_ind = 0
-	if pos.z > 0:
-		hole_ind += 3
-	if pos.x > 50.91:
-		hole_ind += 2
-	elif pos.x > -50.91:
-		hole_ind += 1
-	return hole_ind
 	
 func _on_ball_sunk(ball):
 	if not multiplayer.is_server():
 			return
 	if ball.is_eight_ball():
-		var hole_ind = calc_hole_ind_from_pos(ball.position)
+		var hole_ind = Shot.calc_hole_ind_from_pos(ball.position)
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
 			end_game(player_ind)
 		else:
@@ -209,7 +296,7 @@ func _on_ball_sunk(ball):
 		if round_num > 0 and solids_player == -1:
 			if ball.is_solid():
 				next_solids_player = player_ind
-				
+	
 			elif ball.is_stripe():
 				next_solids_player = 1 - player_ind
 			
@@ -223,18 +310,26 @@ func _on_ball_sunk(ball):
 		elif ball.is_stripe() and player_ind != solids_player and solids_player != -1:
 			money[1 - player_ind] += 10
 	update_money_all.rpc(money)
-	
+
+func shapecast_point_to_point(origin: Vector3, rel_target: Vector3) -> bool:
+	shape_cast.global_position = origin
+	shape_cast.max_results = 1
+	shape_cast.target_position = rel_target
+	shape_cast.collision_mask = 1 << 2
+	shape_cast.force_shapecast_update()
+	return not shape_cast.is_colliding()
+
+@rpc("any_peer")
+func set_aim_guide_visibility(visible: bool):
+	aim_guide.visible = visible
+
+@rpc("any_peer")
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
-	shape_cast.global_position = origin
-	shape_cast.max_results = 1
-	shape_cast.target_position = 500 * dir
-	shape_cast.collision_mask = (1 << 2) | (1 << 3)
-	shape_cast.collide_with_areas = true
-	shape_cast.force_shapecast_update()
-	if not shape_cast.is_colliding():
+	if shapecast_point_to_point(origin, 500 * dir):
 		return
+		
 	var collider = shape_cast.get_collider(0)
 	var collision_point = shape_cast.get_collision_point(0)
 	var collision_normal = shape_cast.get_collision_normal(0).normalized()
@@ -248,10 +343,13 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	
 	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
 	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
+	
 	aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
+	
 	var length = 20
 	var normal_comp = dir.project(collision_normal)
 	var surface_comp = dir - normal_comp
+	
 	var cue_ball_endpoint = ghost_ball_pos
 	var object_ball_endpoint = ghost_ball_pos
 	var hitting_ball = collider.name.contains("Ball")
@@ -261,6 +359,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 		object_ball_endpoint = ghost_ball_pos + length * normal_comp
 	elif not hitting_ball:
 		cue_ball_endpoint = ghost_ball_pos + length * (surface_comp - normal_comp)
+		
 	aim_guide_line.set_point_position(2, camera.unproject_position(cue_ball_endpoint))
 	aim_guide_line2.set_point_position(1, camera.unproject_position(object_ball_endpoint))
 
@@ -277,7 +376,7 @@ func start_game() -> void:
 	set_visibility.rpc_id(connected_peers[0])
 	set_visibility.rpc_id(connected_peers[1])
 	
-	aim_visuals.hide()
+	aim_guide.hide()
 	cue_stick.hide()
 	hole_buttons.hide()
 	
@@ -301,6 +400,7 @@ func start_game() -> void:
 	requesting_cashout_vote = [false, false]
 	
 	ball_manager.start_game()
+	start_round()
 			
 func _on_aim_input(touch_pos: Vector2):
 	if not is_your_turn():
@@ -312,51 +412,55 @@ func _on_aim_input(touch_pos: Vector2):
 		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
 		if intersection == null:
 			return
-		_on_place_cue_ball.rpc_id(1, intersection)
+		if shapecast_point_to_point(intersection, Vector3.ZERO) \
+			and abs(intersection.x) < 96 \
+			and abs(intersection.z) < 44.5:
+			_on_place_cue_ball.rpc_id(1, intersection)
 	elif game_state == GameState.AIMING:
+		if ball_manager.check_cue_ball_potted_by_pos():
+			return
 		# calculate difference between cue ball position and touch pos, use that to set cue stick angle
 		# this is done so that the vector provided to the server is consistent even if the window's size or aspect ratio is different
 		var ball_center_3d = ball_manager.get_cue_ball_global_pos()
 		var ball_screen_pos: Vector2 = camera.unproject_position(ball_center_3d)
 		var dir: Vector2 = ball_screen_pos - touch_pos
 		if dir.length() >= 20:
-			var other_peer = connected_peers[1 - player_ind]
-			_on_aim_changed(dir)
-			cast_aim_ray(dir.normalized())
-			aim_visuals.show()
-			aim_guide.show()
-			_on_aim_changed.rpc_id(1, dir)
-			_on_aim_changed.rpc_id(other_peer, dir)
+			aim(dir)
 
 @rpc("any_peer")
 func _on_place_cue_ball(place_global_pos: Vector3):
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.PLACING:
 		return
+	place_cue_ball(place_global_pos)
+
+func place_cue_ball(place_global_pos: Vector3):
 	ball_manager.reset_cue_ball(place_global_pos)
 	start_round()
 
 @rpc("any_peer", "reliable")
-func _on_aim_changed(dir_from_cue: Vector2):
-	if (multiplayer.get_remote_sender_id() != 0 and connected_peers[player_ind] != multiplayer.get_remote_sender_id()) or game_state != GameState.AIMING:
+func rpc_aim_cue(dir_from_cue: Vector2):
+	if multiplayer.get_remote_sender_id() != 0 and connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
+	aim_cue(dir_from_cue)
 
-	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
-	
-	if dir_from_cue.length() < 20 or ball_manager.check_cue_ball_potted_by_pos():
-		return
+func aim_cue(dir_from_cue: Vector2):
 	has_aimed = true
 
+	var ball_center_3d = ball_manager.get_cue_ball_global_pos()
 	var angle: float = dir_from_cue.angle()
-	
+
 	cue_stick.update_position(ball_center_3d)
 	cue_stick.set_angle(angle)
 	cue_stick.show()
 
 @rpc("any_peer", "reliable")
-func _on_force_changed(value):
+func _on_force_changed(value: float):
 	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
-	var normalized = value / $UI/ForceSlider.max_value
+	change_force(value)
+		
+func change_force(value: float):
+	var normalized = value / $UI/SafeAreaContainer/ForceSlider.max_value
 	cue_stick.set_force_strength(normalized)
 
 func shake_camera(intensity: float, duration: float) -> void:
@@ -393,19 +497,26 @@ func _on_fire_pressed():
 		return
 	# need to set the strength in case it was changed by other player's turn
 	_on_force_changed.rpc_id(1, slider.value)
-	fire_cue.rpc_id(1)
+	rpc_fire_cue.rpc_id(1)
 	aim_guide.hide()
 	
 	has_aimed = false
 	slider.value = 0
 	cue_stick.set_force_strength(0.0)
 	aimer._reset_knob()
-	
+
 @rpc("any_peer", "reliable")
-func fire_cue():
-	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id() or game_state != GameState.AIMING or not has_aimed:
+func rpc_fire_cue():
+	if not multiplayer.is_server() or connected_peers[player_ind] != multiplayer.get_remote_sender_id():
 		return
+	fire_cue()
 	
+func fire_cue():
+	if game_state != GameState.AIMING or not has_aimed:
+		return
+	if Constants.AI_DRAW_AIM_GUIDE and game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
+		set_aim_guide_visibility.rpc_id(connected_peers[1 - player_ind], false)
+		classical_ai.circle_artist.clear_all()
 	var dir = calc_dir()
 	var offset_3d = calc_offset_3d(dir)
 	var strength = cue_stick.strength * 100
@@ -427,7 +538,6 @@ func fire_cue():
 		.set_trans(Tween.TRANS_CUBIC)\
 		.set_ease(Tween.EASE_IN_OUT)
 	tween.tween_callback(func():
-		aim_visuals.hide()
 		aim_guide.hide()
 		cue_stick.hide()
 		cue_stick.striking = false
@@ -445,6 +555,24 @@ func end_game(winning_player: int) -> void:
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
 		
+func is_ai_turn():
+	return game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER and connected_peers[player_ind] == 1
+	
+func ai_play():
+	await get_tree().create_timer(1.0).timeout
+	
+	classical_ai.find_shot(
+		ball_manager.cue_ball,
+		ball_manager.get_pottable_balls(player_ind, solids_player, scores)
+	)
+	
+	if game_state == GameState.PLACING:
+		classical_ai.place_cue_ball()
+	elif game_state == GameState.PICKPOCKET:
+		classical_ai.pick_pocket()
+	elif game_state == GameState.AIMING:
+		classical_ai.shoot()
+		
 func start_round(scratched_prev: bool = false) -> void:
 	if scratched_prev:
 		if ball_manager.check_eight_ball_potted():
@@ -452,14 +580,14 @@ func start_round(scratched_prev: bool = false) -> void:
 		print("Scratch registered")
 		game_state = GameState.PLACING
 		ball_manager.cue_ball.pot()
-		return
-	
-	if target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
+	elif target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
 		game_state = GameState.PICKPOCKET
 		change_hole_button_visibility.rpc_id(connected_peers[player_ind], true)
-		return
+	else:
+		game_state = GameState.AIMING
 	
-	game_state = GameState.AIMING
+	if is_ai_turn():
+		ai_play()
 	
 func update_cashout_label() -> void:
 	var owner_money_text = "Money: ?"
@@ -497,6 +625,8 @@ func show_cashout_menu(server_money: Array, owner_index: int) -> void:
 	$pUI.visible = false
 	
 func end_round() -> void:
+	if game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
+		classical_ai.reset_shot()
 	round_num += 1
 	target_hole = -1
 	money[0] += 1
@@ -534,14 +664,9 @@ func end_round() -> void:
 	start_round(scratched)
 	
 func process_midturn():
-	if multiplayer.is_server():
-		if game_state != GameState.MIDTURN:
-			return
-		else:
-			cue_stick.visible = false
-			
-		ball_manager.process_fallen_balls()
-		process_movement()
+	# cue_stick.visible = false
+	ball_manager.process_fallen_balls()
+	process_movement()
 
 func process_movement():
 	if ball_manager.check_all_not_moving():
@@ -552,19 +677,20 @@ func process_movement():
 		end_round()
 
 func _physics_process(delta: float) -> void:
-	if game_state != GameState.MIDTURN:
+	if not multiplayer.is_server() or game_state != GameState.MIDTURN:
 		return
 	process_midturn()
 
 func _process(delta: float) -> void:
-	fill_debug_label()
+	if OS.is_debug_build():
+		fill_debug_label()
 	fill_info_label()
 	if $pUI and $pUI.visible:
 		update_powerup_shop()
 
 func is_your_turn() -> bool:
 	if connected_peers and connected_peers.size() > player_ind:
-		return connected_peers[player_ind] == multiplayer.get_unique_id()
+		return connected_peers[player_ind] == multiplayer.get_unique_id() or 1 == multiplayer.get_unique_id()
 	return false
 	
 func fill_debug_label() -> void:
@@ -848,6 +974,19 @@ func start_crazy_mode() -> void:
 	$pUI.visible = true
 	initialize_powerup_shop()
 	update_powerup_shop()
+
+
+func _on_menu_button_pressed() -> void:
+	$UI/PauseMenu.show()
+	menu_button.stop_pulsing()
+
+func _on_menu_resume_button_pressed() -> void:
+	$UI/PauseMenu.hide()
+
+
+func _on_menu_exit_button_pressed() -> void:
+	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
 
 @rpc("any_peer", "reliable")
 func update_money_all(server_money: Array) -> void:

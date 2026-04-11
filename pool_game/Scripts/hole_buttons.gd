@@ -11,6 +11,7 @@ func _ready() -> void:
 func place_hole_buttons() -> void:
 	for i in range(6):
 		var hole_btn = hole_btn_scene.instantiate()
+		hole_btn.name = "HoleButton" + str(i + 1)
 		add_child(hole_btn)
 		
 		hole_btn.pressed.connect(func(): hole_selected.emit(i))

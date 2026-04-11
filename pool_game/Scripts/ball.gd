@@ -87,9 +87,9 @@ func _on_body_entered(body: Node) -> void:
 func _on_area_3d_area_entered(area: Area3D) -> void:
 	var other := area.get_parent()
 	if other is RigidBody3D:
-		var rel_vel :float= (linear_velocity - other.linear_velocity).length()
+		var rel_vel: float = (linear_velocity - other.linear_velocity).length()
 		var max_velocity := 150.0
-		var t :float= clamp(rel_vel / max_velocity, 0.0, 1.0)
+		var t: float = clamp(rel_vel / max_velocity, 0.0, 1.0)
 
 		$BallCollide.volume_db = lerp(-25.0, 2.0, sqrt(t))
 		$BallCollide.pitch_scale = lerp(0.85, 1.2, t)
