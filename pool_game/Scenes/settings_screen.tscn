@@ -59,7 +59,7 @@ text = "Server Address"
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
-placeholder_text = "127.0.0.1"
+placeholder_text = "ball-staging-0.kpchew.com"
 
 [node name="ServerPort" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1811446606]
 layout_mode = 2

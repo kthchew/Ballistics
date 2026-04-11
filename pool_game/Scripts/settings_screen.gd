@@ -18,7 +18,7 @@ func _ready() -> void:
 	else:
 		print("Config loaded successfully")
 		
-	server_address_edit.text = config.get_value("network", "server_address", "127.0.0.1")
+	server_address_edit.text = config.get_value("network", "server_address", Constants.DEFAULT_GAME_SERVER_ADDRESS_DEV if OS.is_debug_build() else Constants.DEFAULT_GAME_SERVER_ADDRESS)
 	server_port_edit.text = str(config.get_value("network", "server_port", 18361))
 	backend_url_edit.text = config.get_value("network", "backend_url", "http://127.0.0.1:5000")
 	

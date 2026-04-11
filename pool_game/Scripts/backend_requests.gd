@@ -11,7 +11,8 @@ func _process(delta: float) -> void:
 	pass
 
 func backend_url() -> String:
-	return config.get_value("network", "backend_url", "http://127.0.0.1:5000")
+	var default = Constants.DEFAULT_ACCOUNT_SERVER_URL_DEV if OS.is_debug_build() else Constants.DEFAULT_ACCOUNT_SERVER_URL
+	return config.get_value("network", "backend_url", default)
 
 class GameInstance:
 	var game_id: String
