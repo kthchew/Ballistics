@@ -66,9 +66,10 @@ func _ready() -> void:
 	fire_button.pressed.connect(_on_fire_pressed)
 	hole_buttons.hole_selected.connect(_on_hole_selected.rpc)
 	
-	classical_ai.ai_aimed.connect(_on_ai_aimed)
-	classical_ai.ai_placed_cue_ball.connect(_on_ai_placed_cue_ball)
-	classical_ai.ai_picked_pocket.connect(_on_ai_picked_pocket)
+	if game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
+		classical_ai.ai_aimed.connect(_on_ai_aimed)
+		classical_ai.ai_placed_cue_ball.connect(_on_ai_placed_cue_ball)
+		classical_ai.ai_picked_pocket.connect(_on_ai_picked_pocket)
 	
 	ball_manager.init()
 	ball_manager.cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
@@ -190,6 +191,8 @@ func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
 	
 func _on_ball_sunk(ball):
+	if not multiplayer.is_server():
+			return
 	if ball.is_eight_ball():
 		var hole_ind = Shot.calc_hole_ind_from_pos(ball.position)
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
@@ -213,10 +216,13 @@ func _on_ball_sunk(ball):
 		if next_solids_player != -1:
 			scores[next_solids_player] = ball_manager.balls_sunk[0]
 			scores[1 - next_solids_player] = ball_manager.balls_sunk[1]
-			if ball.is_solid() and player_ind == solids_player:
-				money[1 - player_ind] += 10
-			elif ball.is_stripe() and player_ind != solids_player:
-				money[1 - player_ind] += 10
+		
+		if ball.is_solid() and player_ind == solids_player:
+			money[1 - player_ind] += 10
+			
+		elif ball.is_stripe() and player_ind != solids_player and solids_player != -1:
+			money[1 - player_ind] += 10
+	update_money_all.rpc(money)
 
 func shapecast_point_to_point(origin: Vector3, rel_target: Vector3) -> bool:
 	shape_cast.global_position = origin
@@ -531,7 +537,8 @@ func show_cashout_menu(server_money: Array, owner_index: int) -> void:
 	$pUI.visible = false
 	
 func end_round() -> void:
-	classical_ai.reset_shot()
+	if game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER:
+		classical_ai.reset_shot()
 	round_num += 1
 	target_hole = -1
 	money[0] += 1
