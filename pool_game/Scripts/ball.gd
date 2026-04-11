@@ -16,6 +16,7 @@ var potted: bool = false
 func _ready() -> void:
 	HoleSound.max_db = 80.0
 	BallCollide.max_db = 80.0
+	add_to_group("balls")
 
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true

@@ -5,29 +5,47 @@ extends StaticBody3D
 @export var cost = 10
 
 func get_target() -> String:
-	var areas = $Area3D.get_overlapping_areas()
-	if areas.size() != 1:
-		return ""
+	var valid_targets = []
+	var root = get_tree().get_root()
+	_find_targets_in_tree(root, valid_targets)
 	
-	var target = areas[0].get_parent()
-	return str(target.get_path())
+	var shape = $Area3D.get_node("CollisionShape3D").shape
+	var closest_target = null
+	var closest_distance = shape.size.length()
+	
+	for target in valid_targets:
+		var distance = global_position.distance_to(target.global_position)
+		if distance < closest_distance:
+			closest_distance = distance
+			closest_target = target
+	
+	if closest_target:
+		return str(closest_target.get_path())
+	return ""
 
-func apply_to(target: Node) -> void:
-	var low = target.name.to_lower()
-	if not low.contains("ball") and not low.contains("table"):
-		target.queue_free()
-		get_node("/root/Main").objects -= 1
-	
 func canPlace() -> bool:
-	var areas = $Area3D.get_overlapping_areas()
-	if len(areas) != 1:
+	var valid_targets = []
+	var root = get_tree().get_root()
+	_find_targets_in_tree(root, valid_targets)
+	
+	var detected = []
+	var shape = $Area3D.get_node("CollisionShape3D").shape
+	
+	for target in valid_targets:
+		var distance = global_position.distance_to(target.global_position)
+		# Check if target is within the box bounds (approximate sphere-box collision)
+		if distance < shape.size.length() * 0.5:
+			detected.append(target)
+	
+	if detected.size() != 1:
 		return false
 	
-	var obj = areas[0].get_parent()
+	return true
 
-	var name_lower = obj.name.to_lower()
-
-	if not name_lower.contains("ball") and not name_lower.contains("table"):
-		return true
-
-	return false
+func _find_targets_in_tree(node: Node, result: Array) -> void:
+	var name_lower = node.name.to_lower()
+	if node.is_in_group("balls") or name_lower.contains("table"):
+		result.append(node)
+	
+	for child in node.get_children():
+		_find_targets_in_tree(child, result)

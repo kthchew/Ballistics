@@ -14,7 +14,8 @@ var power_name = null
 const power_scenes: Dictionary[String, Resource] = {
 	"block": preload("res://Scenes/Powers/Block.tscn"),
 	"tnt": preload("res://Scenes/Powers/TNT.tscn"),
-	"tungsten": preload("res://Scenes/Powers/Tungsten.tscn")
+	"tungsten": preload("res://Scenes/Powers/Tungsten.tscn"),
+	"aerogel": preload("res://Scenes/Powers/Aerogel.tscn")
 }
 
 func _ready():
@@ -232,12 +233,14 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 		print("not scene")
 		return
 	var power_instance = scene.instantiate()
-
+	
+	preview_container.add_child(power_instance)
 	power_instance.global_position = pos
 	power_instance.global_rotation = rot
-
+	
 	if not power_instance.canPlace():
 		print("not power_instance.canPlace()")
+		power_instance.queue_free()
 		return
 
 	if power_type == "Object":
