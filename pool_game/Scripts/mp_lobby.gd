@@ -20,6 +20,7 @@ var init_peers = null
 var config := ConfigFile.new()
 const CONFIG_PATH := "user://settings.cfg"
 const FRIEND_JOIN_RETRY_MAX := 3
+const TLS_CERT_RELOAD_INTERVAL_SEC := 10.0
 
 @export var matchmaking_mode = Utils.MatchmakingMode.RANDOM_NORMAL
 @export var pending_room_code := ""
@@ -32,6 +33,15 @@ const FRIEND_JOIN_RETRY_MAX := 3
 var friend_invite_sent := false
 var friend_invite_room_code := ""
 var friend_join_retry_count := 0
+
+var tls_cert_dir := ""
+var tls_hostname := ""
+var tls_cert_path := ""
+var tls_key_path := ""
+var tls_cert_mtime := -1
+var tls_key_mtime := -1
+
+@onready var tls_reload_timer: Timer = Timer.new()
 
 @onready var games = $Games
 const lobby_scene = preload("res://Scenes/mp_lobby.tscn")
@@ -46,6 +56,11 @@ const isolated_game = preload("res://Scenes/isolated_game.tscn")
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_clicked)
+	tls_reload_timer.wait_time = TLS_CERT_RELOAD_INTERVAL_SEC
+	tls_reload_timer.one_shot = false
+	tls_reload_timer.autostart = false
+	tls_reload_timer.timeout.connect(_on_tls_reload_timer_timeout)
+	add_child(tls_reload_timer)
 	
 	if init_mp != null and init_slot != null and init_peers != null:
 		get_tree().set_multiplayer(init_mp)
@@ -176,6 +191,11 @@ func start_server(port: int = 18361) -> void:
 	randomize()
 	var peer = ENetMultiplayerPeer.new()
 	peer.create_server(port, 32)
+	tls_hostname = _resolve_server_tls_hostname()
+	if _apply_server_tls(peer, tls_hostname):
+		tls_reload_timer.start()
+	else:
+		tls_reload_timer.stop()
 	multiplayer.multiplayer_peer = peer
 	multiplayer.connect("peer_connected", _on_peer_connected)
 	multiplayer.connect("peer_disconnected", _on_peer_disconnected)
@@ -201,11 +221,135 @@ func start_client(host: String, port: int = 18361) -> void:
 	print("Connecting to server %s:%d" % [host, port])
 	var peer = ENetMultiplayerPeer.new()
 	peer.create_client(host, port)
+	_apply_client_tls(peer, host)
 	multiplayer.multiplayer_peer = peer
 	multiplayer.connect("connected_to_server", _on_connected_to_server)
 	multiplayer.connect("connection_failed", _on_connection_failed)
 	multiplayer.connect("server_disconnected", _on_server_disconnected)
 	$ClientUI.show()
+
+func _resolve_cert_dir() -> String:
+	var override_dir := OS.get_environment("BALLISTICS_CERT_DIR").strip_edges()
+	if not override_dir.is_empty():
+		return override_dir
+	var home_dir := OS.get_environment("HOME").strip_edges()
+	if home_dir.is_empty():
+		return ""
+	return home_dir.path_join("certs")
+
+func _normalize_tls_hostname(raw_host: String) -> String:
+	var host := raw_host.strip_edges()
+	if host.begins_with("https://"):
+		host = host.trim_prefix("https://")
+	elif host.begins_with("http://"):
+		host = host.trim_prefix("http://")
+
+	if host.find("/") != -1:
+		host = host.get_slice("/", 0)
+
+	if host.begins_with("[") and host.ends_with("]"):
+		host = host.substr(1, host.length() - 2)
+	elif host.count(":") == 1:
+		host = host.get_slice(":", 0)
+
+	return host.strip_edges().to_lower()
+
+func _resolve_server_tls_hostname() -> String:
+	var env_hostname := _normalize_tls_hostname(OS.get_environment("BALLISTICS_SERVER_HOSTNAME"))
+	if not env_hostname.is_empty():
+		return env_hostname
+
+	return "domain"
+
+func _resolve_cert_paths(hostname: String) -> bool:
+	var normalized_hostname := _normalize_tls_hostname(hostname)
+	tls_cert_dir = _resolve_cert_dir()
+	if tls_cert_dir.is_empty() or normalized_hostname.is_empty():
+		return false
+	tls_cert_path = tls_cert_dir.path_join("%s.crt" % normalized_hostname)
+	tls_key_path = tls_cert_dir.path_join("%s.key" % normalized_hostname)
+	return true
+
+func _load_server_tls_options(hostname: String) -> TLSOptions:
+	if not _resolve_cert_paths(hostname):
+		push_warning("TLS disabled: missing certificate directory or hostname.")
+		return null
+
+	if not FileAccess.file_exists(tls_cert_path) or not FileAccess.file_exists(tls_key_path):
+		push_warning("TLS disabled: missing cert or key at %s and %s" % [tls_cert_path, tls_key_path])
+		return null
+
+	var certificate := X509Certificate.new()
+	if certificate.load(tls_cert_path) != OK:
+		push_warning("TLS disabled: failed to load certificate %s" % tls_cert_path)
+		return null
+
+	var key := CryptoKey.new()
+	if key.load(tls_key_path) != OK:
+		push_warning("TLS disabled: failed to load key %s" % tls_key_path)
+		return null
+
+	tls_cert_mtime = int(FileAccess.get_modified_time(tls_cert_path))
+	tls_key_mtime = int(FileAccess.get_modified_time(tls_key_path))
+	return TLSOptions.server(key, certificate)
+
+func _apply_server_tls(peer: ENetMultiplayerPeer, hostname: String) -> bool:
+	var options := _load_server_tls_options(hostname)
+	if options == null:
+		return false
+
+	var host_connection: ENetConnection = peer.get_host()
+	if host_connection == null or not host_connection.has_method("dtls_server_setup"):
+		push_warning("TLS disabled: ENet host does not support DTLS setup.")
+		return false
+
+	var err: int = host_connection.dtls_server_setup(options)
+	if err != OK:
+		push_warning("TLS disabled: DTLS server setup failed with error %d" % int(err))
+		return false
+
+	print("TLS enabled for hostname %s" % hostname)
+	return true
+
+func _apply_client_tls(peer: ENetMultiplayerPeer, host: String) -> void:
+	var normalized_host := _normalize_tls_hostname(host)
+	if normalized_host.is_empty():
+		return
+	# skip TLS for localhost because it would be annoying to set up TLS for dev environments
+	if normalized_host == "localhost" or normalized_host == "127.0.0.1":
+		return
+
+	var host_connection: ENetConnection = peer.get_host()
+	if host_connection == null or not host_connection.has_method("dtls_client_setup"):
+		print("TLS warning: ENet host does not support DTLS client setup.")
+		return
+
+	var options := TLSOptions.client()
+	var err: int = host_connection.dtls_client_setup(normalized_host, options)
+	if err != OK:
+		print("TLS warning: DTLS client setup failed with error %d" % int(err))
+
+func _on_tls_reload_timer_timeout() -> void:
+	if not multiplayer.is_server():
+		return
+	var peer := multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	if peer == null:
+		return
+	_reload_server_tls_if_changed(peer)
+
+func _reload_server_tls_if_changed(peer: ENetMultiplayerPeer) -> void:
+	if tls_cert_path.is_empty() or tls_key_path.is_empty():
+		return
+	if not FileAccess.file_exists(tls_cert_path) or not FileAccess.file_exists(tls_key_path):
+		return
+
+	var cert_mtime := int(FileAccess.get_modified_time(tls_cert_path))
+	var key_mtime := int(FileAccess.get_modified_time(tls_key_path))
+	if cert_mtime == tls_cert_mtime and key_mtime == tls_key_mtime:
+		return
+
+	if _apply_server_tls(peer, tls_hostname):
+		print("TLS certificate reloaded from disk.")
 
 func _on_connected_to_server():
 	title_label.text = "Connected"
