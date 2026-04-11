@@ -92,6 +92,8 @@ func turn_on_light():
 	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
 	$UI.visible = true
+	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER: 
+		$UI/SafeAreaContainer/CashoutVoteButton.visible = true
 	$LabelLayer.visible = true
 	
 func _on_ai_aimed(dir: Vector2):
@@ -195,10 +197,7 @@ func reset_request() -> void:
 			start_game()
 		request_label.visible = false
 		requesting_reset = [false, false]
-		
-	if not request_label.visible:
-		menu_button.stop_pulsing()
-	
+
 	if not request_label.visible:
 		menu_button.stop_pulsing()
 
@@ -214,12 +213,13 @@ func cashout_vote_request() -> void:
 	var this_ind = connected_peers.find(multiplayer.get_unique_id())
 	
 	requesting_cashout_vote[changer_ind] = not requesting_cashout_vote[changer_ind]
-	$UI/CashoutVoteButton/CashoutRequestedLabel.visible = requesting_cashout_vote[changer_ind]
+	print(requesting_cashout_vote[changer_ind])
+	$UI/SafeAreaContainer/CashoutVoteButton/CashoutRequestedLabel.visible = requesting_cashout_vote[changer_ind]
 	
 	if requesting_cashout_vote[this_ind]:
-		$UI/CashoutVoteButton/CashoutRequestedLabel.text = "Voted cashout"
+		$UI/SafeAreaContainer/CashoutVoteButton/CashoutRequestedLabel.text = "Voted cashout"
 	else:
-		$UI/CashoutVoteButton/CashoutRequestedLabel.text = "Opponent voted cashout"
+		$UI/SafeAreaContainer/CashoutVoteButton/CashoutRequestedLabel.text = "Opponent voted cashout"
 	
 	if requesting_cashout_vote[0] and requesting_cashout_vote[1]:
 		if multiplayer.is_server():
@@ -235,43 +235,7 @@ func cashout_vote_request() -> void:
 					show_cashout_menu(money, random_player_ind)
 				else:
 					show_cashout_menu.rpc_id(cashout_peer_id, money, random_player_ind)
-		$UI/CashoutVoteButton/CashoutRequestedLabel.visible = false
-		requesting_cashout_vote = [false, false]
-
-func _on_cashout_vote_button_pressed() -> void:
-	cashout_vote_request.rpc_id(1)
-	cashout_vote_request.rpc_id(connected_peers[0])
-	cashout_vote_request.rpc_id(connected_peers[1])
-
-@rpc("any_peer", "call_local")
-func cashout_vote_request() -> void:
-	var sender = multiplayer.get_remote_sender_id()
-	var changer_ind = connected_peers.find(sender) if sender != 0 else connected_peers.find(multiplayer.get_unique_id())
-	var this_ind = connected_peers.find(multiplayer.get_unique_id())
-	
-	requesting_cashout_vote[changer_ind] = not requesting_cashout_vote[changer_ind]
-	$UI/CashoutVoteButton/CashoutRequestedLabel.visible = requesting_cashout_vote[changer_ind]
-	
-	if requesting_cashout_vote[this_ind]:
-		$UI/CashoutVoteButton/CashoutRequestedLabel.text = "Voted cashout"
-	else:
-		$UI/CashoutVoteButton/CashoutRequestedLabel.text = "Opponent voted cashout"
-	
-	if requesting_cashout_vote[0] and requesting_cashout_vote[1]:
-		if multiplayer.is_server():
-			# Randomly select one of the two players
-			var random_player_ind = randi() % 2
-			# Create the cashout event for the random player
-			cashout_owner_ind = random_player_ind
-			var cashout_peer_id = connected_peers[random_player_ind]
-			if cashout_peer_id != -1:
-				game_state = GameState.CASHOUT
-				show_cashout_wait_menu.rpc(cashout_peer_id)
-				if cashout_peer_id == multiplayer.get_unique_id():
-					show_cashout_menu(money, random_player_ind)
-				else:
-					show_cashout_menu.rpc_id(cashout_peer_id, money, random_player_ind)
-		$UI/CashoutVoteButton/CashoutRequestedLabel.visible = false
+		$UI/SafeAreaContainer/CashoutVoteButton/CashoutRequestedLabel.visible = false
 		requesting_cashout_vote = [false, false]
 
 func _on_first_hit_ball_changed():
