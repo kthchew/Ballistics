@@ -178,8 +178,10 @@ func save() -> Dictionary:
 		"player_usernames": persistence_usernames.duplicate(),
 		"balls": ball_states,
 		"object_powers": object_power_states,
+		"play_again": play_again,
 		
 		"game_type": int(game_type),
+		"continue_after_crazy": continue_after_crazy,
 		"money": money.duplicate(),
 		"power_shop_options": shop_power_options.duplicate(),
 		"power_shop_costs": shop_power_costs.duplicate(),
@@ -205,6 +207,8 @@ func load(save_dict: Dictionary) -> void:
 	next_solids_player = int(save_dict.get("solids_player", -1))
 	winner = int(save_dict.get("winner", -1))
 	game_state = int(save_dict.get("game_state", GameState.AIMING)) as GameState
+	play_again = bool(save_dict.get("play_again", false))
+	continue_after_crazy = bool(save_dict.get("continue_after_crazy", false))
 	
 	game_type = int(save_dict.get("game_type", Utils.GameType.EIGHT_BALL_MULTIPLAYER)) as Utils.GameType
 	money = save_dict.get("money", [0, 0])
