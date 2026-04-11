@@ -13,7 +13,9 @@ config_version=5
 config/name="ball-istics"
 run/main_scene="uid://dytao3r8nooel"
 config/features=PackedStringArray("4.6", "Mobile")
-config/icon="res://icon.svg"
+boot_splash/stretch_mode=4
+boot_splash/image="uid://fsyqq7e2qhfs"
+config/icon="uid://cpw0l1s05bo25"
 
 [autoload]
 
