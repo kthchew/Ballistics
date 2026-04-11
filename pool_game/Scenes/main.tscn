@@ -424,6 +424,32 @@ grow_horizontal = 0
 text = "Reset requested"
 horizontal_alignment = 1
 
+[node name="CashoutVoteButton" type="Button" parent="UI" unique_id=1937985301]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -380.0
+offset_top = 32.0
+offset_right = -197.0
+offset_bottom = 104.0
+grow_horizontal = 0
+theme = ExtResource("6_ee4r6")
+text = "Vote Cashout"
+
+[node name="CashoutRequestedLabel" type="Label" parent="UI/CashoutVoteButton" unique_id=556853299]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -138.0
+offset_top = 80.0
+offset_right = -12.0
+offset_bottom = 103.0
+grow_horizontal = 0
+text = "Cashout voted"
+horizontal_alignment = 1
+
 [node name="HoleButtons" type="Control" parent="UI" unique_id=760296245]
 visible = false
 layout_mode = 3
@@ -763,6 +789,7 @@ replication_config = SubResource("SceneReplicationConfig_efxa6")
 public_visibility = false
 
 [connection signal="pressed" from="UI/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="UI/CashoutVoteButton" to="." method="_on_cashout_vote_button_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power1" to="pUI/placementController" method="_on_power_1_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power2" to="pUI/placementController" method="_on_power_2_pressed"]
 [connection signal="pressed" from="pUI/Panel/HBoxContainer/Power3" to="pUI/placementController" method="_on_power_3_pressed"]

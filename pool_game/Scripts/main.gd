@@ -49,6 +49,7 @@ var requesting_reset: Array[bool] = [false, false] # index is player index
 @export var money = [10,10]
 
 var first_hit_scratch: bool = false
+var requesting_cashout_vote: Array[bool] = [false, false] # index is player index
 const ball_scene = preload("res://Scenes/ball.tscn")
 const ball_script = preload("res://Scripts/ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
@@ -139,6 +140,42 @@ func reset_request() -> void:
 			start_game()
 		$UI/ResetButton/ResetRequestedLabel.visible = false
 		requesting_reset = [false, false]
+
+func _on_cashout_vote_button_pressed() -> void:
+	cashout_vote_request.rpc_id(1)
+	cashout_vote_request.rpc_id(connected_peers[0])
+	cashout_vote_request.rpc_id(connected_peers[1])
+
+@rpc("any_peer", "call_local")
+func cashout_vote_request() -> void:
+	var sender = multiplayer.get_remote_sender_id()
+	var changer_ind = connected_peers.find(sender) if sender != 0 else connected_peers.find(multiplayer.get_unique_id())
+	var this_ind = connected_peers.find(multiplayer.get_unique_id())
+	
+	requesting_cashout_vote[changer_ind] = not requesting_cashout_vote[changer_ind]
+	$UI/CashoutVoteButton/CashoutRequestedLabel.visible = requesting_cashout_vote[changer_ind]
+	
+	if requesting_cashout_vote[this_ind]:
+		$UI/CashoutVoteButton/CashoutRequestedLabel.text = "Voted cashout"
+	else:
+		$UI/CashoutVoteButton/CashoutRequestedLabel.text = "Opponent voted cashout"
+	
+	if requesting_cashout_vote[0] and requesting_cashout_vote[1]:
+		if multiplayer.is_server():
+			# Randomly select one of the two players
+			var random_player_ind = randi() % 2
+			# Create the cashout event for the random player
+			cashout_owner_ind = random_player_ind
+			var cashout_peer_id = connected_peers[random_player_ind]
+			if cashout_peer_id != -1:
+				game_state = GameState.CASHOUT
+				show_cashout_wait_menu.rpc(cashout_peer_id)
+				if cashout_peer_id == multiplayer.get_unique_id():
+					show_cashout_menu(money, random_player_ind)
+				else:
+					show_cashout_menu.rpc_id(cashout_peer_id, money, random_player_ind)
+		$UI/CashoutVoteButton/CashoutRequestedLabel.visible = false
+		requesting_cashout_vote = [false, false]
 
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
@@ -261,6 +298,7 @@ func start_game() -> void:
 	target_hole = -1
 	
 	requesting_reset = [false, false]
+	requesting_cashout_vote = [false, false]
 	
 	ball_manager.start_game()
 			
