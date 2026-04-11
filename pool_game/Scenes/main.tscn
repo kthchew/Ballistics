@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://vx6fp008aa4j" path="res://Scripts/game_menu_button.gd" id="11_hibaj"]
 [ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://Scripts/PowerButton.gd" id="12_ueoa1"]
 [ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://Scripts/placement_controller.gd" id="13_6vcvc"]
-[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://table_group.tscn" id="14_7k868"]
+[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="14_7k868"]
 [ext_resource type="Theme" uid="uid://dj2dcaj8br367" path="res://Art/Button - Copy.tres" id="14_b3802"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="15_hpc6h"]
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://Scripts/ball_manager.gd" id="15_vivmo"]
