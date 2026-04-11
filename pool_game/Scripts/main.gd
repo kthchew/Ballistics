@@ -226,7 +226,7 @@ func load(save_dict: Dictionary) -> void:
 		$pUI/placementController.set_cashout_owner.rpc(connected_peers[cashout_owner_index])
 		if game_state == GameState.CASHOUT:
 			show_cashout_wait_menu.rpc(connected_peers[cashout_owner_index])
-			show_cashout_menu.rpc_id(connected_peers[cashout_owner_index], money, cashout_owner_index)
+			show_cashout_menu.rpc_id(connected_peers[cashout_owner_index], cashout_owner_index)
 		elif game_state == GameState.CRAZY:
 			sync_power_shop_state(connected_peers[cashout_owner_index])
 			show_crazy_mode_ui.rpc_id(connected_peers[cashout_owner_index])
@@ -432,7 +432,7 @@ func _on_first_hit_ball_changed():
 	
 func _on_ball_sunk(ball):
 	if not multiplayer.is_server():
-			return
+		return
 	if ball.is_eight_ball():
 		var hole_ind = Shot.calc_hole_ind_from_pos(ball.position)
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
@@ -779,9 +779,8 @@ func set_cashout_owner(owner_index: int) -> void:
 	cashout_owner_index = owner_index
 
 @rpc("authority", "reliable")
-func show_cashout_menu(server_money: Array, owner_index: int) -> void:
+func show_cashout_menu(owner_index: int) -> void:
 	cashout_owner_index = owner_index
-	money = server_money.duplicate()
 	game_state = GameState.CASHOUT
 	$UI.visible = false
 	$CashOut.visible = true
@@ -813,9 +812,9 @@ func end_round() -> void:
 				game_state = GameState.CASHOUT
 				show_cashout_wait_menu.rpc(cashout_peer_id)
 				if cashout_peer_id == multiplayer.get_unique_id():
-					show_cashout_menu(money, cashout_owner_index)
+					show_cashout_menu(cashout_owner_index)
 				else:
-					show_cashout_menu.rpc_id(cashout_peer_id, money, cashout_owner_index)
+					show_cashout_menu.rpc_id(cashout_peer_id, cashout_owner_index)
 			await persist_game_state()
 			return
 		else:
@@ -955,12 +954,12 @@ func sync_power_shop_state(target_peer_id: int = -1) -> void:
 	if not multiplayer.is_server():
 		return
 	if target_peer_id == -1:
-		apply_power_shop_state.rpc(shop_power_options, shop_power_costs, used_shop_powers, money)
+		apply_power_shop_state.rpc(shop_power_options, shop_power_costs, used_shop_powers)
 	else:
-		apply_power_shop_state.rpc_id(target_peer_id, shop_power_options, shop_power_costs, used_shop_powers, money)
+		apply_power_shop_state.rpc_id(target_peer_id, shop_power_options, shop_power_costs, used_shop_powers)
 
 @rpc("authority", "reliable", "call_local")
-func apply_power_shop_state(options: Array, costs: Dictionary, used: Array, server_money: Array) -> void:
+func apply_power_shop_state(options: Array, costs: Dictionary, used: Array) -> void:
 	var options_cast: Array[String]
 	options_cast.assign(options)
 	shop_power_options = options_cast
@@ -968,7 +967,6 @@ func apply_power_shop_state(options: Array, costs: Dictionary, used: Array, serv
 	var used_cast: Array[String]
 	used_cast.assign(used)
 	used_shop_powers = used_cast
-	money = server_money.duplicate()
 	update_powerup_shop()
 
 func _on_no_pressed_local() -> void:
@@ -1139,8 +1137,12 @@ func _on_menu_button_pressed() -> void:
 func _on_menu_resume_button_pressed() -> void:
 	$UI/PauseMenu.hide()
 
-
 func _on_menu_exit_button_pressed() -> void:
 	ball_manager.stop_synchronizing_all_balls()
 	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
+	
+func _new_delta_sync_received() -> void:
+	# delta sync can be a change in money
+	update_cashout_label()
+	update_powerup_shop()
