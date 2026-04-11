@@ -12,9 +12,9 @@ var preview_container: Node = null
 var power_name = null
 
 const power_scenes: Dictionary[String, Resource] = {
-	"block": preload("res://Scenes/Powers/Block.tscn"),
-	"tnt": preload("res://Scenes/Powers/TNT.tscn"),
-	"tungsten": preload("res://Scenes/Powers/Tungsten.tscn")
+	"block": preload("res://Scenes/Powers/block.tscn"),
+	"tnt": preload("res://Scenes/Powers/tnt.tscn"),
+	"tungsten": preload("res://Scenes/Powers/tungsten.tscn")
 }
 
 func _ready():
