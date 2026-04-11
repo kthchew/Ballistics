@@ -2,9 +2,10 @@ class_name Main extends Node3D
 
 @onready var debug_label: Label = $LabelLayer/DebugLabel
 @onready var info_label: Label = $LabelLayer/InfoLabel
-@onready var slider = $UI/ForceSlider
-@onready var fire_button = $UI/FireButton
-@onready var aimer = $UI/Aimer
+@onready var slider = $UI/SafeAreaContainer/ForceSlider
+@onready var fire_button = $UI/SafeAreaContainer/FireButton
+@onready var aimer = $UI/SafeAreaContainer/Aimer
+@onready var menu_button = $UI/SafeAreaContainer/MenuButton
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_guide = $UI/AimVisuals/AimGuide
@@ -53,6 +54,9 @@ const ball_script = preload("res://Scripts/ball.gd")
 const ball_shape = preload("res://ball_shape.tres")
 
 func _ready() -> void:
+	if not OS.is_debug_build():
+		debug_label.hide()
+	
 	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
 	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
 	print("MAIN READY PATH:", get_path(), "\nGAME TYPE:", game_type)
@@ -174,18 +178,24 @@ func reset_request() -> void:
 		requesting_reset = [true, true]
 	else:
 		requesting_reset[changer_ind] = not requesting_reset[changer_ind]
-	$UI/ResetButton/ResetRequestedLabel.visible = requesting_reset[changer_ind]
+	var request_label = $UI/PauseMenu/GridContainer/ResetInfo/ResetRequestedLabel
+	request_label.visible = requesting_reset[changer_ind]
 	
 	if requesting_reset[this_ind]:
-		$UI/ResetButton/ResetRequestedLabel.text = "Requested reset"
+		request_label.text = "You have requested a reset."
 	else:
-		$UI/ResetButton/ResetRequestedLabel.text = "Opponent requested reset"
+		request_label.text = "Your opponent requests a reset."
+		if request_label.visible:
+			menu_button.start_pulsing()
 	
 	if requesting_reset[0] and requesting_reset[1]:
 		if multiplayer.is_server():
 			start_game()
-		$UI/ResetButton/ResetRequestedLabel.visible = false
+		request_label.visible = false
 		requesting_reset = [false, false]
+	
+	if not request_label.visible:
+		menu_button.stop_pulsing()
 
 func _on_first_hit_ball_changed():
 	ball_manager.check_cue_ball_first_hit(player_ind, solids_player, scores)
@@ -236,7 +246,7 @@ func shapecast_point_to_point(origin: Vector3, rel_target: Vector3) -> bool:
 func set_aim_guide_visibility(visible: bool):
 	aim_guide.visible = visible
 
-@rpc("any_peer")	
+@rpc("any_peer")
 func cast_aim_ray(aim_dir: Vector2) -> void:
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
@@ -372,7 +382,7 @@ func _on_force_changed(value: float):
 	change_force(value)
 		
 func change_force(value: float):
-	var normalized = value / $UI/ForceSlider.max_value
+	var normalized = value / $UI/SafeAreaContainer/ForceSlider.max_value
 	cue_stick.set_force_strength(normalized)
 
 func shake_camera(intensity: float, duration: float) -> void:
@@ -594,7 +604,8 @@ func _physics_process(delta: float) -> void:
 	process_midturn()
 
 func _process(delta: float) -> void:
-	fill_debug_label()
+	if OS.is_debug_build():
+		fill_debug_label()
 	fill_info_label()
 	if $pUI and $pUI.visible:
 		update_powerup_shop()
@@ -624,8 +635,8 @@ func fill_debug_label() -> void:
 	label_txt += "\nFirst Hit Scratch: " + str(ball_manager.first_hit_scratch)
 	
 	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
-		label_txt += "\nSolids Crazy Currency: " + str(money[0])
-		label_txt += "\nStripes Crazy Currency: " + str(money[1])
+		label_txt += "\nStripes Crazy Currency: " + str(money[0])
+		label_txt += "\nSolids Crazy Currency: " + str(money[1])
 	debug_label.text = label_txt
 
 func get_cashout_owner_peer_id() -> int:
@@ -756,9 +767,34 @@ func purchase_power(power_name: String, cost: int) -> bool:
 		return false
 	if cost > money[local_index]:
 		return false
-	money[local_index] -= cost
-	update_powerup_shop()
+	request_purchase_power.rpc(power_name, cost)
 	return true
+
+@rpc("authority", "call_local")
+func purchase_result(success: bool) -> void:
+	if success:
+		update_powerup_shop()
+	else:
+		print("Purchase failed")
+
+@rpc("any_peer", "reliable")
+func request_purchase_power(power_name: String, cost: int) -> void:
+	if not multiplayer.is_server():
+		return
+
+	var sender_id = multiplayer.get_remote_sender_id()
+	var buyer_index = connected_peers.find(sender_id)
+	if buyer_index == -1:
+		return
+
+	if cost <= 0 or cost > money[buyer_index]:
+		purchase_result.rpc_id(sender_id, false)
+		return
+
+	money[buyer_index] -= cost
+	update_money_all.rpc(money)
+	purchase_result.rpc_id(sender_id, true)
+
 
 func update_powerup_shop() -> void:
 	if not $pUI or not $pUI/Panel:
@@ -811,17 +847,23 @@ func update_powerup_shop() -> void:
 func request_cashout_no() -> void:
 	if not multiplayer.is_server():
 		return
+
 	var sender_id = multiplayer.get_remote_sender_id()
 	if cashout_owner_ind == -1 or sender_id != connected_peers[cashout_owner_ind]:
 		return
+
+	money[cashout_owner_ind] += 3
+	update_money_all.rpc(money)
 	hide_cashout_menu.rpc_id(sender_id)
-	rpc("restore_ui_after_cashout")
+	restore_ui_after_cashout.rpc()
 	cashout = false
+
 	if play_again:
 		play_again = false
 		start_round()
 	else:
 		end_round()
+
 
 @rpc("any_peer", "reliable")
 func request_cashout_yes() -> void:
@@ -850,3 +892,20 @@ func start_crazy_mode() -> void:
 	$pUI.visible = true
 	initialize_powerup_shop()
 	update_powerup_shop()
+
+
+func _on_menu_button_pressed() -> void:
+	$UI/PauseMenu.show()
+	menu_button.stop_pulsing()
+
+func _on_menu_resume_button_pressed() -> void:
+	$UI/PauseMenu.hide()
+
+
+func _on_menu_exit_button_pressed() -> void:
+	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
+
+@rpc("any_peer", "reliable")
+func update_money_all(server_money: Array) -> void:
+	money = server_money.duplicate()
