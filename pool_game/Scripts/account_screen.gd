@@ -8,6 +8,8 @@ var game_invites: Array = []
 var is_refreshing_lists := false
 var poll_timer: Timer
 
+var keyboard_dodge_tween: Tween
+
 @onready var backend := $BackendRequests
 @onready var auth_panel := $AuthPanel
 @onready var logged_in_panel := $LoggedInPanel
@@ -47,10 +49,20 @@ func _notification(what: int) -> void:
 			if poll_timer != null:
 				poll_timer.stop()
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	pass
+	# https://forum.godotengine.org/t/virtual-keyboard-covering-lineedit/66623/5
+	if auth_panel.visible and DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
+		if DisplayServer.virtual_keyboard_get_height() > 0:
+			move_to_position(Vector2(0, -DisplayServer.virtual_keyboard_get_height() / 2.0))
+		else:
+			move_to_position(Vector2.ZERO)
+
+func move_to_position(new_position: Vector2, duration: float = 0.1) -> void:
+	if keyboard_dodge_tween != null and keyboard_dodge_tween.is_valid():
+		keyboard_dodge_tween.stop_all()
+	else:
+		keyboard_dodge_tween = create_tween()
+	keyboard_dodge_tween.tween_property(self, "position", new_position, duration)
 
 func _refresh_session_view() -> void:
 	var session_state: Dictionary = await backend.get_session_state()
