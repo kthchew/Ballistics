@@ -11,15 +11,17 @@
 [ext_resource type="Script" uid="uid://o2j4pevb7l7m" path="res://Scripts/cue_stick.gd" id="9_u50mg"]
 [ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://Scripts/aim_guide_circle.gd" id="10_cbgmd"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_1w6v2"]
+[ext_resource type="Script" uid="uid://bjwyxti52ing3" path="res://Scripts/circle_artist.gd" id="11_pdsj5"]
 [ext_resource type="Script" uid="uid://vx6fp008aa4j" path="res://Scripts/game_menu_button.gd" id="11_hibaj"]
 [ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://Scripts/PowerButton.gd" id="12_ueoa1"]
 [ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://Scripts/placement_controller.gd" id="13_6vcvc"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="14_7k868"]
 [ext_resource type="Theme" uid="uid://dj2dcaj8br367" path="res://Art/Button - Copy.tres" id="14_b3802"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="15_hpc6h"]
-[ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://ball_manager.gd" id="15_vivmo"]
+[ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://Scripts/ball_manager.gd" id="15_vivmo"]
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="16_kltya"]
 [ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="17_e08e2"]
+[ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://Scripts/classical_ai.gd" id="20_hibaj"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 2
@@ -339,6 +341,9 @@ width = 3.0
 [node name="AimGuideLine2" type="Line2D" parent="UI/AimVisuals/AimGuide" unique_id=1448096911]
 points = PackedVector2Array(0, 0, 0, 0)
 width = 3.0
+
+[node name="CircleArtist" type="Node2D" parent="UI/AimVisuals" unique_id=895442796]
+script = ExtResource("11_pdsj5")
 
 [node name="SafeAreaContainer" type="Control" parent="UI" unique_id=873564890]
 layout_mode = 3
@@ -838,13 +843,15 @@ script = ExtResource("15_vivmo")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1750200922]
 transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.9107674, 0.41267863, 0.05280001, -0.4128225, 0.9092798, -14.222816, 97.954666, 209.47566)
-visible = false
 projection = 1
 size = 130.0
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1196634560]
 replication_config = SubResource("SceneReplicationConfig_efxa6")
 public_visibility = false
+
+[node name="ClassicalAI" type="Node" parent="." unique_id=641838008]
+script = ExtResource("20_hibaj")
 
 [connection signal="pressed" from="UI/SafeAreaContainer/MenuButton" to="." method="_on_menu_button_pressed"]
 [connection signal="pressed" from="UI/PauseMenu/GridContainer/ResumeButton" to="." method="_on_menu_resume_button_pressed"]
