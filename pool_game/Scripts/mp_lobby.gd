@@ -330,15 +330,15 @@ func _apply_client_tls(peer: ENetMultiplayerPeer, host: String) -> void:
 	if normalized_host.is_empty():
 		return
 	# skip TLS for localhost because it would be annoying to set up TLS for dev environments
-	#if normalized_host == "localhost" or normalized_host == "127.0.0.1":
-		#return
+	if normalized_host == "localhost" or normalized_host == "127.0.0.1":
+		return
 
 	var host_connection: ENetConnection = peer.get_host()
 	if host_connection == null or not host_connection.has_method("dtls_client_setup"):
 		print("TLS warning: ENet host does not support DTLS client setup.")
 		return
 
-	var options := TLSOptions.client_unsafe()
+	var options := TLSOptions.client()
 	var err: int = host_connection.dtls_client_setup(normalized_host, options)
 	if err != OK:
 		print("TLS warning: DTLS client setup failed with error %d" % int(err))
