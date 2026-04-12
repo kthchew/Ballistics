@@ -20,7 +20,7 @@
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="15_hpc6h"]
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://Scripts/ball_manager.gd" id="15_vivmo"]
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="16_kltya"]
-[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="17_e08e2"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://Resources/ball_shape.tres" id="17_e08e2"]
 [ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://Scripts/classical_ai.gd" id="20_hibaj"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
