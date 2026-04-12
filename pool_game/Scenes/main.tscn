@@ -12,7 +12,7 @@
 [ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://Scripts/aim_guide_circle.gd" id="10_cbgmd"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_1w6v2"]
 [ext_resource type="Script" uid="uid://vx6fp008aa4j" path="res://Scripts/game_menu_button.gd" id="11_hibaj"]
-[ext_resource type="Script" path="res://Scripts/circle_artist.gd" id="11_pdsj5"]
+[ext_resource type="Script" uid="uid://bjwyxti52ing3" path="res://Scripts/circle_artist.gd" id="11_pdsj5"]
 [ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://Scripts/PowerButton.gd" id="12_ueoa1"]
 [ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://Scripts/placement_controller.gd" id="13_6vcvc"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="14_7k868"]
@@ -21,7 +21,7 @@
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://Scripts/ball_manager.gd" id="15_vivmo"]
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="16_kltya"]
 [ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="17_e08e2"]
-[ext_resource type="Script" path="res://Scripts/classical_ai.gd" id="20_hibaj"]
+[ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://Scripts/classical_ai.gd" id="20_hibaj"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 2
