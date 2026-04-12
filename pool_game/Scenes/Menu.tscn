@@ -1,9 +1,11 @@
 [gd_scene format=3 uid="uid://dytao3r8nooel"]
 
 [ext_resource type="Script" uid="uid://bhcr7nukm7qqq" path="res://Scripts/menu.gd" id="1_a8aa6"]
-[ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://Scenes/cue_ball.tscn" id="2_x0ao6"]
+[ext_resource type="PackedScene" uid="uid://cjgh3own5ppcr" path="res://Scenes/ball.tscn" id="2_byewe"]
+[ext_resource type="Texture2D" uid="uid://qtni5u6njj0w" path="res://ball_textures/Ball0.jpg" id="3_a8aa6"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="3_dsmso"]
 [ext_resource type="Script" uid="uid://gyxaumhi00lm" path="res://Scripts/settings_button.gd" id="4_t8p2w"]
+[ext_resource type="Texture2D" uid="uid://d071hrt6op5vl" path="res://ball_textures/Ball2.jpg" id="4_x0ao6"]
 [ext_resource type="Script" uid="uid://bx1tkuogm56hn" path="res://Scripts/profile_button.gd" id="5_krje8"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="6_dd46u"]
 [ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="10_c0stj"]
@@ -13,6 +15,15 @@
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="12_ksqlk"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="13_vkgky"]
 [ext_resource type="AudioStream" uid="uid://bnfsg1511m8v5" path="res://Sounds/lightOff.mp3" id="14_o00om"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dsmso"]
+albedo_texture = ExtResource("3_a8aa6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a8aa6"]
+albedo_texture = ExtResource("4_x0ao6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x0ao6"]
+albedo_texture = ExtResource("4_x0ao6")
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -35,9 +46,19 @@ top_radius = 300.0
 [node name="Menu" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_a8aa6")
 
-[node name="CueBall" parent="." unique_id=1266988142 instance=ExtResource("2_x0ao6")]
+[node name="CueBall" parent="." unique_id=1364153728 instance=ExtResource("2_byewe")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.900055, 3, 23.36322)
-script = null
+
+[node name="MeshInstance3D" parent="CueBall" index="1" unique_id=617264105]
+material_override = SubResource("StandardMaterial3D_dsmso")
+surface_material_override/0 = SubResource("StandardMaterial3D_a8aa6")
+
+[node name="Ball2" parent="." unique_id=216797839 instance=ExtResource("2_byewe")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.0887, 3, 31.271893)
+
+[node name="MeshInstance3D" parent="Ball2" index="1" unique_id=617264105]
+transform = Transform3D(-0.37622613, -0.5390633, -0.75356835, -0.03356499, 0.8207207, -0.5703429, 0.9259198, -0.18928437, -0.32687017, -24.11243, 0, 0)
+surface_material_override/0 = SubResource("StandardMaterial3D_x0ao6")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
@@ -231,3 +252,6 @@ spot_angle = 72.564
 transform = Transform3D(0.6084552, 0.24058907, -0.75624025, -0.7935883, 0.18446292, -0.5798199, -3.4688846e-08, 0.9529377, 0.3031661, -119.03245, -91.263824, -16.2915)
 stream = ExtResource("14_o00om")
 volume_db = 30.0
+
+[editable path="CueBall"]
+[editable path="Ball2"]

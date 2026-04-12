@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cjgh3own5ppcr"]
 
-[ext_resource type="PhysicsMaterial" uid="uid://chxig6vtldm8i" path="res://ball.tres" id="1_vblhy"]
+[ext_resource type="PhysicsMaterial" path="res://Resources/ball.tres" id="1_vblhy"]
 [ext_resource type="Script" uid="uid://comor5ekwua50" path="res://Scripts/ball.gd" id="2_31idh"]
 [ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="3_hk63f"]
 [ext_resource type="AudioStream" uid="uid://d4d5xwkfyjgea" path="res://Sounds/BallCollide.mp3" id="4_vm4s8"]
