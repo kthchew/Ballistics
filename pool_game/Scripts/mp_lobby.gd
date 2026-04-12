@@ -273,7 +273,7 @@ func _resolve_server_tls_hostname() -> String:
 	if not env_hostname.is_empty():
 		return env_hostname
 
-	return "domain"
+	return "ball-staging-0.kpchew.com"
 
 func _resolve_cert_paths(hostname: String) -> bool:
 	var normalized_hostname := _normalize_tls_hostname(hostname)
