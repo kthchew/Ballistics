@@ -1,9 +1,10 @@
 [gd_scene format=3 uid="uid://4glm8e10wkwp"]
 
 [node name="HoleSelectButton" type="Button" unique_id=720344467]
-offset_left = -260.0
-offset_top = 120.0
-offset_right = -158.0
-offset_bottom = 226.0
+custom_minimum_size = Vector2(100, 100)
+anchors_preset = -1
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 3.0517578e-05
 
 [connection signal="pressed" from="." to="." method="_on_pressed"]
