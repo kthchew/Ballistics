@@ -20,7 +20,7 @@ var init_peers = null
 var config := ConfigFile.new()
 const CONFIG_PATH := "user://settings.cfg"
 const FRIEND_JOIN_RETRY_MAX := 3
-const TLS_CERT_RELOAD_INTERVAL_SEC := 10.0
+const TLS_CERT_RELOAD_INTERVAL_SEC := 30.0 * 60.0
 const TLS_ROTATION_WAIT_PERIOD_SEC := 15.0 * 60.0
 const TLS_MAINTENANCE_MESSAGE := "Server is in maintenance. Matchmaking is temporarily unavailable."
 
