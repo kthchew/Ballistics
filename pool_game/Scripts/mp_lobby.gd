@@ -203,6 +203,7 @@ func _on_peer_disconnected(peer: int):
 		_remove_from_resume_wait(peer, false)
 	# close down the game if they were in one
 	var slot = peer_to_slot.get(peer, null)
+	peer_to_slot.erase(peer)
 	if slot != null:
 		close_game_at(slot)
 
@@ -732,6 +733,7 @@ func spawn_new_single_player_game() -> Node:
 func send_to_menu():
 	for game_container in games.get_children():
 		var game = game_container.get_node("SubViewportContainer/SubViewport/Game")
+		game.ball_manager.stop_synchronizing_all_balls()
 		game.about_to_exit = true
 	await get_tree().create_timer(5).timeout
 	get_tree().change_scene_to_file("res://Scenes/Menu.tscn")
@@ -746,9 +748,11 @@ func close_game_at(spot: int):
 	if game == null:
 		game = single_player_games.get(spot, null)
 	game.stopped_moving.connect(func():
+		game.ball_manager.stop_synchronizing_all_balls()
 		despawn_game_at(spot)
 	)
 	if game.game_state != Utils.GameState.MIDTURN:
+		game.ball_manager.stop_synchronizing_all_balls()
 		despawn_game_at(spot)
 
 func despawn_game_at(spot: int):

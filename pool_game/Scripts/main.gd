@@ -1121,6 +1121,7 @@ func _on_menu_resume_button_pressed() -> void:
 
 
 func _on_menu_exit_button_pressed() -> void:
+	ball_manager.stop_synchronizing_all_balls()
 	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
 
