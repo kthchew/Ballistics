@@ -493,6 +493,7 @@ offset_right = -217.0
 offset_bottom = 119.0
 grow_horizontal = 0
 theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 30
 text = "Vote Cashout"
 
 [node name="CashoutRequestedLabel" type="Label" parent="UI/SafeAreaContainer/CashoutVoteButton" unique_id=953158475]
@@ -506,6 +507,7 @@ offset_top = 80.0
 offset_right = -12.0
 offset_bottom = 103.0
 grow_horizontal = 0
+theme_override_font_sizes/font_size = 25
 text = "Cashout voted"
 horizontal_alignment = 1
 
@@ -666,9 +668,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -375.0
+offset_left = -625.0
 offset_top = -150.0
-offset_right = 375.0
+offset_right = 625.0
 offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
