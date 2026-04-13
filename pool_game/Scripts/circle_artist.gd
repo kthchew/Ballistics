@@ -4,13 +4,17 @@ class_name CircleArtist extends Node2D
 var _circles: Array[Dictionary] = []
 
 # This is the simple function you will call from your other scripts!
-func circle(pos: Vector2, radius: float, color: Color):
+func circle(pos: Vector3, radius: float, color: Color):
 	if Constants.AI_DRAW_AIM_GUIDE:
 		_rpc_add_circle.rpc(pos, radius, color)
 	
 @rpc("any_peer", "call_local")
-func _rpc_add_circle(pos: Vector2, radius: float, color: Color):
-	_circles.append({"pos": pos, "radius": radius, "color": color})
+func _rpc_add_circle(pos: Vector3, radius: float, color: Color):
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	var screen_pos: Vector2 = camera.unproject_position(pos)
+	_circles.append({"pos": screen_pos, "radius": radius, "color": color})
 	queue_redraw() # Tells Godot to update the canvas
 
 # If you ever want to wipe the drawings off the screen
