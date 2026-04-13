@@ -29,7 +29,6 @@ var shop_power_costs: Dictionary = {}
 var used_shop_powers: Array[String] = []
 const STATIC_TICKS_THRESHOLD: int = 60
 var powerup_hint_text: String = ""
-var powerup_hint_until_msec: int = 0
 
 var init_peer = null
 var has_aimed := false
@@ -481,6 +480,7 @@ func cashout_vote_request() -> void:
 			var cashout_peer_id = connected_peers[random_player_ind]
 			if cashout_peer_id != -1:
 				game_state = GameState.CASHOUT
+				play_again = true
 				show_cashout_wait_menu.rpc(cashout_peer_id)
 				if cashout_peer_id == multiplayer.get_unique_id():
 					show_cashout_menu(random_player_ind)
@@ -1020,7 +1020,7 @@ func fill_info_label() -> void:
 		if game_state == GameState.PLACING:
 			info_label.text += "Your opponent scratched, click to place the cue ball\n"
 
-	if powerup_hint_text != "" and Time.get_ticks_msec() < powerup_hint_until_msec:
+	if powerup_hint_text != "":
 		if info_label.text != "" and not info_label.text.ends_with("\n"):
 			info_label.text += "\n"
 		info_label.text += powerup_hint_text
@@ -1028,13 +1028,11 @@ func fill_info_label() -> void:
 	if about_to_exit:
 		info_label.text += "The other player left the game - returning to menu in a few seconds..."
 
-func show_powerup_hint(message: String, duration_seconds: float = 3.0) -> void:
+func show_powerup_hint(message: String) -> void:
 	if message == "":
 		powerup_hint_text = ""
-		powerup_hint_until_msec = 0
 		return
 	powerup_hint_text = message
-	powerup_hint_until_msec = Time.get_ticks_msec() + int(max(duration_seconds, 0.5) * 1000.0)
 
 func _on_no_pressed() -> void:
 	$CashOut.visible = false

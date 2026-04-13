@@ -170,6 +170,9 @@ func _on_place_button_pressed():
 	if not preview.canPlace():
 		print("preview cannot be placed here")
 		return
+		
+	if game_root and game_root.has_method("show_powerup_hint"):
+		game_root.show_powerup_hint("")
 
 	var target_path = ""
 	if preview.power_type == "Modifier":
