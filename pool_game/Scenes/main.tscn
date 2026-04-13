@@ -237,13 +237,13 @@ properties/9/spawn = true
 properties/9/replication_mode = 2
 properties/10/path = NodePath("UI/AimVisuals/CueStick:position")
 properties/10/spawn = true
-properties/10/replication_mode = 2
+properties/10/replication_mode = 1
 properties/11/path = NodePath("UI/AimVisuals/CueStick:visible")
 properties/11/spawn = true
 properties/11/replication_mode = 2
 properties/12/path = NodePath("UI/AimVisuals/CueStick:rotation")
 properties/12/spawn = true
-properties/12/replication_mode = 2
+properties/12/replication_mode = 1
 properties/13/path = NodePath(".:money")
 properties/13/spawn = true
 properties/13/replication_mode = 2
@@ -875,3 +875,4 @@ script = ExtResource("20_hibaj")
 [connection signal="button_up" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_up"]
 [connection signal="button_down" from="pUI/Rotate/rotateRight" to="pUI/placementController" method="_on_rotate_right_button_down"]
 [connection signal="button_up" from="pUI/Rotate/rotateRight" to="pUI/placementController" method="_on_rotate_right_button_up"]
+[connection signal="delta_synchronized" from="MultiplayerSynchronizer" to="." method="_new_delta_sync_received"]
