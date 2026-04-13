@@ -1019,6 +1019,11 @@ func fill_info_label() -> void:
 			info_label.text += "Pick your target pocket for the 8-ball\n"
 		if game_state == GameState.PLACING:
 			info_label.text += "Your opponent scratched, click to place the cue ball\n"
+
+	if powerup_hint_text != "" and Time.get_ticks_msec() < powerup_hint_until_msec:
+		if info_label.text != "" and not info_label.text.ends_with("\n"):
+			info_label.text += "\n"
+		info_label.text += powerup_hint_text
 			
 	if about_to_exit:
 		info_label.text += "The other player left the game - returning to menu in a few seconds..."
@@ -1030,11 +1035,6 @@ func show_powerup_hint(message: String, duration_seconds: float = 3.0) -> void:
 		return
 	powerup_hint_text = message
 	powerup_hint_until_msec = Time.get_ticks_msec() + int(max(duration_seconds, 0.5) * 1000.0)
-
-	if powerup_hint_text != "" and Time.get_ticks_msec() < powerup_hint_until_msec:
-		if info_label.text != "" and not info_label.text.ends_with("\n"):
-			info_label.text += "\n"
-		info_label.text += powerup_hint_text
 
 func _on_no_pressed() -> void:
 	$CashOut.visible = false
