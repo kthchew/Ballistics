@@ -63,6 +63,12 @@ func play_cue_ball_sound(strength):
 func freeze_balls():
 	for ball in balls:
 		ball.freeze = true
+
+func unfreeze_balls():
+	for ball in balls:
+		if ball.potted:
+			continue
+		ball.freeze = false
 		
 func check_scratch():
 	return cue_ball.potted or first_hit_scratch

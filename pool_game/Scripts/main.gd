@@ -807,6 +807,7 @@ func ai_play():
 		classical_ai.shoot()
 		
 func start_round(scratched_prev: bool = false) -> void:
+	ball_manager.unfreeze_balls()
 	if scratched_prev:
 		if ball_manager.check_eight_ball_potted():
 			end_game(player_ind)
