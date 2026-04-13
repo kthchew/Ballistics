@@ -322,10 +322,6 @@ func persist_game_state() -> void:
 	if backend == null:
 		return
 
-	var token := _get_persistence_token()
-	if token == "":
-		return
-
 	persist_in_flight = true
 	var state := save()
 

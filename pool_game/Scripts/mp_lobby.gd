@@ -608,11 +608,6 @@ func _token_for_peer(peer_id: int) -> String:
 		return ""
 	return str(player_tokens[peer_id])
 
-func _pair_key_for_usernames(usernames: Array[String]) -> String:
-	var sorted_names := usernames.duplicate()
-	sorted_names.sort()
-	return "%s|%s" % [sorted_names[0], sorted_names[1]]
-
 func _remove_from_random_queue(peer_id: int) -> void:
 	while regular_queue.has(peer_id):
 		regular_queue.erase(peer_id)
