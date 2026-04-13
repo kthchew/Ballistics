@@ -13,12 +13,12 @@ var power_name = null
 var selected_power_cost: int = 0
 
 const power_scenes: Dictionary[String, Resource] = {
-	"block": preload("res://Scenes/Powers/Block.tscn"),
-	"tnt": preload("res://Scenes/Powers/TNT.tscn"),
-	"tungsten": preload("res://Scenes/Powers/Tungsten.tscn"),
-	"aerogel": preload("res://Scenes/Powers/Aerogel.tscn"),
-	"bumper": preload("res://Scenes/Powers/Bumper.tscn"),
-	"eraser": preload("res://Scenes/Powers/Eraser.tscn"),
+	"block": preload("res://Scenes/Powers/block.tscn"),
+	"tnt": preload("res://Scenes/Powers/tnt.tscn"),
+	"tungsten": preload("res://Scenes/Powers/tungsten.tscn"),
+	"aerogel": preload("res://Scenes/Powers/aerogel.tscn"),
+	"bumper": preload("res://Scenes/Powers/bumper.tscn"),
+	"eraser": preload("res://Scenes/Powers/eraser.tscn"),
 	"gluetrap": preload("res://Scenes/Powers/gluetrap.tscn")
 }
 
