@@ -24,6 +24,10 @@ func start_game():
 	#pot_unused_balls()
 	#setup_two_ball_shot()
 	#setup_scratch()
+	#setup_two_ball_scratch()
+	#pot_all_but_cue_ball()
+	#test_ai_prioritization()
+	#test_negative_mom_trans()
 	#cue_ball.pot()
 	
 	balls_sunk = [0, 0]
@@ -142,6 +146,33 @@ func pot_unused_balls():
 		if ball.ball_num in range (9, 9 + (7 - Constants.BALLS_BEFORE_EIGHT)):
 			process_fallen_ball(ball)
 			
+func pot_all_but_cue_ball():
+	for ball in balls:
+		if not ball.is_cue_ball():
+			ball.pot()
+			
+func test_ai_prioritization():
+	for ball in balls:
+		if ball.is_cue_ball():
+			ball.teleport(Vector3(10, Constants.BALL_RADIUS, 0))
+		elif ball.is_eight_ball():
+			ball.teleport(Vector3(90, Constants.BALL_RADIUS, 0))
+		elif ball.ball_num == 5:
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, -25))
+		else:
+			ball.pot()
+
+func test_negative_mom_trans():
+	for ball in balls:
+		if ball.is_cue_ball():
+			ball.teleport(Vector3(20, Constants.BALL_RADIUS, 6))
+		elif ball.ball_num == 5:
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
+		elif ball.is_eight_ball():
+			ball.teleport(Vector3(90, Constants.BALL_RADIUS, 0))
+		else:
+			ball.pot()
+			
 func setup_two_ball_shot():
 	for ball in balls:
 		if ball.is_cue_ball():
@@ -155,7 +186,7 @@ func setup_two_ball_shot():
 		else:
 			ball.pot()
 			
-func setup_scratch():
+func setup_two_ball_scratch():
 	for ball in balls:
 		if ball.is_eight_ball():
 			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
@@ -163,6 +194,15 @@ func setup_scratch():
 			ball.teleport(Vector3(-75, Constants.BALL_RADIUS, -25))
 		elif ball.ball_num == 11:
 			ball.teleport(Vector3(-70, Constants.BALL_RADIUS, -20))
+		else:
+			ball.pot()
+			
+func setup_scratch():
+	for ball in balls:
+		if ball.is_eight_ball():
+			ball.teleport(Vector3(0, Constants.BALL_RADIUS, 0))
+		elif ball.ball_num == 13:
+			ball.teleport(Vector3(30, Constants.BALL_RADIUS, -20))
 		else:
 			ball.pot()
 	
@@ -219,7 +259,17 @@ func start_synchronizing_ball(ball_name: String):
 	rep_config.add_property("BallManager/" + ball_name + ":freeze")
 	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
 	
-@rpc("authority", "call_local", "reliable")
+func stop_synchronizing_all_balls():
+	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
+	for ball in balls:
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":position")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":rotation")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":angular_velocity")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":linear_velocity")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":ball_num")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":freeze")
+	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
+
 func stop_synchronizing_ball(ball_name: String):
 	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
 	rep_config.remove_property("BallManager/" + ball_name + ":position")

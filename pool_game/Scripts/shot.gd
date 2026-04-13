@@ -9,6 +9,8 @@ var scratched: bool
 var poss: bool
 var target_positions: Array[Vector3]
 var potting: bool
+var power: float
+var goodness: float
 var circle_artist: CircleArtist
 var camera: Camera3D
 
@@ -62,6 +64,8 @@ func shapecast_ball(ball: Ball, target_pos: Vector3) -> bool:
 		#"\n\tto target_pos=", target_pos, 
 		#"\n\tsafe frac=", safe_frac
 	#)
+	#circle_artist.circle(camera.unproject_position(shape_cast.get_collision_point(0)), 5, Color.TOMATO)
+	#circle_artist.circle(camera.unproject_position(target_pos), 5, Color.BLUE)
 	
 	return path_is_clear
 	
@@ -87,6 +91,10 @@ func _init(cue_ball: Ball, obj_balls: Array, hole_loc: Vector3, camera: Camera3D
 		self.poss = check_non_pot_possible()
 	else:
 		self.poss = true
+	self.power = calc_power()
+	if self.power == -1:
+		self.poss = false
+	self.goodness = 1 / self.power
 	
 func check_pot_possible() -> bool:
 	var target_pos = hole_loc
@@ -121,3 +129,35 @@ func check_non_pot_possible() -> bool:
 		var cue_target_pos = calc_ghost_ball_pos(obj_balls[0], cue_ball.global_position, -1)
 		self.target_positions.append(cue_target_pos)
 		return shapecast_ball(cue_ball, cue_target_pos)
+		
+func calc_power() -> float:
+	if self.obj_balls.is_empty():
+		return 50
+		
+	var cur_pos = self.cue_ball.global_position
+	var total_dist = 0
+	
+	var cum_mom_trans = 1
+	var prev_vec: Vector3 = Vector3.INF
+	var cur_vec: Vector3 = Vector3.INF
+	
+	for target_pos in self.target_positions:
+		var dist = cur_pos.distance_to(target_pos)
+		total_dist += dist
+		
+		cur_vec = (target_pos - cur_pos).normalized()
+		if prev_vec != Vector3.INF:
+			var mom_trans = cur_vec.dot(prev_vec)
+			# TODO: mom_trans can be negative
+			if mom_trans < 0:
+				return -1
+			cum_mom_trans *= mom_trans
+		prev_vec = cur_vec
+		cur_pos = target_pos
+		
+	#print("total_dist = ", total_dist)
+	#print("cum_mom_trans = ", cum_mom_trans)
+	var power = lerp(20, 100, total_dist / (500 * cum_mom_trans))
+	#print("power = ", power)
+	var clamped_power = clamp(power, 10, 100)
+	return clamped_power

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cu4vrdboa7shh"
-path="res://.godot/imported/pool_table8.glb-aae766414400581cfb6915fa8e8324c1.scn"
+path="res://.godot/imported/pool_table_mesh.glb-c333607e26514bbc97de897ffc35d694.scn"
 
 [deps]
 
-source_file="res://Scenes/pool_table8.glb"
-dest_files=["res://.godot/imported/pool_table8.glb-aae766414400581cfb6915fa8e8324c1.scn"]
+source_file="res://Scenes/pool_table_mesh.glb"
+dest_files=["res://.godot/imported/pool_table_mesh.glb-c333607e26514bbc97de897ffc35d694.scn"]
 
 [params]
 

@@ -70,6 +70,8 @@ theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 54
 placeholder_text = "Username"
 alignment = 1
+emoji_menu_enabled = false
+virtual_keyboard_type = 6
 
 [node name="PasswordInput" type="LineEdit" parent="AuthPanel" unique_id=1418612470]
 layout_mode = 2
@@ -77,6 +79,9 @@ theme = ExtResource("3_qh2xj")
 theme_override_font_sizes/font_size = 54
 placeholder_text = "Password"
 alignment = 1
+emoji_menu_enabled = false
+select_all_on_focus = true
+virtual_keyboard_type = 6
 secret = true
 
 [node name="AuthActions" type="HBoxContainer" parent="AuthPanel" unique_id=530877705]
