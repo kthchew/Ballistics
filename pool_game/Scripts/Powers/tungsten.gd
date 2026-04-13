@@ -28,13 +28,13 @@ func get_target() -> String:
 	
 func apply_to(target: Node) -> void:
 	if target is RigidBody3D:
-		target.mass *= 11
+		target.mass = 11
 		var mesh = target.get_node_or_null("MeshInstance3D")
 		if mesh:
 			var mat = mesh.get_active_material(0)
 			if mat:
 				mat = mat.duplicate()
-				mat.albedo_color = Color.GRAY
+				mat.albedo_color = Color(0.8, 0.8, 0.8, 1.0)
 				mat.metallic = 1.0
 				mat.roughness = 0.1
 				mesh.set_surface_override_material(0, mat)

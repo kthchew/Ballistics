@@ -71,7 +71,7 @@ func is_hovered_object_modified(hovered_object: Node) -> bool:
 		var mesh = hovered_object.get_node_or_null("MeshInstance3D")
 		if mesh:
 			var mat = mesh.get_active_material(0)
-			if mat and (mat.albedo_color == Color.PINK or mat.albedo_color == Color.GRAY):
+			if mat and (mat.albedo_color == Color(1.0, 0.9, 0.93, 1.0) or mat.albedo_color ==Color(0.8, 0.8, 0.8, 1.0)):
 				return true
 
 	return false

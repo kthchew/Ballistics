@@ -17,7 +17,18 @@ const power_scenes: Dictionary[String, Resource] = {
 	"tungsten": preload("res://Scenes/Powers/Tungsten.tscn"),
 	"aerogel": preload("res://Scenes/Powers/Aerogel.tscn"),
 	"bumper": preload("res://Scenes/Powers/Bumper.tscn"),
-	"eraser": preload("res://Scenes/Powers/Eraser.tscn")
+	"eraser": preload("res://Scenes/Powers/Eraser.tscn"),
+	"gluetrap": preload("res://Scenes/Powers/gluetrap.tscn")
+}
+
+const power_descriptions: Dictionary[String, String] = {
+	"block": "Block places a barrier that balls cannot pass through.",
+	"tnt": "TNT destroys a placed object.",
+	"tungsten": "Tungsten makes a ball heavier so it deflects less.",
+	"aerogel": "Aerogel makes a ball lighter so it reacts more to hits.",
+	"bumper": "Bumper bounces balls off it harder.",
+	"eraser": "Eraser removes the active modifier from a ball.",
+	"gluetrap": "Glue Trap stops balls that roll through it."
 }
 
 func _ready():
@@ -67,6 +78,9 @@ func start_placement(power_key: String):
 	preview = scene.instantiate()
 	preview.visible = true
 	preview_container.add_child(preview)
+	if game_root and game_root.has_method("show_powerup_hint"):
+		var desc = power_descriptions.get(power_key, "Place this power-up on the table.")
+		game_root.show_powerup_hint(desc)
 
 	var mesh = preview.get_node_or_null("MeshInstance3D")
 	if mesh:
@@ -128,7 +142,10 @@ func _gui_input(event):
 			half_height = shape.height * 0.5
 		else:
 			half_height = shape.size.y * 0.5
-		preview.global_position = hit + Vector3(0, half_height, 0)
+		var placement_offset_y := 0.0
+		if power_name == "gluetrap":
+			placement_offset_y = 5.0
+		preview.global_position = hit + Vector3(0, half_height + placement_offset_y, 0)
 
 		rpc("rpc_update_preview", preview.global_position, preview.global_rotation)
 
@@ -150,30 +167,39 @@ func _on_place_button_pressed():
 		print("not preview")
 		return
 
+	if not preview.canPlace():
+		print("preview cannot be placed here")
+		return
+
 	var power_cost = preview.cost
 	
 	if power_cost <= 0:
 		print("power_cost <= 0")
-		return
-		
-	if not game_root or not game_root.purchase_power(power_name, power_cost):
-		if not game_root:
-			print("not game_root")
-		if not game_root.purchase_power(power_name, power_cost):
-			print("not game_root.purchase_power(power_name, power_cost)")
 		return
 
 	var target_path = ""
 	if preview.power_type == "Modifier":
 		target_path = preview.get_target()
 		
-	request_place_power.rpc(
-		preview.power_type,
-		preview.global_position,
-		preview.global_rotation,
-		preview.power_scene_name,
-		target_path
-	)
+	if multiplayer.is_server():
+		request_place_power(
+			preview.power_type,
+			preview.global_position,
+			preview.global_rotation,
+			preview.power_scene_name,
+			power_cost,
+			target_path
+		)
+	else:
+		request_place_power.rpc_id(
+			1,
+			preview.power_type,
+			preview.global_position,
+			preview.global_rotation,
+			preview.power_scene_name,
+			power_cost,
+			target_path
+		)
 
 
 func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Vector3) -> Node:
@@ -187,7 +213,12 @@ func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Ve
 	if obj is RigidBody3D:
 		obj.freeze = false
 
-	if power_type == "Object":
+	if pName == "gluetrap" and obj.has_method("mark_placed"):
+		obj.mark_placed()
+	if pName == "gluetrap":
+		obj.collision_layer = Constants.GLUE_TRAP_LAYER
+		obj.collision_mask = (1 << 0) | Constants.SHAPECAST_LAYER | Constants.GLUE_TRAP_LAYER
+	elif power_type == "Object":
 		obj.collision_layer = (1 << 2) | (1 << 3)
 		obj.collision_mask = (1 << 0) | (1 << 2) | (1 << 3)
 		game_root.objects += 1
@@ -226,9 +257,8 @@ func rpc_apply_modifier(pName: String, modified_path: String) -> void:
 	_apply_modifier(pName, modified_path)
 
 @rpc("any_peer", "reliable")
-func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, target_path: String = ""):
+func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, cost: int, target_path: String = ""):
 	if not multiplayer.is_server():
-		print("not a server")
 		return
 	
 	var sender = multiplayer.get_remote_sender_id()
@@ -255,7 +285,13 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 		power_instance.queue_free()
 		return
 
+	if not game_root or not game_root.try_purchase_power_for_peer(sender, pName, cost):
+		print("purchase rejected for power placement")
+		power_instance.queue_free()
+		return
+
 	if power_type == "Object":
+		power_instance.queue_free()
 		_spawn_power_local(power_type, pName, pos, rot)
 		rpc("rpc_spawn_power", power_type, pName, pos, rot)
 
@@ -271,6 +307,7 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 		if target:
 			_apply_modifier(pName, target.get_path())
 			rpc("rpc_apply_modifier", pName, target.get_path())
+		power_instance.queue_free()
 	finish_placement.rpc_id(sender)
 
 

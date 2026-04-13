@@ -8,54 +8,37 @@ func _ready() -> void:
 	add_to_group("modifiers")
 
 func get_target() -> String:
-	var valid_targets = []
-	var root = get_tree().get_root()
-	_find_targets_in_tree(root, valid_targets)
-	
-	var shape = $Area3D.get_node("CollisionShape3D").shape
-	var closest_target = null
-	var closest_distance = shape.size.length()
-	
-	for target in valid_targets:
-		var distance = global_position.distance_to(target.global_position)
-		if distance < closest_distance:
-			closest_distance = distance
-			closest_target = target
-	
-	if closest_target:
-		return str(closest_target.get_path())
+	var targets := _get_overlapping_object_targets()
+	if targets.size() == 1:
+		return str(targets[0].get_path())
 	return ""
 
 func apply_to(target: Node) -> void:
-	var low = target.name.to_lower()
-	if not low.contains("ball") and not low.contains("table"):
-		target.queue_free()
-		get_node("/root/Main").objects -= 1
+	if not _is_object_power(target):
+		return
+	target.queue_free()
+	var main = get_node_or_null("/root/Main")
+	if main:
+		var current_objects = main.get("objects")
+		if typeof(current_objects) != TYPE_NIL:
+			main.objects = max(int(current_objects) - 1, 0)
 
 func canPlace() -> bool:
-	var valid_targets = []
-	var root = get_tree().get_root()
-	_find_targets_in_tree(root, valid_targets)
-	
-	var detected = []
-	var shape = $Area3D.get_node("CollisionShape3D").shape
-	
-	for target in valid_targets:
-		var distance = global_position.distance_to(target.global_position)
-		# Check if target is within the box bounds (approximate sphere-box collision)
-		if distance < shape.size.length() * 0.5:
-			detected.append(target)
-	
-	if detected.size() != 1:
-		return false
-	
-	return true
+	return _get_overlapping_object_targets().size() == 1
 
-func _find_targets_in_tree(node: Node, result: Array) -> void:
-	var name_lower = node.name.to_lower()
-	if node.is_in_group("balls") or name_lower.contains("table"):
-		result.append(node)
-	
-	for child in node.get_children():
-		_find_targets_in_tree(child, result)
-		_find_targets_in_tree(child, result)
+func _get_overlapping_object_targets() -> Array[Node]:
+	var targets: Array[Node] = []
+	var seen: Dictionary = {}
+	for area in $Area3D.get_overlapping_areas():
+		var parent = area.get_parent()
+		if parent and parent != self and _is_object_power(parent):
+			var key = parent.get_path()
+			if not seen.has(key):
+				seen[key] = true
+				targets.append(parent)
+	return targets
+
+func _is_object_power(node: Node) -> bool:
+	if not node:
+		return false
+	return str(node.get("power_type")) == "Object"

@@ -21,12 +21,14 @@ enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED,
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
 var continue_after_crazy: bool = false
-const POWER_BASE_COSTS := {"block": 15, "tungsten": 8, "tnt": 8, "aerogel": 12, "bumper": 20, "eraser": 10}
+const POWER_BASE_COSTS := {"block": 15, "tungsten": 8, "tnt": 8, "aerogel": 12, "bumper": 20, "eraser": 10, "gluetrap": 6}
 const POWER_COST_VARIATION_PERCENT: int = 10
 var power_shop_options: Array[String] = []
 var power_shop_costs: Dictionary = {}
 var power_shop_used: Array[String] = []
 const STATIC_TICKS_THRESHOLD: int = 60
+var powerup_hint_text: String = ""
+var powerup_hint_until_msec: int = 0
 
 var init_peer = null
 var has_aimed := false
@@ -365,6 +367,17 @@ func start_game() -> void:
 	
 	ball_manager.start_game()
 	start_round()
+
+@rpc("any_peer", "call_local")
+func rpc_sync_turn_ui(state: GameState) -> void:
+	if state == GameState.CASHOUT or state == GameState.ENDED or state == GameState.NOT_STARTED:
+		return
+	$UI.visible = true
+	$CashOut.visible = false
+	if has_node("pUI"):
+		$pUI.visible = false
+	if has_node("UI/PauseMenu"):
+		$UI/PauseMenu.hide()
 			
 func _on_aim_input(touch_pos: Vector2):
 	if not is_your_turn():
@@ -549,6 +562,12 @@ func start_round(scratched_prev: bool = false) -> void:
 		change_hole_button_visibility.rpc_id(connected_peers[player_ind], true)
 	else:
 		game_state = GameState.AIMING
+		ball_manager.cue_ball.freeze = false
+		ball_manager.cue_ball.sleeping = false
+		ball_manager.cue_ball.linear_velocity = Vector3.ZERO
+		ball_manager.cue_ball.angular_velocity = Vector3.ZERO
+
+	rpc_sync_turn_ui.rpc(game_state)
 	
 	if is_ai_turn():
 		ai_play()
@@ -719,6 +738,19 @@ func fill_info_label() -> void:
 		if game_state == GameState.PLACING:
 			info_label.text += "Your opponent scratched, click to place the cue ball\n"
 
+	if powerup_hint_text != "" and Time.get_ticks_msec() < powerup_hint_until_msec:
+		if info_label.text != "" and not info_label.text.ends_with("\n"):
+			info_label.text += "\n"
+		info_label.text += powerup_hint_text
+
+func show_powerup_hint(message: String, duration_seconds: float = 3.0) -> void:
+	if message == "":
+		powerup_hint_text = ""
+		powerup_hint_until_msec = 0
+		return
+	powerup_hint_text = message
+	powerup_hint_until_msec = Time.get_ticks_msec() + int(max(duration_seconds, 0.5) * 1000.0)
+
 func _on_no_pressed() -> void:
 	local_cashout_owner = false
 	$CashOut.visible = false
@@ -726,7 +758,7 @@ func _on_no_pressed() -> void:
 	cashout = false
 	end_round()
 	
-@onready var objects = 0
+@export var objects = 0
 var randPower = []
 
 func _on_yes_pressed() -> void:
@@ -762,7 +794,7 @@ func has_modifiers_placed() -> bool:
 	return modifiers.size() > 0
 
 func initialize_powerup_shop() -> void:
-	power_shop_options = ["block", "tungsten", "aerogel", "bumper"]
+	power_shop_options = ["block", "tungsten", "aerogel", "bumper", "gluetrap"]
 	if objects > 0:
 		power_shop_options.append("tnt")
 	if has_modifiers_placed():
@@ -824,6 +856,32 @@ func purchase_power(power_name: String, cost: int) -> bool:
 	request_purchase_power.rpc(power_name, cost)
 	return true
 
+func try_purchase_power_for_peer(sender_id: int, power_name: String, client_cost: int) -> bool:
+	if not multiplayer.is_server():
+		return false
+
+	var buyer_index = connected_peers.find(sender_id)
+	if buyer_index == -1:
+		return false
+
+	var expected_cost = int(power_shop_costs.get(power_name, 0))
+	if expected_cost <= 0:
+		# Fallback for temporary shop desync: accept the offered client cost if valid.
+		expected_cost = client_cost
+	if expected_cost <= 0:
+		return false
+
+	# Trust server-side shop price when available.
+	if client_cost != expected_cost:
+		client_cost = expected_cost
+
+	if client_cost > money[buyer_index]:
+		return false
+
+	money[buyer_index] -= client_cost
+	update_money_all.rpc(money)
+	return true
+
 @rpc("authority", "call_local")
 func purchase_result(success: bool) -> void:
 	if success:
@@ -837,16 +895,10 @@ func request_purchase_power(power_name: String, cost: int) -> void:
 		return
 
 	var sender_id = multiplayer.get_remote_sender_id()
-	var buyer_index = connected_peers.find(sender_id)
-	if buyer_index == -1:
-		return
-
-	if cost <= 0 or cost > money[buyer_index]:
+	if not try_purchase_power_for_peer(sender_id, power_name, cost):
 		purchase_result.rpc_id(sender_id, false)
 		return
 
-	money[buyer_index] -= cost
-	update_money_all.rpc(money)
 	purchase_result.rpc_id(sender_id, true)
 
 
