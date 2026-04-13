@@ -1028,7 +1028,7 @@ func _on_done_powerup_pressed() -> void:
 
 var reroll_tax = 1
 func _on_reroll_powerup_pressed() -> void:
-	if get_local_player_money() < 1:
+	if get_local_player_money() < reroll_tax:
 		return
 	var local_index = get_local_player_index()
 	if local_index == -1:
@@ -1185,7 +1185,7 @@ func update_powerup_shop() -> void:
 			button.disabled = true
 			button.set_meta("power_name", null)
 			button.set_meta("power_cost", 0)
-	reroll_button.disabled = get_local_player_money() < 1
+	reroll_button.disabled = get_local_player_money() < reroll_tax
 	var any_visible = false
 	for button in buttons:
 		if button.visible:
