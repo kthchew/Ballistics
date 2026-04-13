@@ -1,5 +1,7 @@
 class_name Main extends Node3D
 
+signal stopped_moving
+
 @onready var debug_label: Label = $LabelLayer/DebugLabel
 @onready var info_label: Label = $LabelLayer/InfoLabel
 @onready var slider = $UI/SafeAreaContainer/ForceSlider
@@ -16,7 +18,6 @@ class_name Main extends Node3D
 @onready var classical_ai = $ClassicalAI
 @onready var cashout = false
 
-var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
 var cashout_owner_ind: int = -1
 var local_cashout_owner: bool = false
@@ -35,6 +36,7 @@ var cur_static_ticks = 0
 var requesting_reset: Array[bool] = [false, false] # index is player index
 
 
+@export var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 @export var lobby_slot: int = -1
 @export var player_ind: int = 0
 @export var scores: Array[int] = [0, 0]
@@ -49,9 +51,13 @@ var requesting_reset: Array[bool] = [false, false] # index is player index
 @export var connected_peers = [-1, -1]
 @export var money = [0,0]
 
-const ball_scene = preload("res://Scenes/ball.tscn")
-const ball_script = preload("res://Scripts/ball.gd")
-const ball_shape = preload("res://ball_shape.tres")
+var persisted_game_id: String = ""
+var persistence_enabled: bool = false
+var persistence_usernames: Array[String] = ["", ""]
+var persistence_tokens: Array[String] = ["", ""]
+var persist_in_flight: bool = false
+
+var about_to_exit = false
 
 func _ready() -> void:
 	if not OS.is_debug_build():
@@ -106,15 +112,6 @@ func _on_ai_placed_cue_ball(pos: Vector3):
 	place_cue_ball(pos)
 	
 func _on_ai_picked_pocket(hole_ind: int):
-	var path_str = "UI/HoleButtons/HoleButton" + str(hole_ind + 1)
-	var hole_btn = get_node(path_str)
-	
-	hole_btn.toggle_mode = true
-	hole_btn.button_pressed = true
-	await get_tree().create_timer(0.5).timeout
-	hole_btn.toggle_mode = false
-	hole_btn.button_pressed = false
-	
 	select_hole(hole_ind)
 
 func aim(dir: Vector2):
@@ -147,10 +144,224 @@ func calc_dir():
 	var angle = cue_stick.angle
 	var dir = Vector3(cos(angle), 0, sin(angle)).normalized()
 	return dir
+	
+func save() -> Dictionary:
+	var ball_states: Array = []
+	for ball in ball_manager.balls:
+		ball_states.append(ball.save())
+
+	var object_power_states: Array = []
+	if has_node("pUI/placementController"):
+		object_power_states = $pUI/placementController.save_object_powers()
+
+	var current_username := ""
+	var solids_username := ""
+	var winner_username := ""
+	if persistence_usernames.size() == 2:
+		if player_ind >= 0 and player_ind < persistence_usernames.size():
+			current_username = persistence_usernames[player_ind]
+		if solids_player >= 0 and solids_player < persistence_usernames.size():
+			solids_username = persistence_usernames[solids_player]
+		if winner >= 0 and winner < persistence_usernames.size():
+			winner_username = persistence_usernames[winner]
+
+	var save_dict := {
+		"current_player_index": player_ind,
+		"current_player_username": current_username,
+		"turn_num": turn_num,
+		"round_num": round_num,
+		"scores": scores.duplicate(),
+		"balls_sunk": ball_manager.balls_sunk.duplicate(),
+		"solids_player": solids_player,
+		"solids_player_username": solids_username,
+		"winner": winner,
+		"winner_username": winner_username,
+		"game_state": int(game_state),
+		"player_usernames": persistence_usernames.duplicate(),
+		"balls": ball_states,
+		"object_powers": object_power_states,
+		
+		"game_type": int(game_type),
+		"money": money.duplicate(),
+		"power_shop_options": power_shop_options.duplicate(),
+		"power_shop_costs": power_shop_costs.duplicate(),
+		"power_shop_used": power_shop_used.duplicate(),
+	}
+	return save_dict
+
+func load(save_dict: Dictionary) -> void:
+	set_visibility()
+	set_visibility.rpc_id(connected_peers[0])
+	set_visibility.rpc_id(connected_peers[1])
+	
+	has_aimed = false
+	cue_stick.hide()
+	slider.value = 0
+	cue_stick.set_force_strength(0.0)
+	aimer._reset_knob()
+
+	player_ind = int(save_dict.get("current_player_index", 0))
+	turn_num = int(save_dict.get("turn_num", 0))
+	round_num = int(save_dict.get("round_num", 0))
+	solids_player = int(save_dict.get("solids_player", -1))
+	next_solids_player = int(save_dict.get("solids_player", -1))
+	winner = int(save_dict.get("winner", -1))
+	game_state = int(save_dict.get("game_state", GameState.AIMING)) as GameState
+	
+	game_type = int(save_dict.get("game_type", Utils.GameType.EIGHT_BALL_MULTIPLAYER)) as Utils.GameType
+	money = save_dict.get("money", [0, 0])
+	var opt_string_arr: Array[String]
+	opt_string_arr.assign(save_dict.get("power_shop_options", []).duplicate())
+	power_shop_options = opt_string_arr
+	power_shop_costs = save_dict.get("power_shop_costs", {}).duplicate()
+	var used_string_arr: Array[String]
+	used_string_arr.assign(save_dict.get("power_shop_used", []).duplicate())
+	power_shop_used = used_string_arr
+	
+	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
+		cashout_owner_ind = 1 - player_ind
+		set_cashout_owner.rpc(cashout_owner_ind)
+		$pUI/placementController.set_cashout_owner.rpc(connected_peers[cashout_owner_ind])
+		if game_state == GameState.CASHOUT:
+			show_cashout_wait_menu.rpc(connected_peers[cashout_owner_ind])
+			show_cashout_menu.rpc_id(connected_peers[cashout_owner_ind], money, cashout_owner_ind)
+		elif game_state == GameState.CRAZY:
+			start_crazy_mode.rpc_id(connected_peers[cashout_owner_ind])
+
+	var saved_scores = save_dict.get("scores", [0, 0])
+	if saved_scores is Array and saved_scores.size() == 2:
+		scores = [int(saved_scores[0]), int(saved_scores[1])]
+
+	var saved_sunk = save_dict.get("balls_sunk", [0, 0])
+	if saved_sunk is Array and saved_sunk.size() == 2:
+		var new_sunk: Array[int] = [int(saved_sunk[0]), int(saved_sunk[1])]
+		ball_manager.balls_sunk = new_sunk
+
+	var saved_usernames = save_dict.get("player_usernames", [])
+	if saved_usernames is Array and saved_usernames.size() == 2:
+		persistence_usernames = [str(saved_usernames[0]), str(saved_usernames[1])]
+
+	# Prefer username references when available, then keep index fallback behavior.
+	var current_username := str(save_dict.get("current_player_username", ""))
+	if current_username != "" and persistence_usernames.size() == 2:
+		var username_idx := persistence_usernames.find(current_username)
+		if username_idx != -1:
+			player_ind = username_idx
+
+	var solids_username := str(save_dict.get("solids_player_username", ""))
+	if solids_username != "" and persistence_usernames.size() == 2:
+		var solids_idx := persistence_usernames.find(solids_username)
+		if solids_idx != -1:
+			solids_player = solids_idx
+
+	var winner_username := str(save_dict.get("winner_username", ""))
+	if winner_username != "" and persistence_usernames.size() == 2:
+		var winner_idx := persistence_usernames.find(winner_username)
+		if winner_idx != -1:
+			winner = winner_idx
+
+	var ball_lookup := {}
+	for ball in ball_manager.balls:
+		ball_lookup[ball.ball_num] = ball
+
+	var saved_balls = save_dict.get("balls", [])
+	if saved_balls is Array:
+		for state in saved_balls:
+			if not (state is Dictionary):
+				continue
+			var ball_num = int(state.get("ball_num", -1))
+			if not ball_lookup.has(ball_num):
+				continue
+			var ball: Ball = ball_lookup[ball_num]
+			var pos := Vector3(
+				float(state.get("pos_x", ball.position.x)),
+				float(state.get("pos_y", ball.position.y)),
+				float(state.get("pos_z", ball.position.z))
+			)
+			ball.position = pos
+			ball.teleport(pos)
+			ball.rotation = Vector3(
+				float(state.get("rot_x", ball.rotation.x)),
+				float(state.get("rot_y", ball.rotation.y)),
+				float(state.get("rot_z", ball.rotation.z))
+			)
+			ball.potted = bool(state.get("potted", false))
+			if ball.potted:
+				ball.freeze = true
+				
+			for modifier in state.get("modifiers", []):
+				$pUI/placementController._apply_modifier(modifier, ball.get_path())
+				$pUI/placementController.rpc_apply_modifier.rpc(modifier, ball.get_path())
+			
+			ball.show()
+
+	if has_node("pUI/placementController"):
+		var placement_controller = $pUI/placementController
+		var saved_object_powers = save_dict.get("object_powers", [])
+		if saved_object_powers is Array:
+			placement_controller.load_object_powers(saved_object_powers)
+		else:
+			placement_controller.load_object_powers([])
+
+	cur_static_ticks = 0
+
+	if game_state == GameState.ENDED:
+		ball_manager.freeze_balls()
+
+func _get_persistence_token() -> String:
+	for token in persistence_tokens:
+		if token != "":
+			return token
+	return ""
+
+func persist_game_state() -> void:
+	if not multiplayer.is_server() or not persistence_enabled or persist_in_flight:
+		return
+
+	var backend = $/root/MultiplayerLobby/BackendRequests
+	if backend == null:
+		return
+
+	persist_in_flight = true
+	var state := save()
+
+	if persisted_game_id == "":
+		var created_game_id: String = await backend.create_new_game(state)
+		if created_game_id != "":
+			persisted_game_id = created_game_id
+			# make game as joined for both players
+			await backend.join_game(persistence_tokens[0], persisted_game_id)
+			await backend.join_game(persistence_tokens[1], persisted_game_id)
+	else:
+		var ok: bool = await backend.set_game_state(state, persisted_game_id)
+		if not ok:
+			print("Failed to update game state for " + persisted_game_id)
+
+	persist_in_flight = false
 
 @rpc
 func change_hole_button_visibility(visible_state: bool) -> void:
 	hole_buttons.visible = visible_state
+	
+@rpc 
+func set_hole_buttons_disabled(disabled_state: bool) -> void:
+	for child in hole_buttons.get_children():
+		if child is BaseButton:
+			child.disabled = disabled_state
+	
+@rpc
+func color_hole_button(hole_ind: int) -> void:
+	var button = hole_buttons.get_node("HoleButton" + str(hole_ind + 1))
+	var states = ["normal", "hover", "pressed", "disabled"]
+	for state in states:
+		var new_stylebox = button.get_theme_stylebox(state).duplicate()
+		new_stylebox.bg_color = Color(0.2, 0.85, 0.4, 0.8)
+		button.add_theme_stylebox_override(state, new_stylebox)
+
+@rpc 
+func reset_hole_button_color(hole_ind: int) -> void:
+	var button = hole_buttons.get_node("HoleButton" + str(hole_ind + 1))
+	hole_buttons.style_hole_button(button)
 
 @rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
@@ -160,7 +371,19 @@ func _on_hole_selected(hole_ind: int) -> void:
 
 func select_hole(hole_ind: int) -> void:
 	target_hole = hole_ind
-	change_hole_button_visibility.rpc_id(multiplayer.get_remote_sender_id(), false)
+	
+	set_hole_buttons_disabled.rpc_id(connected_peers[player_ind], true)
+	set_hole_buttons_disabled.rpc_id(connected_peers[1 - player_ind], true)
+	color_hole_button.rpc_id(connected_peers[player_ind], hole_ind)
+	color_hole_button.rpc_id(connected_peers[1 - player_ind], hole_ind)
+	
+	await get_tree().create_timer(1.0).timeout
+	
+	change_hole_button_visibility.rpc_id(connected_peers[player_ind], false)
+	change_hole_button_visibility.rpc_id(connected_peers[1 - player_ind], false)
+	reset_hole_button_color.rpc_id(connected_peers[player_ind], hole_ind)
+	reset_hole_button_color.rpc_id(connected_peers[1 - player_ind], hole_ind)
+	
 	start_round()
 
 func _on_reset_button_pressed() -> void:
@@ -260,7 +483,7 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	var aim_guide_line2 = $UI/AimVisuals/AimGuide/AimGuideLine2
 	
 	var ghost_ball_pos = collision_point + collision_normal * Constants.BALL_RADIUS
-	
+
 	$UI/AimVisuals/AimGuide/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
 	$UI/AimVisuals/AimGuide/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
 	
@@ -268,21 +491,21 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
 	
 	aim_guide_line2.set_point_position(0, camera.unproject_position(ghost_ball_pos))
-	
+
 	var length = 20
 	var normal_comp = dir.project(collision_normal)
 	var surface_comp = dir - normal_comp
-	
+
 	var cue_ball_endpoint = ghost_ball_pos
 	var object_ball_endpoint = ghost_ball_pos
 	var hitting_ball = collider.name.contains("Ball")
-	
+
 	if hitting_ball and ball_manager.check_is_ball_valid(collider.ball_num, player_ind, solids_player, scores):
 		cue_ball_endpoint = ghost_ball_pos + length * surface_comp
 		object_ball_endpoint = ghost_ball_pos + length * normal_comp
 	elif not hitting_ball:
 		cue_ball_endpoint = ghost_ball_pos + length * (surface_comp - normal_comp)
-		
+
 	aim_guide_line.set_point_position(2, camera.unproject_position(cue_ball_endpoint))
 	aim_guide_line2.set_point_position(1, camera.unproject_position(object_ball_endpoint))
 
@@ -476,6 +699,7 @@ func end_game(winning_player: int) -> void:
 	self.winner = winning_player
 	game_state = GameState.ENDED
 	ball_manager.freeze_balls()
+	persist_game_state()
 		
 func is_ai_turn():
 	return game_type == Utils.GameType.EIGHT_BALL_SINGLEPLAYER and connected_peers[player_ind] == 1
@@ -505,6 +729,9 @@ func start_round(scratched_prev: bool = false) -> void:
 	elif target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
 		game_state = GameState.PICKPOCKET
 		change_hole_button_visibility.rpc_id(connected_peers[player_ind], true)
+		change_hole_button_visibility.rpc_id(connected_peers[1 - player_ind], true)
+		set_hole_buttons_disabled.rpc_id(connected_peers[player_ind], false)
+		set_hole_buttons_disabled.rpc_id(connected_peers[1 - player_ind], true)
 	else:
 		game_state = GameState.AIMING
 	
@@ -575,15 +802,21 @@ func end_round() -> void:
 					show_cashout_menu(money, cashout_owner_ind)
 				else:
 					show_cashout_menu.rpc_id(cashout_peer_id, money, cashout_owner_ind)
+			await persist_game_state()
 			return
 		else:
 			play_again = false
 			start_round(scratched)
+			await persist_game_state()
+			stopped_moving.emit()
 			return
+	
 	play_again = false
 	turn_num += 1
 	player_ind = 1 - player_ind
 	start_round(scratched)
+	await persist_game_state()
+	stopped_moving.emit()
 	
 func process_midturn():
 	# cue_stick.visible = false
@@ -676,6 +909,9 @@ func fill_info_label() -> void:
 			info_label.text += "Pick your target pocket for the 8-ball\n"
 		if game_state == GameState.PLACING:
 			info_label.text += "Your opponent scratched, click to place the cue ball\n"
+			
+	if about_to_exit:
+		info_label.text += "The other player left the game - returning to menu in a few seconds..."
 
 func _on_no_pressed() -> void:
 	local_cashout_owner = false
@@ -903,6 +1139,7 @@ func _on_menu_resume_button_pressed() -> void:
 
 
 func _on_menu_exit_button_pressed() -> void:
+	ball_manager.stop_synchronizing_all_balls()
 	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
 

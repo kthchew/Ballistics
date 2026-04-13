@@ -2,8 +2,16 @@ extends Node3D
 
 @onready var randPoolButton = $MainMenu/MenuUI/BottomButtons/RandomPoolButton
 @onready var randCrazyButton = $MainMenu/MenuUI/BottomButtons/RandomCrazyPoolButton
+@onready var resume_button = $MainMenu/MenuUI/BottomButtons/ResumeGameButton
 @onready var priv_button = $MainMenu/MenuUI/BottomButtons/PrivateGameButton
 @onready var ai_pool_button = $MainMenu/MenuUI/BottomButtons/AIPoolButton
+
+@onready var backend_requests = $MainMenu/MenuUI/AccountScreen/BackendRequests
+
+const mp_lobby_scene: PackedScene = preload("res://Scenes/mp_lobby.tscn")
+
+var resumable_game_id: String = ""
+@onready var crazy = false
 
 var lobby_scene: PackedScene = preload("res://Scenes/mp_lobby.tscn")
 
@@ -16,8 +24,33 @@ func _ready() -> void:
 			
 	randPoolButton.pressed.connect(_on_Rpool_pressed)
 	randCrazyButton.pressed.connect(_on_Cpool_pressed)
+	resume_button.pressed.connect(_on_resume_pressed)
 	priv_button.pressed.connect(_on_priv_pressed)
 	ai_pool_button.pressed.connect(_on_ai_pool_pressed)
+	await _refresh_resume_button_state()
+
+func _refresh_resume_button_state() -> void:
+	resume_button.disabled = true
+	resumable_game_id = ""
+
+	var config := ConfigFile.new()
+	if config.load("user://settings.cfg") != OK:
+		return
+
+	var token: String = str(config.get_value("account", "session", ""))
+	if token == "":
+		return
+
+	var account_info: Dictionary = await backend_requests.info_for_account(token)
+	if not account_info.has("current_game_id") or account_info["current_game_id"] == null:
+		return
+
+	var game_id := str(account_info["current_game_id"])
+	if game_id == "":
+		return
+
+	resumable_game_id = game_id
+	resume_button.disabled = false
 
 func prepare_to_exit():
 	$OverheadLight/Light/AudioStreamPlayer3D.play()
@@ -26,6 +59,14 @@ func prepare_to_exit():
 	$MainMenu.hide()
 	await get_tree().create_timer(0.5).timeout
 	
+func _on_resume_pressed() -> void:
+	if resumable_game_id == "":
+		return
+	var lobby := mp_lobby_scene.instantiate()
+	lobby.matchmaking_mode = Utils.MatchmakingMode.RESUME
+	lobby.resume_game_id = resumable_game_id
+	get_tree().change_scene_to_node(lobby)
+
 func _on_priv_pressed():
 	$MainMenu/MenuUI/PrivateGamePanel.show()
 	

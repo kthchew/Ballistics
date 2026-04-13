@@ -1,10 +1,9 @@
+import database
 import secrets
-from datetime import datetime
-from enum import Enum
 
 from bson import ObjectId
-
-import database
+from datetime import datetime
+from enum import Enum
 
 from pyargon2 import hash
 
@@ -37,6 +36,17 @@ def id_to_username(user_id: ObjectId) -> str | None:
     if user is None:
         return None
     return user['username']
+
+def get_info(username: str) -> dict:
+    users_collection = database.db['users']
+    user_doc = users_collection.find_one({'username': username})
+    if user_doc is None:
+        raise ValueError("User not found")
+    game_id = user_doc.get('current_game_id')
+    return {
+        'username': user_doc['username'],
+        'current_game_id': str(game_id) if game_id else None,
+    }
 
 def check_user_exists(username: str) -> bool:
     users_collection = database.db['users']
@@ -72,9 +82,9 @@ def check_valid_login(username: str, password: str) -> bool:
 def join_game(username: str, game_id: str) -> bool:
     users_collection = database.db['users']
     games_collection = database.db['games']
-    if games_collection.find_one({'game_id': game_id}) is None:
+    if games_collection.find_one({'_id': ObjectId(game_id)}) is None:
         return False
-    result = users_collection.update_one({'username': username}, {'$set': {'current_game_id': game_id}})
+    result = users_collection.update_one({'username': username}, {'$set': {'current_game_id': ObjectId(game_id)}})
     return result.modified_count > 0
 
 def leave_game(username: str) -> bool:

@@ -1,7 +1,11 @@
 [gd_scene format=3 uid="uid://dytao3r8nooel"]
 
 [ext_resource type="Script" uid="uid://bhcr7nukm7qqq" path="res://Scripts/menu.gd" id="1_a8aa6"]
-[ext_resource type="PackedScene" uid="uid://dknwfe2hbtff" path="res://Scenes/cue_ball.tscn" id="2_x0ao6"]
+[ext_resource type="PackedScene" uid="uid://cjgh3own5ppcr" path="res://Scenes/ball.tscn" id="2_byewe"]
+[ext_resource type="Texture2D" uid="uid://qtni5u6njj0w" path="res://ball_textures/Ball0.jpg" id="3_a8aa6"]
+[ext_resource type="Texture2D" uid="uid://d071hrt6op5vl" path="res://ball_textures/Ball2.jpg" id="4_x0ao6"]
+[ext_resource type="Texture2D" uid="uid://hkuvt60spwkj" path="res://ball_textures/Ball8.jpg" id="6_t8p2w"]
+[ext_resource type="Texture2D" uid="uid://crdngqr4oe8x2" path="res://ball_textures/Ball15.jpg" id="5_dsmso"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="3_dsmso"]
 [ext_resource type="Script" uid="uid://gyxaumhi00lm" path="res://Scripts/settings_button.gd" id="4_t8p2w"]
 [ext_resource type="Script" uid="uid://bx1tkuogm56hn" path="res://Scripts/profile_button.gd" id="5_krje8"]
@@ -13,6 +17,21 @@
 [ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="12_ksqlk"]
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="13_vkgky"]
 [ext_resource type="AudioStream" uid="uid://bnfsg1511m8v5" path="res://Sounds/lightOff.mp3" id="14_o00om"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dsmso"]
+albedo_texture = ExtResource("3_a8aa6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a8aa6"]
+albedo_texture = ExtResource("4_x0ao6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x0ao6"]
+albedo_texture = ExtResource("4_x0ao6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t8p2w"]
+albedo_texture = ExtResource("5_dsmso")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_krje8"]
+albedo_texture = ExtResource("6_t8p2w")
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 1
@@ -35,15 +54,45 @@ top_radius = 300.0
 [node name="Menu" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_a8aa6")
 
-[node name="CueBall" parent="." unique_id=1266988142 instance=ExtResource("2_x0ao6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.900055, 3, 23.36322)
-script = null
+[node name="CueBall" parent="." unique_id=1364153728 instance=ExtResource("2_byewe")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.75558, 3, 15.701656)
+freeze = true
+
+[node name="MeshInstance3D" parent="CueBall" index="1" unique_id=617264105]
+material_override = SubResource("StandardMaterial3D_dsmso")
+surface_material_override/0 = SubResource("StandardMaterial3D_a8aa6")
+
+[node name="Ball2" parent="." unique_id=216797839 instance=ExtResource("2_byewe")]
+transform = Transform3D(-0.6921558, 0, -0.7217481, 0, 1, 0, 0.7217481, 0, -0.6921558, 7.386627, 3, 9.3382225)
+freeze = true
+
+[node name="MeshInstance3D" parent="Ball2" index="1" unique_id=617264105]
+transform = Transform3D(0.97943616, 0.02763769, 0.19985235, 0.10984839, 0.75782466, -0.6431445, -0.16922787, 0.6518725, 0.73920524, 0, 0, 0)
+surface_material_override/0 = SubResource("StandardMaterial3D_x0ao6")
+
+[node name="Ball15" parent="." unique_id=2078400008 instance=ExtResource("2_byewe")]
+transform = Transform3D(-0.6921558, 0, -0.7217481, 0, 1, 0, 0.7217481, 0, -0.6921558, 23.520758, 3, 38.929966)
+freeze = true
+
+[node name="MeshInstance3D" parent="Ball15" index="1" unique_id=617264105]
+transform = Transform3D(-0.822941, -0.19814563, -0.53245324, -0.31214425, 0.9407715, 0.13234323, 0.47469354, 0.27511278, -0.8360494, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_t8p2w")
+surface_material_override/0 = SubResource("StandardMaterial3D_x0ao6")
+
+[node name="Ball8" parent="." unique_id=651671594 instance=ExtResource("2_byewe")]
+transform = Transform3D(0.13408118, 0.73558885, -0.6640265, 0.6127404, 0.46508923, 0.6389374, 0.77882683, -0.49254534, -0.3883654, -4.382312, 3, 36.372696)
+freeze = true
+
+[node name="MeshInstance3D" parent="Ball8" index="1" unique_id=617264105]
+transform = Transform3D(-0.822941, -0.19814563, -0.53245324, -0.31214425, 0.9407715, 0.13234323, 0.47469354, 0.2751128, -0.8360495, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_krje8")
+surface_material_override/0 = SubResource("StandardMaterial3D_x0ao6")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
-transform = Transform3D(0.81514925, -0.17560929, 0.5519901, 0.5792511, 0.24712567, -0.7767867, 2.5319872e-08, 0.9529381, 0.3031662, 86.88342, -122.26646, 47.718452)
+transform = Transform3D(0.85480875, 0.19645114, -0.48032227, -0.5189438, 0.32359618, -0.79119146, -2.2683755e-08, 0.92557734, 0.3785599, -85.82588, -88.8306, 36.21933)
 size = 130.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
@@ -155,6 +204,14 @@ theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Random Pool"
 
+[node name="ResumeGameButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=315277108]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 44
+disabled = true
+text = "Resume Previous Game"
+
 [node name="RandomCrazyPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1049916798]
 layout_mode = 2
 size_flags_vertical = 3
@@ -231,3 +288,8 @@ spot_angle = 72.564
 transform = Transform3D(0.6084552, 0.24058907, -0.75624025, -0.7935883, 0.18446292, -0.5798199, -3.4688846e-08, 0.9529377, 0.3031661, -119.03245, -91.263824, -16.2915)
 stream = ExtResource("14_o00om")
 volume_db = 30.0
+
+[editable path="CueBall"]
+[editable path="Ball2"]
+[editable path="Ball15"]
+[editable path="Ball8"]

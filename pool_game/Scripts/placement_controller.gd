@@ -184,6 +184,70 @@ func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Ve
 
 	return obj
 
+func save_object_powers() -> Array:
+	var object_states: Array = []
+	if not preview_container:
+		return object_states
+
+	for child in preview_container.get_children():
+		if child == preview:
+			continue
+		if not ("power_type" in child) or child.power_type != "Object":
+			continue
+		if not ("power_scene_name" in child):
+			continue
+
+		object_states.append({
+			"type": String(child.power_scene_name),
+			"pos_x": child.global_position.x,
+			"pos_y": child.global_position.y,
+			"pos_z": child.global_position.z,
+			"rot_x": child.global_rotation.x,
+			"rot_y": child.global_rotation.y,
+			"rot_z": child.global_rotation.z,
+		})
+
+	return object_states
+
+func _clear_object_powers() -> void:
+	if not preview_container:
+		return
+
+	for child in preview_container.get_children():
+		if child == preview:
+			continue
+		if ("power_type" in child) and child.power_type == "Object":
+			child.queue_free()
+
+func load_object_powers(saved_object_powers: Array) -> void:
+	_clear_object_powers()
+
+	if game_root:
+		game_root.objects = 0
+
+	for state in saved_object_powers:
+		if not (state is Dictionary):
+			continue
+
+		var power_name := String(state.get("type", ""))
+		if power_name == "" or not power_scenes.has(power_name):
+			continue
+
+		var pos := Vector3(
+			float(state.get("pos_x", 0.0)),
+			float(state.get("pos_y", 0.0)),
+			float(state.get("pos_z", 0.0))
+		)
+		var rot := Vector3(
+			float(state.get("rot_x", 0.0)),
+			float(state.get("rot_y", 0.0)),
+			float(state.get("rot_z", 0.0))
+		)
+
+		_spawn_power_local("Object", power_name, pos, rot)
+		if multiplayer.is_server():
+			rpc("rpc_spawn_power", "Object", power_name, pos, rot)
+
 @rpc("any_peer", "reliable")
 func rpc_spawn_power(power_type: String, pName: String, pos: Vector3, rot: Vector3):
 	_spawn_power_local(power_type, pName, pos, rot)
@@ -198,6 +262,9 @@ func _apply_modifier(pName: String, modified_path: String) -> void:
 	var target = _get_node_by_global_path(modified_path)
 	if not target:
 		return
+
+	if "modifiers" in target:
+		target.modifiers.append(pName)
 
 	if pName == "tnt":
 		var low = target.name.to_lower()
@@ -254,6 +321,8 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, occupie
 			rpc("rpc_apply_modifier", pName, target.get_path())
 
 	finish_placement.rpc_id(sender)
+	if game_root and game_root.has_method("persist_game_state"):
+		game_root.persist_game_state()
 
 
 @rpc("any_peer", "call_local")
