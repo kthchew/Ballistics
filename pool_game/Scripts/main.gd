@@ -23,6 +23,7 @@ var cashout_owner_index: int = -1
 var continue_after_crazy: bool = false
 const POWER_BASE_COSTS := {"block": 15, "tungsten": 8, "tnt": 8, "aerogel": 12, "bumper": 20, "eraser": 10, "gluetrap": 6}
 const POWER_COST_VARIATION_PERCENT: int = 10
+const MIDTURN_TIMEOUT_MSEC: int = 20000
 var shop_power_options: Array[String] = []
 var shop_power_costs: Dictionary = {}
 var used_shop_powers: Array[String] = []
@@ -34,6 +35,7 @@ var init_peer = null
 var has_aimed := false
 # physics defaults to 60 ticks per second
 var cur_static_ticks = 0
+var midturn_start_msec: int = 0
 var requesting_reset: Array[bool] = [false, false] # index is player index
 
 @export var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
@@ -772,6 +774,7 @@ func fire_cue():
 		cue_stick.striking = false
 		ball_manager.hit_cue_ball(force, offset_3d)
 	)
+	midturn_start_msec = Time.get_ticks_msec()
 	print("STRENGTH:", strength)
 	ball_manager.play_cue_ball_sound(strength)
 
@@ -822,6 +825,7 @@ func start_round(scratched_prev: bool = false) -> void:
 		ball_manager.cue_ball.sleeping = false
 		ball_manager.cue_ball.linear_velocity = Vector3.ZERO
 		ball_manager.cue_ball.angular_velocity = Vector3.ZERO
+		midturn_start_msec = 0
 
 	rpc_sync_turn_ui.rpc(game_state)
 	
@@ -906,8 +910,17 @@ func end_round() -> void:
 	stopped_moving.emit()
 	
 func process_midturn():
+	if midturn_start_msec != 0 and Time.get_ticks_msec() - midturn_start_msec > MIDTURN_TIMEOUT_MSEC:
+		force_end_round_after_timeout()
+		return
 	ball_manager.process_fallen_balls()
 	process_movement()
+
+func force_end_round_after_timeout() -> void:
+	print("Midturn timeout reached; forcing round end to avoid softlock")
+	ball_manager.freeze_balls()
+	cur_static_ticks = STATIC_TICKS_THRESHOLD
+	end_round()
 
 func process_movement():
 	if ball_manager.check_all_not_moving():
