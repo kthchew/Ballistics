@@ -101,15 +101,6 @@ func _on_ai_placed_cue_ball(pos: Vector3):
 	place_cue_ball(pos)
 	
 func _on_ai_picked_pocket(hole_ind: int):
-	var path_str = "UI/HoleButtons/HoleButton" + str(hole_ind + 1)
-	var hole_btn = get_node(path_str)
-	
-	hole_btn.toggle_mode = true
-	hole_btn.button_pressed = true
-	await get_tree().create_timer(0.5).timeout
-	hole_btn.toggle_mode = false
-	hole_btn.button_pressed = false
-	
 	select_hole(hole_ind)
 
 func aim(dir: Vector2):
@@ -146,6 +137,26 @@ func calc_dir():
 @rpc
 func change_hole_button_visibility(visible_state: bool) -> void:
 	hole_buttons.visible = visible_state
+	
+@rpc 
+func set_hole_buttons_disabled(disabled_state: bool) -> void:
+	for child in hole_buttons.get_children():
+		if child is BaseButton:
+			child.disabled = disabled_state
+	
+@rpc
+func color_hole_button(hole_ind: int) -> void:
+	var button = hole_buttons.get_node("HoleButton" + str(hole_ind + 1))
+	var states = ["normal", "hover", "pressed", "disabled"]
+	for state in states:
+		var new_stylebox = button.get_theme_stylebox(state).duplicate()
+		new_stylebox.bg_color = Color(0.2, 0.85, 0.4, 0.8)
+		button.add_theme_stylebox_override(state, new_stylebox)
+
+@rpc 
+func reset_hole_button_color(hole_ind: int) -> void:
+	var button = hole_buttons.get_node("HoleButton" + str(hole_ind + 1))
+	hole_buttons.style_hole_button(button)
 
 @rpc("any_peer", "reliable")
 func _on_hole_selected(hole_ind: int) -> void:
@@ -155,7 +166,19 @@ func _on_hole_selected(hole_ind: int) -> void:
 
 func select_hole(hole_ind: int) -> void:
 	target_hole = hole_ind
-	change_hole_button_visibility.rpc_id(multiplayer.get_remote_sender_id(), false)
+	
+	set_hole_buttons_disabled.rpc_id(connected_peers[player_ind], true)
+	set_hole_buttons_disabled.rpc_id(connected_peers[1 - player_ind], true)
+	color_hole_button.rpc_id(connected_peers[player_ind], hole_ind)
+	color_hole_button.rpc_id(connected_peers[1 - player_ind], hole_ind)
+	
+	await get_tree().create_timer(1.0).timeout
+	
+	change_hole_button_visibility.rpc_id(connected_peers[player_ind], false)
+	change_hole_button_visibility.rpc_id(connected_peers[1 - player_ind], false)
+	reset_hole_button_color.rpc_id(connected_peers[player_ind], hole_ind)
+	reset_hole_button_color.rpc_id(connected_peers[1 - player_ind], hole_ind)
+	
 	start_round()
 
 func _on_reset_button_pressed() -> void:
@@ -500,6 +523,9 @@ func start_round(scratched_prev: bool = false) -> void:
 	elif target_hole == -1 and scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT:
 		game_state = GameState.PICKPOCKET
 		change_hole_button_visibility.rpc_id(connected_peers[player_ind], true)
+		change_hole_button_visibility.rpc_id(connected_peers[1 - player_ind], true)
+		set_hole_buttons_disabled.rpc_id(connected_peers[player_ind], false)
+		set_hole_buttons_disabled.rpc_id(connected_peers[1 - player_ind], true)
 	else:
 		game_state = GameState.AIMING
 	
