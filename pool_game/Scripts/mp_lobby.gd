@@ -559,8 +559,7 @@ func _start_game_for_peers(peers: Array, game_type: Utils.GameType, forced_game_
 				if state["player_usernames"][1] == game.persistence_usernames[0] or state["player_usernames"][0] == game.persistence_usernames[1]:
 					peers = [peers[1], peers[0]]
 					game.connected_peers = peers
-			game.load(state)
-			game.set_visibility.rpc()
+			game.load_saved_game(state)
 	else:
 		game.start_game()
 

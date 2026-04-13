@@ -93,7 +93,8 @@ func turn_on_light():
 	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
 	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
-	$UI.visible = true
+	if not $pUI.visible: # occurs if game was loaded
+		$UI.visible = true
 	$LabelLayer.visible = true
 	
 func _on_ai_aimed(dir: Vector2):
@@ -189,7 +190,7 @@ func save() -> Dictionary:
 	}
 	return save_dict
 
-func load(save_dict: Dictionary) -> void:
+func load_saved_game(save_dict: Dictionary) -> void:
 	set_visibility()
 	set_visibility.rpc_id(connected_peers[0])
 	set_visibility.rpc_id(connected_peers[1])
@@ -1128,6 +1129,7 @@ func hide_cashout_menu() -> void:
 func show_crazy_mode_ui() -> void:
 	$CashOut.visible = false
 	$pUI.visible = true
+	$UI.visible = false
 	update_powerup_shop()
 
 
