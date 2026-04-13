@@ -10,7 +10,6 @@ var owner_peer_id := -1
 var game_root: Node = null
 var preview_container: Node = null
 var power_name = null
-var selected_power_cost: int = 0
 
 const power_scenes: Dictionary[String, Resource] = {
 	"block": preload("res://Scenes/Powers/block.tscn"),
@@ -45,49 +44,36 @@ func _on_power_1_pressed():
 		return
 	var button = $"../Panel/HBoxContainer/Power1"
 	var selected_power = button.get_meta("power_name")
-	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
-		return
-	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	selected_power_cost = selected_cost
-	start_placement(power_name, selected_power_cost)
+	start_placement(power_name)
 
 func _on_power_2_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
 	var button = $"../Panel/HBoxContainer/Power2"
 	var selected_power = button.get_meta("power_name")
-	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
-		return
-	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	selected_power_cost = selected_cost
-	start_placement(power_name, selected_power_cost)
+	start_placement(power_name)
 
 func _on_power_3_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
 	var button = $"../Panel/HBoxContainer/Power3"
 	var selected_power = button.get_meta("power_name")
-	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
-		return
-	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	selected_power_cost = selected_cost
-	start_placement(power_name, selected_power_cost)
+	start_placement(power_name)
 
 
-func start_placement(power_key: String, cost: int):
-	selected_power_cost = cost
+func start_placement(power_key: String):
 	var scene: Resource = power_scenes[power_key]
 	preview = scene.instantiate()
 	preview.visible = true
@@ -185,14 +171,6 @@ func _on_place_button_pressed():
 		print("preview cannot be placed here")
 		return
 
-	var power_cost = selected_power_cost
-	if power_cost <= 0 and game_root:
-		power_cost = int(game_root.power_shop_costs.get(power_name, 0))
-	
-	if power_cost <= 0:
-		print("power_cost <= 0")
-		return
-
 	var target_path = ""
 	if preview.power_type == "Modifier":
 		target_path = preview.get_target()
@@ -203,7 +181,6 @@ func _on_place_button_pressed():
 			preview.global_position,
 			preview.global_rotation,
 			preview.power_scene_name,
-			power_cost,
 			target_path
 		)
 	else:
@@ -213,7 +190,6 @@ func _on_place_button_pressed():
 			preview.global_position,
 			preview.global_rotation,
 			preview.power_scene_name,
-			power_cost,
 			target_path
 		)
 
@@ -366,7 +342,7 @@ func rpc_apply_modifier(pName: String, modified_path: String, target_pos: Vector
 	_apply_modifier(pName, modified_path, target_pos)
 
 @rpc("any_peer", "reliable")
-func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, cost: int, target_path: String = ""):
+func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, target_path: String = ""):
 	if not multiplayer.is_server():
 		return
 	
@@ -417,7 +393,7 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 		power_instance.queue_free()
 		return
 
-	if not game_root or not game_root.try_purchase_power_for_peer(sender, pName, cost):
+	if not game_root or not game_root.server_try_consume_power_purchase(sender, pName):
 		print("purchase rejected for power placement")
 		power_instance.queue_free()
 		return
@@ -456,7 +432,6 @@ func finish_placement():
 		if p_ui.has_node("Panel"):
 			p_ui.get_node("Panel").visible = true
 	power_name = null
-	selected_power_cost = 0
 	rpc("rpc_clear_preview")
 	rpc("rpc_exit_powerup_ui")
 

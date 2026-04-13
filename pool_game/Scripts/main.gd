@@ -210,6 +210,7 @@ func save() -> Dictionary:
 		"power_shop_options": shop_power_options.duplicate(),
 		"power_shop_costs": shop_power_costs.duplicate(),
 		"power_shop_used": used_shop_powers.duplicate(),
+		"reroll_tax": reroll_tax,
 	}
 	return save_dict
 
@@ -244,6 +245,7 @@ func load_saved_game(save_dict: Dictionary) -> void:
 	var used_string_arr: Array[String]
 	used_string_arr.assign(save_dict.get("power_shop_used", []).duplicate())
 	used_shop_powers = used_string_arr
+	reroll_tax = int(save_dict.get("reroll_tax", 1))
 	
 	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
 		cashout_owner_index = 1 - player_ind
@@ -1055,7 +1057,8 @@ func _on_done_powerup_pressed() -> void:
 var reroll_tax = 1
 func _on_reroll_powerup_pressed() -> void:
 	if get_local_player_money() < reroll_tax:
-		request_reroll_power_shop.rpc()
+		return
+	request_reroll_power_shop.rpc()
 
 func has_modifiers_placed() -> bool:
 	var modifiers = get_tree().get_nodes_in_group("modifiers")
@@ -1082,12 +1085,12 @@ func sync_power_shop_state(target_peer_id: int = -1) -> void:
 	if not multiplayer.is_server():
 		return
 	if target_peer_id == -1:
-		apply_power_shop_state.rpc(shop_power_options, shop_power_costs, used_shop_powers)
+		apply_power_shop_state.rpc(shop_power_options, shop_power_costs, used_shop_powers, reroll_tax)
 	else:
-		apply_power_shop_state.rpc_id(target_peer_id, shop_power_options, shop_power_costs, used_shop_powers)
+		apply_power_shop_state.rpc_id(target_peer_id, shop_power_options, shop_power_costs, used_shop_powers, reroll_tax)
 
 @rpc("authority", "reliable", "call_local")
-func apply_power_shop_state(options: Array, costs: Dictionary, used: Array) -> void:
+func apply_power_shop_state(options: Array, costs: Dictionary, used: Array, next_reroll_tax: int) -> void:
 	var options_cast: Array[String]
 	options_cast.assign(options)
 	shop_power_options = options_cast
@@ -1095,6 +1098,7 @@ func apply_power_shop_state(options: Array, costs: Dictionary, used: Array) -> v
 	var used_cast: Array[String]
 	used_cast.assign(used)
 	used_shop_powers = used_cast
+	reroll_tax = max(next_reroll_tax, 1)
 	update_powerup_shop()
 
 func _on_no_pressed_local() -> void:
@@ -1111,9 +1115,10 @@ func request_reroll_power_shop() -> void:
 	if cashout_owner_index == -1 or sender_id != connected_peers[cashout_owner_index]:
 		return
 	var owner_index = connected_peers.find(sender_id)
-	if owner_index == -1 or money[owner_index] < 1:
+	if owner_index == -1 or money[owner_index] < reroll_tax:
 		return
-	money[owner_index] -= 1
+	money[owner_index] -= reroll_tax
+	reroll_tax += 1
 	refresh_power_shop_inventory(true)
 	sync_power_shop_state(sender_id)
 	await persist_game_state()
@@ -1208,7 +1213,7 @@ func request_purchase_power(power_name: String, cost: int) -> void:
 		return
 
 	var sender_id = multiplayer.get_remote_sender_id()
-	if not try_purchase_power_for_peer(sender_id, power_name, cost):
+	if not server_try_consume_power_purchase(sender_id, power_name):
 		purchase_result.rpc_id(sender_id, false)
 		return
 
@@ -1219,6 +1224,7 @@ func update_powerup_shop() -> void:
 	if not $pUI or not $pUI/Panel:
 		return
 	$pUI/Panel/MoneyLabel.text = "Money: %s" % get_local_player_money()
+	$pUI/Panel/HBoxContainer2/RerollButton.text = "Reroll (%s)" % reroll_tax
 	var buttons = [
 		$pUI/Panel/HBoxContainer/Power1,
 		$pUI/Panel/HBoxContainer/Power2,
