@@ -1168,6 +1168,9 @@ func try_purchase_power_for_peer(sender_id: int, power_name: String, client_cost
 	if not multiplayer.is_server():
 		return false
 
+	if not shop_power_options.has(power_name) or used_shop_powers.has(power_name):
+		return false
+
 	var buyer_index = connected_peers.find(sender_id)
 	if buyer_index == -1:
 		return false
@@ -1187,6 +1190,8 @@ func try_purchase_power_for_peer(sender_id: int, power_name: String, client_cost
 		return false
 
 	money[buyer_index] -= client_cost
+	used_shop_powers.append(power_name)
+	sync_power_shop_state(sender_id)
 	return true
 
 @rpc("authority", "call_local")
