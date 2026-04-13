@@ -35,7 +35,6 @@ var has_aimed := false
 var cur_static_ticks = 0
 var requesting_reset: Array[bool] = [false, false] # index is player index
 
-
 @export var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 @export var lobby_slot: int = -1
 @export var player_ind: int = 0
