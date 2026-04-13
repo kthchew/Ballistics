@@ -36,6 +36,13 @@ func _get_overlapping_object_targets() -> Array[Node]:
 			if not seen.has(key):
 				seen[key] = true
 				targets.append(parent)
+
+	for body in $Area3D.get_overlapping_bodies():
+		if body and body != self and _is_object_power(body):
+			var body_key = body.get_path()
+			if not seen.has(body_key):
+				seen[body_key] = true
+				targets.append(body)
 	return targets
 
 func _is_object_power(node: Node) -> bool:

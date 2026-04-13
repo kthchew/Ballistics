@@ -10,6 +10,7 @@ var owner_peer_id := -1
 var game_root: Node = null
 var preview_container: Node = null
 var power_name = null
+var selected_power_cost: int = 0
 
 const power_scenes: Dictionary[String, Resource] = {
 	"block": preload("res://Scenes/Powers/Block.tscn"),
@@ -44,36 +45,49 @@ func _on_power_1_pressed():
 		return
 	var button = $"../Panel/HBoxContainer/Power1"
 	var selected_power = button.get_meta("power_name")
+	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
+		return
+	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(power_name)
+	selected_power_cost = selected_cost
+	start_placement(power_name, selected_power_cost)
 
 func _on_power_2_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
 	var button = $"../Panel/HBoxContainer/Power2"
 	var selected_power = button.get_meta("power_name")
+	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
+		return
+	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(power_name)
+	selected_power_cost = selected_cost
+	start_placement(power_name, selected_power_cost)
 
 func _on_power_3_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
 	var button = $"../Panel/HBoxContainer/Power3"
 	var selected_power = button.get_meta("power_name")
+	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
+		return
+	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	start_placement(power_name)
+	selected_power_cost = selected_cost
+	start_placement(power_name, selected_power_cost)
 
 
-func start_placement(power_key: String):
+func start_placement(power_key: String, cost: int):
+	selected_power_cost = cost
 	var scene: Resource = power_scenes[power_key]
 	preview = scene.instantiate()
 	preview.visible = true
@@ -171,7 +185,9 @@ func _on_place_button_pressed():
 		print("preview cannot be placed here")
 		return
 
-	var power_cost = preview.cost
+	var power_cost = selected_power_cost
+	if power_cost <= 0 and game_root:
+		power_cost = int(game_root.power_shop_costs.get(power_name, 0))
 	
 	if power_cost <= 0:
 		print("power_cost <= 0")
@@ -233,10 +249,32 @@ func _get_node_by_global_path(path: String) -> Node:
 	if path == "":
 		return null
 	var root = get_tree().get_root()
-	return root.get_node_or_null(path)
+	var absolute_node = root.get_node_or_null(path)
+	if absolute_node:
+		return absolute_node
+	if game_root:
+		return game_root.get_node_or_null(path)
+	return null
 
-func _apply_modifier(pName: String, modified_path: String) -> void:
+func _find_object_power_near(world_pos: Vector3, max_distance: float = 8.0) -> Node:
+	if not preview_container:
+		return null
+
+	var closest: Node = null
+	var closest_distance := max_distance
+	for child in preview_container.get_children():
+		if str(child.get("power_type")) != "Object":
+			continue
+		var distance = child.global_position.distance_to(world_pos)
+		if distance < closest_distance:
+			closest_distance = distance
+			closest = child
+	return closest
+
+func _apply_modifier(pName: String, modified_path: String, target_pos: Vector3 = Vector3.ZERO) -> void:
 	var target = _get_node_by_global_path(modified_path)
+	if not target and pName == "tnt":
+		target = _find_object_power_near(target_pos)
 	if not target:
 		return
 
@@ -253,8 +291,8 @@ func _apply_modifier(pName: String, modified_path: String) -> void:
 	power_instance.visible = false
 
 @rpc("any_peer", "reliable")
-func rpc_apply_modifier(pName: String, modified_path: String) -> void:
-	_apply_modifier(pName, modified_path)
+func rpc_apply_modifier(pName: String, modified_path: String, target_pos: Vector3 = Vector3.ZERO) -> void:
+	_apply_modifier(pName, modified_path, target_pos)
 
 @rpc("any_peer", "reliable")
 func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, cost: int, target_path: String = ""):
@@ -275,13 +313,36 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 	preview_container.add_child(power_instance)
 	power_instance.global_position = pos
 	power_instance.global_rotation = rot
+	power_instance.force_update_transform()
+	var probe_area = power_instance.get_node_or_null("Area3D")
+	if probe_area:
+		probe_area.force_update_transform()
 	
 	# Wait for physics to process collision detection for modifiers
 	if power_type == "Modifier":
 		await get_tree().physics_frame
+		await get_tree().physics_frame
+
+	var resolved_target_path := target_path
+	if power_type == "Modifier" and (resolved_target_path == "" or _get_node_by_global_path(resolved_target_path) == null):
+		if power_instance.has_method("get_target"):
+			resolved_target_path = power_instance.get_target()
+		if (resolved_target_path == "" or _get_node_by_global_path(resolved_target_path) == null) and power_instance.has_method("get_target"):
+			await get_tree().physics_frame
+			resolved_target_path = power_instance.get_target()
 	
-	if not power_instance.canPlace():
+	var placement_valid = power_instance.canPlace()
+	if not placement_valid and power_type == "Modifier" and target_path != "":
+		# Fallback for occasional client/server overlap timing mismatch.
+		placement_valid = _get_node_by_global_path(resolved_target_path) != null
+
+	if not placement_valid:
 		print("not power_instance.canPlace()")
+		power_instance.queue_free()
+		return
+
+	if power_type == "Modifier" and _get_node_by_global_path(resolved_target_path) == null:
+		print("modifier target missing on server")
 		power_instance.queue_free()
 		return
 
@@ -296,17 +357,14 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 		rpc("rpc_spawn_power", power_type, pName, pos, rot)
 
 	else:
-		var target = _get_node_by_global_path(target_path)
-		if not target:
-			var obj = _spawn_power_local(power_type, pName, pos, rot)
-			var area = obj.get_node_or_null("Area3D")
-			if area and area.get_overlapping_areas().size() == 1:
-				target = area.get_overlapping_areas()[0].get_parent()
-			obj.queue_free()
+		var target = _get_node_by_global_path(resolved_target_path)
 
 		if target:
-			_apply_modifier(pName, target.get_path())
-			rpc("rpc_apply_modifier", pName, target.get_path())
+			var target_path_for_rpc = str(game_root.get_path_to(target)) if game_root else str(target.get_path())
+			_apply_modifier(pName, target_path_for_rpc, target.global_position)
+			rpc("rpc_apply_modifier", pName, target_path_for_rpc, target.global_position)
+		else:
+			print("modifier apply skipped: target not found")
 		power_instance.queue_free()
 	finish_placement.rpc_id(sender)
 
@@ -328,6 +386,7 @@ func finish_placement():
 		if p_ui.has_node("Panel"):
 			p_ui.get_node("Panel").visible = true
 	power_name = null
+	selected_power_cost = 0
 	rpc("rpc_clear_preview")
 	rpc("rpc_exit_powerup_ui")
 

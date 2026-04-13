@@ -35,7 +35,7 @@ func apply_to(target: Node) -> void:
 			if mat:
 				mat = mat.duplicate()
 				mat.albedo_color = Color(0.8, 0.8, 0.8, 1.0)
-				mat.metallic = 1.0
+				mat.metallic = 0.7
 				mat.roughness = 0.1
 				mesh.set_surface_override_material(0, mat)
 	
