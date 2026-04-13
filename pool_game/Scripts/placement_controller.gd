@@ -368,11 +368,11 @@ func _process(delta):
 		var rotated := false
 
 		if rotating_left:
-			preview.rotate_y(deg_to_rad(1))
+			preview.rotate_y(deg_to_rad(2))
 			rotated = true
 
 		if rotating_right:
-			preview.rotate_y(deg_to_rad(-1))
+			preview.rotate_y(deg_to_rad(-2))
 			rotated = true
 
 		if rotated:
