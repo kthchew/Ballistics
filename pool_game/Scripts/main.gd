@@ -985,14 +985,6 @@ func show_powerup_hint(message: String, duration_seconds: float = 3.0) -> void:
 			info_label.text += "\n"
 		info_label.text += powerup_hint_text
 
-func show_powerup_hint(message: String, duration_seconds: float = 3.0) -> void:
-	if message == "":
-		powerup_hint_text = ""
-		powerup_hint_until_msec = 0
-		return
-	powerup_hint_text = message
-	powerup_hint_until_msec = Time.get_ticks_msec() + int(max(duration_seconds, 0.5) * 1000.0)
-
 func _on_no_pressed() -> void:
 	local_cashout_owner = false
 	$CashOut.visible = false
