@@ -14,7 +14,6 @@ func _ready():
 	fill_hole_locs()
 	cached_shot = null
 	Shot.shape_cast = $"../ShapeCast3D"
-
 func fill_hole_locs():
 	hole_locs = []
 	var hole_rad = 1.5
