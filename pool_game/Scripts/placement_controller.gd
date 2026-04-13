@@ -352,6 +352,9 @@ func _apply_modifier(pName: String, modified_path: String, target_pos: Vector3 =
 	var scene: PackedScene = power_scenes.get(pName)
 	if not scene:
 		return
+		
+	if "modifiers" in target:
+		target.modifiers.append(pName)
 
 	var power_instance = scene.instantiate()
 	preview_container.add_child(power_instance)
