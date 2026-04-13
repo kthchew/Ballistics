@@ -8,6 +8,7 @@ signal stopped_moving
 @onready var fire_button = $UI/SafeAreaContainer/FireButton
 @onready var aimer = $UI/SafeAreaContainer/Aimer
 @onready var menu_button = $UI/SafeAreaContainer/MenuButton
+@onready var cashout_vote_button: Control = $UI/SafeAreaContainer/CashoutVoteButton
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_guide = $UI/AimVisuals/AimGuide
@@ -99,9 +100,24 @@ func turn_on_light():
 	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
 	$UI.visible = true
-	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER: 
-		$UI/SafeAreaContainer/CashoutVoteButton.visible = true
+	update_cashout_vote_button_visibility()
 	$LabelLayer.visible = true
+
+func should_show_cashout_vote_button() -> bool:
+	if game_type != Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
+		return false
+	if not $UI.visible:
+		return false
+	if game_state == GameState.MIDTURN:
+		return false
+	if ball_manager == null:
+		return false
+	return ball_manager.check_all_not_moving()
+
+func update_cashout_vote_button_visibility() -> void:
+	if cashout_vote_button == null:
+		return
+	cashout_vote_button.visible = should_show_cashout_vote_button()
 	
 func _on_ai_aimed(dir: Vector2, force_value: float):
 	aim(dir)
@@ -899,6 +915,7 @@ func _process(delta: float) -> void:
 	if OS.is_debug_build():
 		fill_debug_label()
 	fill_info_label()
+	update_cashout_vote_button_visibility()
 	if $pUI and $pUI.visible:
 		update_powerup_shop()
 
