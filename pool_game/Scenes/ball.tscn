@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cjgh3own5ppcr"]
 
-[ext_resource type="PhysicsMaterial" path="res://Resources/ball.tres" id="1_vblhy"]
+[ext_resource type="PhysicsMaterial" uid="uid://chxig6vtldm8i" path="res://Resources/ball.tres" id="1_vblhy"]
 [ext_resource type="Script" uid="uid://comor5ekwua50" path="res://Scripts/ball.gd" id="2_31idh"]
 [ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://Resources/ball_shape.tres" id="3_hk63f"]
 [ext_resource type="AudioStream" uid="uid://d4d5xwkfyjgea" path="res://Sounds/BallCollide.mp3" id="4_vm4s8"]
@@ -28,6 +28,7 @@ height = 5.7
 collision_mask = 7
 physics_material_override = ExtResource("1_vblhy")
 can_sleep = false
+continuous_cd = true
 contact_monitor = true
 max_contacts_reported = 3
 script = ExtResource("2_31idh")
