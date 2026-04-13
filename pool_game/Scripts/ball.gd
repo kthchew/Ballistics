@@ -13,11 +13,26 @@ var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
 var potted: bool = false
 
-var printed_cnt: int = 0
+var modifiers: Array[String] = []
 
 func _ready() -> void:
 	HoleSound.max_db = 80.0
 	BallCollide.max_db = 80.0
+	
+func save() -> Dictionary:
+	var save_dict: Dictionary[Variant, Variant] = {
+		"ball_num": ball_num,
+		"pos_x": position.x,
+		"pos_y": position.y,
+		"pos_z": position.z,
+		"rot_x": rotation.x,
+		"rot_y": rotation.y,
+		"rot_z": rotation.z,
+		"potted": potted,
+		
+		"modifiers": modifiers.duplicate(),
+	}
+	return save_dict
 
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true
@@ -55,31 +70,7 @@ func pot():
 	teleport(pos)
 	potted = true
 	
-func measure_velocity_decay():
-	#STRENGTH:50.0
-	#-56.0
-	#250.0
-	#50.4178352355957
-	#201.3793640136723
-	
-	# STRENGTH:100.0
-	#-56.0
-	#500.0
-	#50.5656967163086
-	#471.693389892578
-
-	if ball_num == 0 and printed_cnt == 0 and linear_velocity.length() > 0.05:
-		print(global_position.x)
-		print(linear_velocity.x)
-		printed_cnt += 1
-	if ball_num == 0 and printed_cnt == 1 and global_position.x > 50 and linear_velocity.length() > 0.01:
-		print(global_position.x)
-		print(linear_velocity.x)
-		printed_cnt += 1
-	
-
 func _physics_process(delta):
-	#measure_velocity_decay()
 	
 	var friction_accel := 2
 

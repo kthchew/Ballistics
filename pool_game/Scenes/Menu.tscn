@@ -3,13 +3,13 @@
 [ext_resource type="Script" uid="uid://bhcr7nukm7qqq" path="res://Scripts/menu.gd" id="1_a8aa6"]
 [ext_resource type="PackedScene" uid="uid://cjgh3own5ppcr" path="res://Scenes/ball.tscn" id="2_byewe"]
 [ext_resource type="Texture2D" uid="uid://qtni5u6njj0w" path="res://ball_textures/Ball0.jpg" id="3_a8aa6"]
+[ext_resource type="Texture2D" uid="uid://d071hrt6op5vl" path="res://ball_textures/Ball2.jpg" id="4_x0ao6"]
+[ext_resource type="Texture2D" uid="uid://hkuvt60spwkj" path="res://ball_textures/Ball8.jpg" id="6_t8p2w"]
+[ext_resource type="Texture2D" uid="uid://crdngqr4oe8x2" path="res://ball_textures/Ball15.jpg" id="5_dsmso"]
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="3_dsmso"]
 [ext_resource type="Script" uid="uid://gyxaumhi00lm" path="res://Scripts/settings_button.gd" id="4_t8p2w"]
-[ext_resource type="Texture2D" uid="uid://d071hrt6op5vl" path="res://ball_textures/Ball2.jpg" id="4_x0ao6"]
-[ext_resource type="Texture2D" uid="uid://crdngqr4oe8x2" path="res://ball_textures/Ball15.jpg" id="5_dsmso"]
 [ext_resource type="Script" uid="uid://bx1tkuogm56hn" path="res://Scripts/profile_button.gd" id="5_krje8"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="6_dd46u"]
-[ext_resource type="Texture2D" uid="uid://hkuvt60spwkj" path="res://ball_textures/Ball8.jpg" id="6_t8p2w"]
 [ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="10_c0stj"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="11_3feh0"]
 [ext_resource type="PackedScene" uid="uid://x10c7um8tidx" path="res://Scenes/settings_screen.tscn" id="11_dsmso"]
@@ -203,6 +203,14 @@ size_flags_vertical = 3
 theme = ExtResource("3_dsmso")
 theme_override_font_sizes/font_size = 44
 text = "Random Pool"
+
+[node name="ResumeGameButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=315277108]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 44
+disabled = true
+text = "Resume Previous Game"
 
 [node name="RandomCrazyPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1049916798]
 layout_mode = 2

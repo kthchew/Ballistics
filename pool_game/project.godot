@@ -65,7 +65,7 @@ pointing/emulate_touch_from_mouse=true
 
 [physics]
 
-common/physics_ticks_per_second=360
+common/physics_ticks_per_second=75
 common/max_physics_steps_per_frame=20
 3d/physics_engine="Jolt Physics"
 jolt_physics_3d/limits/max_linear_velocity=100000000.0
