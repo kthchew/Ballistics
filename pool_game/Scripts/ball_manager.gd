@@ -218,7 +218,17 @@ func start_synchronizing_ball(ball_name: String):
 	rep_config.add_property("BallManager/" + ball_name + ":freeze")
 	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
 	
-@rpc("authority", "call_local", "reliable")
+func stop_synchronizing_all_balls():
+	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
+	for ball in balls:
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":position")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":rotation")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":angular_velocity")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":linear_velocity")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":ball_num")
+		rep_config.remove_property("BallManager/" + ball.get_name() + ":freeze")
+	$"../MultiplayerSynchronizer".set_replication_config(rep_config)
+
 func stop_synchronizing_ball(ball_name: String):
 	var rep_config = $"../MultiplayerSynchronizer".get_replication_config()
 	rep_config.remove_property("BallManager/" + ball_name + ":position")

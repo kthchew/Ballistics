@@ -250,6 +250,9 @@ properties/13/replication_mode = 2
 properties/14/path = NodePath("BallManager:balls_sunk")
 properties/14/spawn = true
 properties/14/replication_mode = 1
+properties/15/path = NodePath(".:game_type")
+properties/15/spawn = true
+properties/15/replication_mode = 2
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_h1bgf")
