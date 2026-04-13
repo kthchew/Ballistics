@@ -729,11 +729,10 @@ func spawn_new_single_player_game() -> Node:
 
 @rpc
 func send_to_menu():
-	if games.get_child_count() > 0:
-		var game_container = games.get_children()[0]
+	for game_container in games.get_children():
 		var game = game_container.get_node("SubViewportContainer/SubViewport/Game")
 		game.about_to_exit = true
-		await game.get_tree().create_timer(5).timeout
+	await get_tree().create_timer(5).timeout
 	get_tree().change_scene_to_file("res://Scenes/Menu.tscn")
 
 func close_game_at(spot: int):
