@@ -571,6 +571,7 @@ func enter_random_crazy_queue():
 		maintenance_notice.rpc_id(sender_id, TLS_MAINTENANCE_MESSAGE)
 		return
 	_remove_from_private_room(sender_id, false)
+	_remove_from_resume_wait(sender_id, true)
 	if crazy_queue.has(sender_id):
 		return
 	crazy_queue.append(sender_id)
