@@ -108,6 +108,8 @@ func should_show_cashout_vote_button() -> bool:
 		return false
 	if not $UI.visible:
 		return false
+	if game_state == GameState.PLACING:
+		return false
 	if game_state == GameState.MIDTURN:
 		return false
 	if ball_manager == null:
