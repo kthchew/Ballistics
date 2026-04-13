@@ -55,7 +55,6 @@ var persisted_game_id: String = ""
 var persistence_enabled: bool = false
 var persistence_usernames: Array[String] = ["", ""]
 var persistence_tokens: Array[String] = ["", ""]
-var persistence_pair_key: String = ""
 var persist_in_flight: bool = false
 
 var about_to_exit = false
@@ -350,10 +349,6 @@ func persist_game_state() -> void:
 			# make game as joined for both players
 			await backend.join_game(persistence_tokens[0], persisted_game_id)
 			await backend.join_game(persistence_tokens[1], persisted_game_id)
-			if get_tree().current_scene != null \
-			and get_tree().current_scene.has_method("register_game_id_for_pair") \
-			and persistence_pair_key != "":
-				get_tree().current_scene.register_game_id_for_pair(persistence_pair_key, persisted_game_id)
 	else:
 		var ok: bool = await backend.set_game_state(state, persisted_game_id)
 		if not ok:

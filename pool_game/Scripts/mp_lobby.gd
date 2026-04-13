@@ -12,7 +12,6 @@ var crazy_games = {}
 var single_player_games = {}
 var private_rooms = {}
 var room_by_peer = {}
-var game_id_by_player_pair: Dictionary = {}
 var resume_waiting_by_game_id: Dictionary = {}
 var resume_game_by_peer: Dictionary = {}
 var peer_to_slot: Dictionary[int, int] = {}
@@ -536,13 +535,11 @@ func _start_game_for_peers(peers: Array, game_type: Utils.GameType, forced_game_
 	var game = _spawn_new_game(game_type)
 	var persistence_context := await _build_persistence_context(peers)
 	if forced_game_id != "":
-		persistence_context["game_id"] = forced_game_id
+		game.persisted_game_id = forced_game_id
 		persistence_context["enabled"] = true
 	game.persistence_enabled = bool(persistence_context["enabled"])
 	game.persistence_usernames = persistence_context["usernames"]
 	game.persistence_tokens = persistence_context["tokens"]
-	game.persistence_pair_key = str(persistence_context["pair_key"])
-	game.persisted_game_id = str(persistence_context["game_id"])
 	game.connected_peers = peers
 	for peer_id in peers:
 		if peer_id == 1:
@@ -564,11 +561,6 @@ func _start_game_for_peers(peers: Array, game_type: Utils.GameType, forced_game_
 			game.set_visibility.rpc()
 	else:
 		game.start_game()
-		
-func register_game_id_for_pair(pair_key: String, game_id: String) -> void:
-	if pair_key == "" or game_id == "":
-		return
-	game_id_by_player_pair[pair_key] = game_id
 
 func _build_persistence_context(peers: Array) -> Dictionary:
 	var usernames: Array[String] = []
@@ -588,20 +580,14 @@ func _build_persistence_context(peers: Array) -> Dictionary:
 		tokens.append(token)
 
 	var enabled := usernames.size() == 2 and usernames[0] != "" and usernames[1] != ""
-	var pair_key := ""
-	var game_id := ""
 	var load_token := ""
 	if enabled:
-		pair_key = _pair_key_for_usernames(usernames)
-		game_id = str(game_id_by_player_pair.get(pair_key, ""))
 		load_token = tokens[0] if tokens[0] != "" else tokens[1]
 
 	return {
 		"enabled": enabled,
 		"usernames": usernames,
 		"tokens": tokens,
-		"pair_key": pair_key,
-		"game_id": game_id,
 		"load_token": load_token,
 	}
 	
