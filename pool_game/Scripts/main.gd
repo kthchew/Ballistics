@@ -101,15 +101,6 @@ func _on_ai_placed_cue_ball(pos: Vector3):
 	place_cue_ball(pos)
 	
 func _on_ai_picked_pocket(hole_ind: int):
-	var path_str = "UI/HoleButtons/HoleButton" + str(hole_ind + 1)
-	var hole_btn = get_node(path_str)
-	
-	hole_btn.toggle_mode = true
-	hole_btn.button_pressed = true
-	await get_tree().create_timer(0.5).timeout
-	hole_btn.toggle_mode = false
-	hole_btn.button_pressed = false
-	
 	select_hole(hole_ind)
 
 func aim(dir: Vector2):
@@ -159,7 +150,7 @@ func color_hole_button(hole_ind: int) -> void:
 	var states = ["normal", "hover", "pressed", "disabled"]
 	for state in states:
 		var new_stylebox = button.get_theme_stylebox(state).duplicate()
-		new_stylebox.bg_color = Color(0, 0.25, 0.02, 0.8)
+		new_stylebox.bg_color = Color(0.2, 0.85, 0.4, 0.8)
 		button.add_theme_stylebox_override(state, new_stylebox)
 
 @rpc 
@@ -181,7 +172,7 @@ func select_hole(hole_ind: int) -> void:
 	color_hole_button.rpc_id(connected_peers[player_ind], hole_ind)
 	color_hole_button.rpc_id(connected_peers[1 - player_ind], hole_ind)
 	
-	await get_tree().create_timer(0.75).timeout
+	await get_tree().create_timer(1.0).timeout
 	
 	change_hole_button_visibility.rpc_id(connected_peers[player_ind], false)
 	change_hole_button_visibility.rpc_id(connected_peers[1 - player_ind], false)
