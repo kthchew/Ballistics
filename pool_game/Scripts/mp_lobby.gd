@@ -15,6 +15,7 @@ var room_by_peer = {}
 var resume_waiting_by_game_id: Dictionary = {}
 var resume_game_by_peer: Dictionary = {}
 var peer_to_slot: Dictionary[int, int] = {}
+var games_about_to_close: Dictionary[int, bool] = {}
 
 var init_mp = null
 var init_slot = null
@@ -736,6 +737,9 @@ func send_to_menu():
 	get_tree().change_scene_to_file("res://Scenes/Menu.tscn")
 
 func close_game_at(spot: int):
+	if games_about_to_close.get(spot, false):
+		return
+	games_about_to_close[spot] = true
 	var game = regular_games.get(spot, null)
 	if game == null:
 		game = crazy_games.get(spot, null)
@@ -766,3 +770,4 @@ func despawn_game_at(spot: int):
 	if container != null:
 		games.remove_child(container)
 		container.queue_free()
+	games_about_to_close.erase(spot)
