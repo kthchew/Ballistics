@@ -1,0 +1,287 @@
+[gd_scene format=3 uid="uid://dytao3r8nooel"]
+
+[ext_resource type="Script" uid="uid://bhcr7nukm7qqq" path="res://Scripts/menu.gd" id="1_a8aa6"]
+[ext_resource type="PackedScene" uid="uid://cjgh3own5ppcr" path="res://Scenes/ball.tscn" id="2_byewe"]
+[ext_resource type="Texture2D" uid="uid://qtni5u6njj0w" path="res://ball_textures/Ball0.jpg" id="3_a8aa6"]
+[ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="3_dsmso"]
+[ext_resource type="Script" uid="uid://gyxaumhi00lm" path="res://Scripts/settings_button.gd" id="4_t8p2w"]
+[ext_resource type="Texture2D" uid="uid://d071hrt6op5vl" path="res://ball_textures/Ball2.jpg" id="4_x0ao6"]
+[ext_resource type="Texture2D" uid="uid://crdngqr4oe8x2" path="res://ball_textures/Ball15.jpg" id="5_dsmso"]
+[ext_resource type="Script" uid="uid://bx1tkuogm56hn" path="res://Scripts/profile_button.gd" id="5_krje8"]
+[ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="6_dd46u"]
+[ext_resource type="Texture2D" uid="uid://hkuvt60spwkj" path="res://ball_textures/Ball8.jpg" id="6_t8p2w"]
+[ext_resource type="PackedScene" uid="uid://d0d0lrt7qvjg0" path="res://Scenes/account_screen.tscn" id="10_c0stj"]
+[ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="11_3feh0"]
+[ext_resource type="PackedScene" uid="uid://x10c7um8tidx" path="res://Scenes/settings_screen.tscn" id="11_dsmso"]
+[ext_resource type="PackedScene" uid="uid://l3mdu1f62vct" path="res://Scenes/menu_private_game_panel.tscn" id="11_mnkgh"]
+[ext_resource type="PackedScene" uid="uid://c0df825ddil42" path="res://Scenes/cue_stick.tscn" id="12_ksqlk"]
+[ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="13_vkgky"]
+[ext_resource type="AudioStream" uid="uid://bnfsg1511m8v5" path="res://Sounds/lightOff.mp3" id="14_o00om"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dsmso"]
+albedo_texture = ExtResource("3_a8aa6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a8aa6"]
+albedo_texture = ExtResource("4_x0ao6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x0ao6"]
+albedo_texture = ExtResource("4_x0ao6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t8p2w"]
+albedo_texture = ExtResource("5_dsmso")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_krje8"]
+albedo_texture = ExtResource("6_t8p2w")
+
+[sub_resource type="Environment" id="Environment_4c57u"]
+background_mode = 1
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.0
+ambient_light_energy = 0.0
+fog_enabled = true
+fog_light_energy = 0.01
+
+[sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
+font_size = 18
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vivmo"]
+albedo_texture = ExtResource("13_vkgky")
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
+material = SubResource("StandardMaterial3D_vivmo")
+top_radius = 300.0
+
+[node name="Menu" type="Node3D" unique_id=1362962675]
+script = ExtResource("1_a8aa6")
+
+[node name="CueBall" parent="." unique_id=1364153728 instance=ExtResource("2_byewe")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.75558, 3, 15.701656)
+freeze = true
+
+[node name="MeshInstance3D" parent="CueBall" index="1" unique_id=617264105]
+material_override = SubResource("StandardMaterial3D_dsmso")
+surface_material_override/0 = SubResource("StandardMaterial3D_a8aa6")
+
+[node name="Ball2" parent="." unique_id=216797839 instance=ExtResource("2_byewe")]
+transform = Transform3D(-0.6921558, 0, -0.7217481, 0, 1, 0, 0.7217481, 0, -0.6921558, 7.386627, 3, 9.3382225)
+freeze = true
+
+[node name="MeshInstance3D" parent="Ball2" index="1" unique_id=617264105]
+transform = Transform3D(0.97943616, 0.02763769, 0.19985235, 0.10984839, 0.75782466, -0.6431445, -0.16922787, 0.6518725, 0.73920524, 0, 0, 0)
+surface_material_override/0 = SubResource("StandardMaterial3D_x0ao6")
+
+[node name="Ball15" parent="." unique_id=2078400008 instance=ExtResource("2_byewe")]
+transform = Transform3D(-0.6921558, 0, -0.7217481, 0, 1, 0, 0.7217481, 0, -0.6921558, 23.520758, 3, 38.929966)
+freeze = true
+
+[node name="MeshInstance3D" parent="Ball15" index="1" unique_id=617264105]
+transform = Transform3D(-0.822941, -0.19814563, -0.53245324, -0.31214425, 0.9407715, 0.13234323, 0.47469354, 0.27511278, -0.8360494, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_t8p2w")
+surface_material_override/0 = SubResource("StandardMaterial3D_x0ao6")
+
+[node name="Ball8" parent="." unique_id=651671594 instance=ExtResource("2_byewe")]
+transform = Transform3D(0.13408118, 0.73558885, -0.6640265, 0.6127404, 0.46508923, 0.6389374, 0.77882683, -0.49254534, -0.3883654, -4.382312, 3, 36.372696)
+freeze = true
+
+[node name="MeshInstance3D" parent="Ball8" index="1" unique_id=617264105]
+transform = Transform3D(-0.822941, -0.19814563, -0.53245324, -0.31214425, 0.9407715, 0.13234323, 0.47469354, 0.2751128, -0.8360495, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_krje8")
+surface_material_override/0 = SubResource("StandardMaterial3D_x0ao6")
+
+[node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
+transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
+transform = Transform3D(0.85480875, 0.19645114, -0.48032227, -0.5189438, 0.32359618, -0.79119146, -2.2683755e-08, 0.92557734, 0.3785599, -85.82588, -88.8306, 36.21933)
+size = 130.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
+environment = SubResource("Environment_4c57u")
+
+[node name="Control" type="Control" parent="." unique_id=386163020]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="DebugLabel" type="Label" parent="Control" unique_id=287979515]
+layout_mode = 1
+offset_left = 17.0
+offset_top = 11.0
+offset_right = 164.0
+offset_bottom = 84.0
+label_settings = SubResource("LabelSettings_h2yge")
+
+[node name="MainMenu" type="CanvasLayer" parent="." unique_id=1888597792]
+
+[node name="MenuUI" type="Control" parent="MainMenu" unique_id=296087352]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Logo" type="ColorRect" parent="MainMenu/MenuUI" unique_id=913635870]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 78.0
+offset_right = 400.0
+offset_bottom = 378.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.06, 0.05, 0.95)
+
+[node name="TextEdit" type="Label" parent="MainMenu/MenuUI/Logo" unique_id=1933955017]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 45.0
+offset_top = -50.0
+offset_right = -45.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("6_dd46u")
+theme_override_font_sizes/font_size = 69
+text = "BALL-ISTICS"
+horizontal_alignment = 1
+
+[node name="SettingsButton" type="Button" parent="MainMenu/MenuUI" unique_id=369492528]
+layout_mode = 1
+offset_left = 100.0
+offset_top = 100.0
+offset_right = 300.0
+offset_bottom = 180.0
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 32
+text = "Settings"
+script = ExtResource("4_t8p2w")
+
+[node name="ProfileButton" type="Button" parent="MainMenu/MenuUI" unique_id=914265886]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 100.0
+offset_right = -100.0
+offset_bottom = 180.0
+grow_horizontal = 0
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 32
+text = "Profile"
+script = ExtResource("5_krje8")
+
+[node name="BottomButtons" type="VBoxContainer" parent="MainMenu/MenuUI" unique_id=860984698]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.6
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -250.0
+offset_top = -138.0
+offset_right = 250.0
+offset_bottom = -138.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 25
+alignment = 1
+
+[node name="RandomPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1666973410]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 44
+text = "Random Pool"
+
+[node name="RandomCrazyPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1049916798]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 44
+text = "Random Crazy Pool"
+
+[node name="RandomKnockoutButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=1786141284]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 44
+text = "Random Knockout"
+
+[node name="PrivateGameButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=51089289]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 44
+text = "Private Game"
+
+[node name="AIPoolButton" type="Button" parent="MainMenu/MenuUI/BottomButtons" unique_id=252345252]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("3_dsmso")
+theme_override_font_sizes/font_size = 44
+text = "Pool Against an AI"
+
+[node name="AccountScreen" parent="MainMenu/MenuUI" unique_id=2040582154 instance=ExtResource("10_c0stj")]
+visible = false
+layout_mode = 1
+
+[node name="SettingsScreen" parent="MainMenu/MenuUI" unique_id=560101118 instance=ExtResource("11_dsmso")]
+visible = false
+layout_mode = 1
+
+[node name="PrivateGamePanel" parent="MainMenu/MenuUI" unique_id=725213517 instance=ExtResource("11_mnkgh")]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TableGroup" parent="." unique_id=689655649 instance=ExtResource("11_3feh0")]
+
+[node name="CueStick" parent="." unique_id=1895437411 instance=ExtResource("12_ksqlk")]
+transform = Transform3D(0.6021256, -0.040109035, 0.79739326, -0.030192228, 0.9968791, 0.07294186, -0.7978301, -0.06799523, 0.59903544, 31.999367, -2.3076496, 20.047642)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1063051328]
+transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.122802734, -63.39213, 0.8214874)
+mesh = SubResource("CylinderMesh_4c57u")
+
+[node name="OverheadLight" type="Node3D" parent="." unique_id=2043813551]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 90.53031, 2.2737368e-13)
+
+[node name="Light" type="SpotLight3D" parent="OverheadLight" unique_id=1803592501]
+transform = Transform3D(0.036294907, -0.99934113, -4.3682583e-08, 0.99934113, 0.036294907, -4.212489e-08, 4.3682586e-08, -4.2124885e-08, 1, 0, 1.1592451e-06, -26.520363)
+light_energy = 1000.0
+light_volumetric_fog_energy = 0.0
+light_size = 1.0
+light_specular = 0.35
+shadow_enabled = true
+shadow_bias = 0.075
+shadow_opacity = 0.7
+spot_range = 270.72592
+spot_angle = 72.564
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=194489554]
+transform = Transform3D(0.6084552, 0.24058907, -0.75624025, -0.7935883, 0.18446292, -0.5798199, -3.4688846e-08, 0.9529377, 0.3031661, -119.03245, -91.263824, -16.2915)
+stream = ExtResource("14_o00om")
+volume_db = 30.0
+
+[editable path="CueBall"]
+[editable path="Ball2"]
+[editable path="Ball15"]
+[editable path="Ball8"]

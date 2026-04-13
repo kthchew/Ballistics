@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://cjgh3own5ppcr"]
+
+[ext_resource type="PhysicsMaterial" path="res://Resources/ball.tres" id="1_vblhy"]
+[ext_resource type="Script" uid="uid://comor5ekwua50" path="res://Scripts/ball.gd" id="2_31idh"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://Resources/ball_shape.tres" id="3_hk63f"]
+[ext_resource type="AudioStream" uid="uid://d4d5xwkfyjgea" path="res://Sounds/BallCollide.mp3" id="4_vm4s8"]
+[ext_resource type="AudioStream" uid="uid://np0f1uljd14" path="res://Sounds/CueCollide.mp3" id="5_2b6yv"]
+[ext_resource type="AudioStream" uid="uid://cfk4cqd1xm3eo" path="res://Sounds/alex_jauk-billiard-hole-2-288420.mp3" id="6_cx4d7"]
+
+[sub_resource type="Gradient" id="Gradient_41u45"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ktgx5"]
+gradient = SubResource("Gradient_41u45")
+fill_from = Vector2(0, 0.56125355)
+fill_to = Vector2(1, 0.54131055)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1bvp3"]
+albedo_color = Color(1, 0.9263333, 0.87, 1)
+albedo_texture = SubResource("GradientTexture2D_ktgx5")
+
+[sub_resource type="SphereMesh" id="SphereMesh_lquwl"]
+lightmap_size_hint = Vector2i(33, 17)
+material = SubResource("StandardMaterial3D_1bvp3")
+radius = 2.85
+height = 5.7
+
+[node name="Ball0" type="RigidBody3D" unique_id=1364153728]
+collision_mask = 7
+physics_material_override = ExtResource("1_vblhy")
+can_sleep = false
+contact_monitor = true
+max_contacts_reported = 3
+script = ExtResource("2_31idh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1368237875]
+shape = ExtResource("3_hk63f")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=617264105]
+mesh = SubResource("SphereMesh_lquwl")
+
+[node name="BallCollide" type="AudioStreamPlayer3D" parent="." unique_id=571624104]
+stream = ExtResource("4_vm4s8")
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="CueCollide" type="AudioStreamPlayer3D" parent="." unique_id=1437416092]
+stream = ExtResource("5_2b6yv")
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="Hole" type="AudioStreamPlayer3D" parent="." unique_id=1066648450]
+stream = ExtResource("6_cx4d7")
+volume_db = 25.0
+unit_size = 100.0
+emission_angle_enabled = true
+
+[node name="BallArea" type="Area3D" parent="." unique_id=1189486808]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BallArea" unique_id=792391965]
+shape = ExtResource("3_hk63f")
+
+[connection signal="area_entered" from="BallArea" to="." method="_on_area_3d_area_entered"]

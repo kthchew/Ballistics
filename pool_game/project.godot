@@ -11,18 +11,25 @@ config_version=5
 [application]
 
 config/name="ball-istics"
-run/main_scene="uid://comeyp103ci14"
+run/main_scene="uid://dytao3r8nooel"
 config/features=PackedStringArray("4.6", "Mobile")
-config/icon="res://icon.svg"
+boot_splash/stretch_mode=4
+boot_splash/image="uid://fsyqq7e2qhfs"
+config/icon="uid://cpw0l1s05bo25"
 
 [autoload]
 
-Draw="*uid://bjwyxti52ing3"
+Utils="*uid://bynhav0na4fra"
 
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/handheld/orientation=4
+
+[dotnet]
+
+project/assembly_name="ball-istics"
 
 [input]
 
@@ -55,7 +62,6 @@ click={
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
-pointing/emulate_mouse_from_touch=false
 
 [physics]
 
@@ -69,3 +75,4 @@ jolt_physics_3d/limits/max_angular_velocity=1745329.2519943295
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+textures/vram_compression/import_etc2_astc=true

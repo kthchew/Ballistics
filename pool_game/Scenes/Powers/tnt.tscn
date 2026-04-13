@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://b4hdlpykttm4q"]
+
+[ext_resource type="Script" uid="uid://digpmwxpj6g77" path="res://Scripts/Powers/tnt.gd" id="1_l24f6"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_isyyu"]
+size = Vector3(2, 10, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rxeir"]
+albedo_color = Color(0.6156863, 0.0627451, 0.105882354, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_85g1k"]
+material = SubResource("StandardMaterial3D_rxeir")
+size = Vector3(2, 10, 2)
+
+[node name="TNT" type="StaticBody3D" unique_id=1444210905]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_l24f6")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=354285222]
+shape = SubResource("BoxShape3D_isyyu")
+
+[node name="Area3D" type="Area3D" parent="." unique_id=846544958]
+collision_layer = 255
+collision_mask = 255
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=276373054]
+shape = SubResource("BoxShape3D_isyyu")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1735216045]
+mesh = SubResource("BoxMesh_85g1k")
+
+[connection signal="area_entered" from="Area3D" to="." method="_on_area_3d_area_entered"]
+[connection signal="area_exited" from="Area3D" to="." method="_on_area_3d_area_exited"]
