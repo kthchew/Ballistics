@@ -473,15 +473,15 @@ func cashout_vote_request() -> void:
 			# Randomly select one of the two players
 			var random_player_ind = randi() % 2
 			# Create the cashout event for the random player
-			cashout_owner_ind = random_player_ind
+			cashout_owner_index = random_player_ind
 			var cashout_peer_id = connected_peers[random_player_ind]
 			if cashout_peer_id != -1:
 				game_state = GameState.CASHOUT
 				show_cashout_wait_menu.rpc(cashout_peer_id)
 				if cashout_peer_id == multiplayer.get_unique_id():
-					show_cashout_menu(money, random_player_ind)
+					show_cashout_menu(random_player_ind)
 				else:
-					show_cashout_menu.rpc_id(cashout_peer_id, money, random_player_ind)
+					show_cashout_menu.rpc_id(cashout_peer_id, random_player_ind)
 		$UI/SafeAreaContainer/CashoutVoteButton/CashoutRequestedLabel.visible = false
 		requesting_cashout_vote = [false, false]
 
@@ -1032,21 +1032,17 @@ func show_powerup_hint(message: String, duration_seconds: float = 3.0) -> void:
 		info_label.text += powerup_hint_text
 
 func _on_no_pressed() -> void:
-	local_cashout_owner = false
 	$CashOut.visible = false
 	$UI.visible = true
-	cashout = false
 	end_round()
 	
 var active_power_objects: int = 0
 var randPower = []
 
 func _on_yes_pressed() -> void:
-	local_cashout_owner = false
 	game_state = GameState.CRAZY
 	$CashOut.visible = false
 	$pUI.visible = true
-	initialize_powerup_shop()
 	update_powerup_shop()
 
 func _on_done_powerup_pressed() -> void:
@@ -1058,7 +1054,7 @@ func _on_done_powerup_pressed() -> void:
 var reroll_tax = 1
 func _on_reroll_powerup_pressed() -> void:
 	if get_local_player_money() < reroll_tax:
-	request_reroll_power_shop.rpc()
+		request_reroll_power_shop.rpc()
 
 func has_modifiers_placed() -> bool:
 	var modifiers = get_tree().get_nodes_in_group("modifiers")
@@ -1069,7 +1065,7 @@ func refresh_power_shop_inventory(clear_used: bool = false) -> void:
 	if not multiplayer.is_server():
 		return
 	shop_power_options = ["block", "tungsten", "aerogel", "bumper", "gluetrap"]
-	if objects > 0:
+	if active_power_objects > 0:
 		shop_power_options.append("tnt")
 	if has_modifiers_placed():
 		shop_power_options.append("eraser")
@@ -1176,7 +1172,7 @@ func try_purchase_power_for_peer(sender_id: int, power_name: String, client_cost
 	if buyer_index == -1:
 		return false
 
-	var expected_cost = int(power_shop_costs.get(power_name, 0))
+	var expected_cost = int(shop_power_costs.get(power_name, 0))
 	if expected_cost <= 0:
 		# Fallback for temporary shop desync: accept the offered client cost if valid.
 		expected_cost = client_cost
@@ -1191,7 +1187,6 @@ func try_purchase_power_for_peer(sender_id: int, power_name: String, client_cost
 		return false
 
 	money[buyer_index] -= client_cost
-	update_money_all.rpc(money)
 	return true
 
 @rpc("authority", "call_local")
