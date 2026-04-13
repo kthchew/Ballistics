@@ -84,7 +84,7 @@ func shoot():
 			color = Color.RED
 		if cached_shot.potting:
 			color = calc_ai_color(i, len(cached_shot.obj_balls))
-		circle_artist.circle(camera.unproject_position(cached_shot.target_positions[i]), 10.0, color)
+		circle_artist.circle(cached_shot.target_positions[i], 10.0, color)
 	
 	var cue_ball_target = cached_shot.target_positions[0]
 	var shot_dir = calc_shot_dir(cached_shot.cue_ball, cue_ball_target)
