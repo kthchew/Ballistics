@@ -64,8 +64,8 @@ func shapecast_ball(ball: Ball, target_pos: Vector3) -> bool:
 		#"\n\tto target_pos=", target_pos, 
 		#"\n\tsafe frac=", safe_frac
 	#)
-	#Draw.circle(camera.unproject_position(shape_cast.get_collision_point(0)), 5, Color.TOMATO)
-	#Draw.circle(camera.unproject_position(target_pos), 5, Color.BLUE)
+	#circle_artist.circle(camera.unproject_position(shape_cast.get_collision_point(0)), 5, Color.TOMATO)
+	#circle_artist.circle(camera.unproject_position(target_pos), 5, Color.BLUE)
 	
 	return path_is_clear
 	
