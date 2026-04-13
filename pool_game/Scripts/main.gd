@@ -180,6 +180,7 @@ func save() -> Dictionary:
 		"balls": ball_states,
 		"object_powers": object_power_states,
 		"play_again": play_again,
+		"first_hit_scratch": ball_manager.first_hit_scratch,
 		
 		"game_type": int(game_type),
 		"continue_after_crazy": continue_after_crazy,
@@ -210,6 +211,7 @@ func load_saved_game(save_dict: Dictionary) -> void:
 	game_state = int(save_dict.get("game_state", GameState.AIMING)) as GameState
 	play_again = bool(save_dict.get("play_again", false))
 	continue_after_crazy = bool(save_dict.get("continue_after_crazy", false))
+	ball_manager.first_hit_scratch = int(save_dict.get("first_hit_scratch", false))
 	
 	game_type = int(save_dict.get("game_type", Utils.GameType.EIGHT_BALL_MULTIPLAYER)) as Utils.GameType
 	money = save_dict.get("money", [0, 0])
