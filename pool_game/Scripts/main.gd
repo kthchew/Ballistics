@@ -98,11 +98,11 @@ func turn_on_light():
 	$UI.visible = true
 	$LabelLayer.visible = true
 	
-func _on_ai_aimed(dir: Vector2):
+func _on_ai_aimed(dir: Vector2, force_value: float):
 	aim(dir)
 	
-	slider.value = 50
-	change_force(slider.value)
+	slider.value = force_value
+	change_force(force_value)
 	
 	await get_tree().create_timer(1.0).timeout
 	
@@ -819,7 +819,6 @@ func end_round() -> void:
 	stopped_moving.emit()
 	
 func process_midturn():
-	# cue_stick.visible = false
 	ball_manager.process_fallen_balls()
 	process_movement()
 

@@ -69,8 +69,9 @@ func pot():
 	position = pos
 	teleport(pos)
 	potted = true
-
+	
 func _physics_process(delta):
+	
 	var friction_accel := 2
 
 	linear_velocity = linear_velocity.move_toward(Vector3.ZERO, friction_accel * delta)
