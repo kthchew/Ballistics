@@ -344,7 +344,7 @@ func _apply_client_tls(peer: ENetMultiplayerPeer, host: String) -> void:
 	if normalized_host.is_empty():
 		return
 	# skip TLS for localhost because it would be annoying to set up TLS for dev environments
-	if normalized_host == "localhost" or normalized_host == "127.0.0.1":
+	if normalized_host == "localhost" or normalized_host == "127.0.0.1" or normalized_host.begins_with("10.") or normalized_host.begins_with("192."):
 		return
 
 	var host_connection: ENetConnection = peer.get_host()
