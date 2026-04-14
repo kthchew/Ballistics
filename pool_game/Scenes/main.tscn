@@ -203,6 +203,7 @@ albedo_texture = ExtResource("15_hpc6h")
 [sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
 material = SubResource("StandardMaterial3D_vivmo")
 top_radius = 300.0
+bottom_radius = 12.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_efxa6"]
 properties/0/path = NodePath(".:player_ind")
@@ -270,9 +271,8 @@ script = ExtResource("1_h1bgf")
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
-transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.4210855e-14, 0, 1.4210855e-14, 1.0000001, 0, -3.5294624e-06, 115.74469)
+transform = Transform3D(1, 0, 0, 0, 0.9063079, -0.42261833, 0, 0.42261833, 0.9063079, 0, -90, 190)
 keep_aspect = 0
-projection = 1
 current = true
 size = 260.0
 
@@ -860,20 +860,24 @@ transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08
 mesh = SubResource("CylinderMesh_4c57u")
 
 [node name="OverheadLight" type="Node3D" parent="." unique_id=2043813551]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 90.53031, 2.2737368e-13)
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 200, 0)
 
-[node name="Light" type="SpotLight3D" parent="OverheadLight" unique_id=1803592501]
-transform = Transform3D(0.036294907, -0.99934113, -4.3682583e-08, 0.99934113, 0.036294907, -4.212489e-08, 4.3682586e-08, -4.2124885e-08, 1, 0, 1.1592451e-06, -26.520363)
-light_energy = 0.0
+[node name="Light" type="SpotLight3D" parent="OverheadLight" unique_id=3114236]
+transform = Transform3D(0.036294907, -0.99934113, -4.3682583e-08, 0.99934113, 0.036294907, -4.212489e-08, 4.3682586e-08, -4.2124885e-08, 1, 0, 0, 0)
+light_energy = 80.0
 light_volumetric_fog_energy = 0.0
 light_size = 1.0
 light_specular = 0.35
 light_bake_mode = 1
 shadow_enabled = true
-shadow_bias = 0.075
+shadow_bias = 0.2
 shadow_opacity = 0.7
-spot_range = 270.72592
-spot_angle = 72.564
+distance_fade_begin = 200.0
+distance_fade_length = 50.0
+spot_range = 350.0
+spot_attenuation = 0.18
+spot_angle = 40.0
+spot_angle_attenuation = 8.57418
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=935783405]
 stream = ExtResource("16_kltya")

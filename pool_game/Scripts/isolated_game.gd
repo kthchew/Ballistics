@@ -66,3 +66,22 @@ func _fit_camera_to_table(camera: Camera3D, table_group: Node3D, viewport_size: 
 			camera.keep_aspect = Camera3D.KEEP_HEIGHT
 			camera.size = WIDTH_SIZE
 		return
+
+	if camera.projection == Camera3D.PROJECTION_PERSPECTIVE:
+		const BASELINE_WIDTH: float = 1920.0
+		const BASELINE_HEIGHT: float = 1080.0
+		const BASELINE_KEEP_WIDTH_FOV: float = 75.0
+
+		var viewport_aspect: float = max(0.001, viewport_size.x / viewport_size.y)
+		var baseline_aspect: float = BASELINE_WIDTH / BASELINE_HEIGHT
+
+		if viewport_aspect <= baseline_aspect:
+			camera.keep_aspect = Camera3D.KEEP_WIDTH
+			camera.fov = BASELINE_KEEP_WIDTH_FOV
+		else:
+			# Convert baseline horizontal FOV at 16:9 to equivalent vertical FOV for wider screens.
+			var half_horizontal_rad: float = deg_to_rad(BASELINE_KEEP_WIDTH_FOV * 0.5)
+			var half_vertical_rad: float = atan(tan(half_horizontal_rad) / baseline_aspect)
+			camera.keep_aspect = Camera3D.KEEP_HEIGHT
+			camera.fov = rad_to_deg(half_vertical_rad * 2.0)
+		return

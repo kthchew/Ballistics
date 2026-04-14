@@ -96,7 +96,7 @@ func _ready() -> void:
 func turn_on_light():
 	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
 	await get_tree().create_timer(0.25).timeout
-	$OverheadLight/Light.light_energy = 1000
+	$OverheadLight/Light.light_energy = 300
 	if not $pUI.visible: # occurs if game was loaded
 		$UI.visible = true
 	update_cashout_vote_button_visibility()
