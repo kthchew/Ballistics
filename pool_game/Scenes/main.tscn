@@ -273,6 +273,7 @@ transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
 transform = Transform3D(1, 0, 0, 0, 0.9063079, -0.42261833, 0, 0.42261833, 0.9063079, 0, -90, 190)
 keep_aspect = 0
+projection = 1
 current = true
 size = 260.0
 
@@ -860,23 +861,24 @@ transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08
 mesh = SubResource("CylinderMesh_4c57u")
 
 [node name="OverheadLight" type="Node3D" parent="." unique_id=2043813551]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 200, 0)
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 100, 0)
 
 [node name="Light" type="SpotLight3D" parent="OverheadLight" unique_id=3114236]
 transform = Transform3D(0.036294907, -0.99934113, -4.3682583e-08, 0.99934113, 0.036294907, -4.212489e-08, 4.3682586e-08, -4.2124885e-08, 1, 0, 0, 0)
 light_energy = 80.0
 light_volumetric_fog_energy = 0.0
-light_size = 1.0
+light_size = 0.01
 light_specular = 0.35
 light_bake_mode = 1
 shadow_enabled = true
-shadow_bias = 0.2
+shadow_bias = 0.15
+shadow_normal_bias = 1.2
 shadow_opacity = 0.7
 distance_fade_begin = 200.0
 distance_fade_length = 50.0
-spot_range = 350.0
-spot_attenuation = 0.18
-spot_angle = 40.0
+spot_range = 250.0
+spot_attenuation = 0.19
+spot_angle = 60.0
 spot_angle_attenuation = 8.57418
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=935783405]
@@ -894,7 +896,6 @@ script = ExtResource("15_vivmo")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1750200922]
 transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.9107674, 0.41267863, 0.05280001, -0.4128225, 0.9092798, -14.222816, 97.954666, 209.47566)
-projection = 1
 size = 130.0
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1196634560]
