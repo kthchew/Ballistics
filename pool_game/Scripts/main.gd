@@ -812,6 +812,7 @@ func ai_play():
 		
 func start_round(scratched_prev: bool = false) -> void:
 	ball_manager.unfreeze_balls()
+	cue_stick.set_force_strength(0.0)
 	if scratched_prev:
 		if ball_manager.check_eight_ball_potted():
 			end_game(player_ind)
