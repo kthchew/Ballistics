@@ -17,8 +17,6 @@ signal stopped_moving
 @onready var ball_manager = $BallManager
 @onready var classical_ai = $ClassicalAI
 
-var camera: Camera3D
-
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
 var cashout_owner_index: int = -1
 var continue_after_crazy: bool = false
@@ -65,8 +63,6 @@ var about_to_exit = false
 func _ready() -> void:
 	if not OS.is_debug_build():
 		debug_label.hide()
-	
-	camera = get_viewport().get_camera_3d()
 	
 	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
 	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
@@ -542,6 +538,7 @@ func set_aim_guide_visibility(visible: bool):
 
 @rpc("any_peer")
 func cast_aim_ray(aim_dir: Vector2) -> void:
+	var camera := get_viewport().get_camera_3d()
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
 	if shapecast_point_to_point(origin, 500 * dir):
@@ -559,6 +556,8 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 	$UI/AimVisuals/AimGuide/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
 	if camera.projection == Camera3D.ProjectionType.PROJECTION_PERSPECTIVE:
 		$UI/AimVisuals/AimGuide/AimGuideCircle.scale = Vector2.ONE * 1.8
+	else:
+		$UI/AimVisuals/AimGuide/AimGuideCircle.scale = Vector2.ONE
 	
 	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
 	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
@@ -645,6 +644,7 @@ func rpc_sync_turn_ui(state: GameState) -> void:
 func _on_aim_input(touch_pos: Vector2):
 	if not is_your_turn():
 		return
+	var camera := get_viewport().get_camera_3d()
 	if game_state == GameState.PLACING:
 		var ray_origin: Vector3 = camera.project_ray_origin(touch_pos)
 		var ray_normal: Vector3 = camera.project_ray_normal(touch_pos)
@@ -704,6 +704,7 @@ func change_force(value: float):
 	cue_stick.set_force_strength(normalized)
 
 func shake_camera(intensity: float, duration: float) -> void:
+	var camera := get_viewport().get_camera_3d()
 	var original :Vector3 = camera.rotation_degrees
 	var tween := create_tween()
 	tween.tween_property(camera, "rotation_degrees", original + Vector3(intensity, intensity, intensity), duration / 2)
