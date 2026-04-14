@@ -101,9 +101,30 @@ theme_override_constants/separation = 16
 [node name="Label" type="Label" parent="MarginContainer/VBoxContainer/Camera" unique_id=1537531349]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "Camera Mode"
+text = "Camera Mode (Regular Mode)"
 
 [node name="OptionButton" type="OptionButton" parent="MarginContainer/VBoxContainer/Camera" unique_id=2052432709]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("Theme_bu2iy")
+theme_override_font_sizes/font_size = 32
+selected = 0
+item_count = 2
+popup/item_0/text = "Perspective (3D)"
+popup/item_0/id = 0
+popup/item_1/text = "Orthogonal (2D-like)"
+popup/item_1/id = 1
+
+[node name="CameraCrazy" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=189352523]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CameraCrazy" unique_id=199420966]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Camera Mode (Crazy Mode)"
+
+[node name="OptionButton" type="OptionButton" parent="MarginContainer/VBoxContainer/CameraCrazy" unique_id=1756280225]
 layout_mode = 2
 size_flags_horizontal = 3
 theme = SubResource("Theme_bu2iy")

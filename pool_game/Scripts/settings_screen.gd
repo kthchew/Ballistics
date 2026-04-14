@@ -4,6 +4,7 @@ extends Control
 @onready var server_port_edit: LineEdit = $MarginContainer/VBoxContainer/ServerPort/LineEdit
 @onready var backend_url_edit: LineEdit = $MarginContainer/VBoxContainer/AccountAddress/LineEdit
 @onready var camera_dropdown: OptionButton = $MarginContainer/VBoxContainer/Camera/OptionButton
+@onready var camera_dropdown_crazy: OptionButton = $MarginContainer/VBoxContainer/CameraCrazy/OptionButton
 
 @onready var save_button: Button = $MarginContainer/VBoxContainer/SaveButton
 
@@ -22,7 +23,8 @@ func _ready() -> void:
 	server_address_edit.text = config.get_value("network", "server_address", Constants.DEFAULT_GAME_SERVER_ADDRESS_DEV if OS.is_debug_build() else Constants.DEFAULT_GAME_SERVER_ADDRESS)
 	server_port_edit.text = str(config.get_value("network", "server_port", 18361))
 	backend_url_edit.text = config.get_value("network", "backend_url", Constants.DEFAULT_ACCOUNT_SERVER_URL_DEV if OS.is_debug_build() else Constants.DEFAULT_ACCOUNT_SERVER_URL)
-	camera_dropdown.selected = config.get_value("graphics", "camera_mode", 0)
+	camera_dropdown.selected = config.get_value("graphics", "camera_mode", 1)
+	camera_dropdown_crazy.selected = config.get_value("graphics", "camera_mode_crazy", 0)
 	
 	save_button.pressed.connect(_on_save_button_pressed)
 
@@ -35,6 +37,8 @@ func _on_save_button_pressed():
 	config.set_value("network", "backend_url", backend_url)
 	var camera_mode := camera_dropdown.selected
 	config.set_value("graphics", "camera_mode", camera_mode)
+	var camera_mode_crazy := camera_dropdown_crazy.selected
+	config.set_value("graphics", "camera_mode_crazy", camera_mode_crazy)
 	var err := config.save(config_path)
 	if err != OK:
 		print("Error saving config: %s" % err)

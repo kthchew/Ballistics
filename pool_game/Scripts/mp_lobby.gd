@@ -813,7 +813,7 @@ func send_to_game(slot: int, peers: Array, game_type: Utils.GameType):
 	game.visible = true
 	game.connected_peers = peers
 	
-	var camera_mode = config.get_value("graphics", "camera_mode", 0)
+	var camera_mode: int = config.get_value("graphics", "camera_mode_crazy", 0) if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER else config.get_value("graphics", "camera_mode", 1)
 	var camera: Camera3D
 	if camera_mode == 0: # perspective
 		camera = game.get_node("PerspectiveCamPivot/Camera3D")
