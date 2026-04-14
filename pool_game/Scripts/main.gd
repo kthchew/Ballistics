@@ -986,13 +986,20 @@ func get_cashout_owner_peer_id() -> int:
 
 func is_local_cashout_owner() -> bool:
 	return get_cashout_owner_peer_id() == multiplayer.get_unique_id()
+	
+func get_winner_str() -> String:
+	if multiplayer.get_unique_id() == connected_peers[winner]:
+		return "You"
+	else:
+		return "Your opponent"
 
 func fill_info_label() -> void:
 	info_label.text = ""
 	if game_state == GameState.NOT_STARTED:
 		info_label.text = "Currently waiting for enough players..."
 	if game_state == GameState.ENDED:
-		info_label.text = "Player " + str(winner + 1) + " won the game! Click the 'Reset Game' button to play again"
+		var winner_str = get_winner_str()
+		info_label.text = winner_str + " won the game! Click the 'Reset Game' button to play again"
 	if game_state == GameState.CASHOUT:
 		if is_local_cashout_owner():
 			info_label.text += "Decide whether to cash out and use power ups.\n"
