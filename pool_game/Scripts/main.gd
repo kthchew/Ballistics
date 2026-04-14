@@ -82,6 +82,8 @@ func _ready() -> void:
 		classical_ai.ai_aimed.connect(_on_ai_aimed)
 		classical_ai.ai_placed_cue_ball.connect(_on_ai_placed_cue_ball)
 		classical_ai.ai_picked_pocket.connect(_on_ai_picked_pocket)
+
+	_isolate_multiplayer_sync_config()
 	
 	ball_manager.init()
 	ball_manager.cue_ball.first_hit_ball_changed.connect(_on_first_hit_ball_changed)
@@ -101,6 +103,16 @@ func turn_on_light():
 		$UI.visible = true
 	update_cashout_vote_button_visibility()
 	$LabelLayer.visible = true
+
+func _isolate_multiplayer_sync_config() -> void:
+	var synchronizer: MultiplayerSynchronizer = $MultiplayerSynchronizer
+	if synchronizer == null:
+		return
+	var rep_config := synchronizer.get_replication_config()
+	if rep_config == null:
+		return
+	# Duplicate so each game instance edits its own schema during spawn/despawn.
+	synchronizer.set_replication_config(rep_config.duplicate(true))
 
 func should_show_cashout_vote_button() -> bool:
 	if game_type != Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
