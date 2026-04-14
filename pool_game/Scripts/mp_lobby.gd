@@ -821,6 +821,7 @@ func send_to_game(slot: int, peers: Array, game_type: Utils.GameType):
 	elif camera_mode == 1: # orthogonal
 		camera = game.get_node("OrthogonalCamPivot/Camera3D")
 		camera.make_current()
+	games.get_node("GameContainer%s" % slot)._sync_subviewport_size()
 	$ClientUI/VBoxContainer/TitleLabel.text = "In game"
 	$ClientUI/VBoxContainer/InfoLabel.text = "Currently playing a game"
 

@@ -4,7 +4,6 @@ signal ai_aimed(dir: Vector2)
 signal ai_placed_cue_ball(pos: Vector3)
 signal ai_picked_pocket(hole_ind: int)
 
-@onready var camera: Camera3D = get_viewport().get_camera_3d()
 @onready var circle_artist = $"../UI/AimVisuals/CircleArtist"
 
 var hole_locs: Array[Vector3]
@@ -130,7 +129,7 @@ func find_shot(cue_ball: Ball, obj_balls: Array[Ball]):
 	choose_random_shot(cue_ball)
 	
 func choose_random_shot(cue_ball: Ball):
-	var shot = Shot.new(cue_ball, [], Vector3.INF, camera, circle_artist)
+	var shot = Shot.new(cue_ball, [], Vector3.INF, get_viewport().get_camera_3d(), circle_artist)
 	var angle = randf_range(0, 2 * 3.14)
 	shot.target_positions.append(
 		cue_ball.global_position + 2 * Constants.BALL_RADIUS * Vector3(cos(angle), 0, -sin(angle))
@@ -145,7 +144,7 @@ func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	var perms = generate_ball_perms(obj_balls)
 	for perm in perms:
 		for hole_loc in hole_locs:
-			var alt_shot = Shot.new(cue_ball, perm, hole_loc, camera, circle_artist)
+			var alt_shot = Shot.new(cue_ball, perm, hole_loc, get_viewport().get_camera_3d(), circle_artist)
 			if prefers_alt_shot(alt_shot, cached_shot):
 				print("Prefer alternative shot: ")
 				print_shot(alt_shot)
@@ -154,7 +153,7 @@ func find_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	
 func find_non_potting_shot(cue_ball: Ball, obj_balls: Array[Ball]) -> bool:
 	for obj_ball in obj_balls:
-		var alt_shot = Shot.new(cue_ball, [obj_ball], Vector3.INF, camera, circle_artist)
+		var alt_shot = Shot.new(cue_ball, [obj_ball], Vector3.INF, get_viewport().get_camera_3d(), circle_artist)
 		if prefers_alt_shot(alt_shot, cached_shot):
 			print("Prefer alternative shot: ")
 			print_shot(alt_shot)
