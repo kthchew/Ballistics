@@ -8,6 +8,7 @@ signal stopped_moving
 @onready var fire_button = $UI/SafeAreaContainer/FireButton
 @onready var aimer = $UI/SafeAreaContainer/Aimer
 @onready var menu_button = $UI/SafeAreaContainer/MenuButton
+@onready var cashout_vote_button: Control = $UI/SafeAreaContainer/CashoutVoteButton
 @onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_guide = $UI/AimVisuals/AimGuide
@@ -16,27 +17,25 @@ signal stopped_moving
 @onready var shape_cast = $ShapeCast3D
 @onready var ball_manager = $BallManager
 @onready var classical_ai = $ClassicalAI
-@onready var cashout = false
 
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
-var cashout_owner_ind: int = -1
-var local_cashout_owner: bool = false
+var cashout_owner_index: int = -1
 var continue_after_crazy: bool = false
 const POWER_BASE_COSTS := {"block": 15, "tungsten": 8, "tnt": 8, "aerogel": 12, "bumper": 20, "eraser": 10, "gluetrap": 6}
 const POWER_COST_VARIATION_PERCENT: int = 10
-var power_shop_options: Array[String] = []
-var power_shop_costs: Dictionary = {}
-var power_shop_used: Array[String] = []
+const MIDTURN_TIMEOUT_MSEC: int = 20000
+var shop_power_options: Array[String] = []
+var shop_power_costs: Dictionary = {}
+var used_shop_powers: Array[String] = []
 const STATIC_TICKS_THRESHOLD: int = 60
 var powerup_hint_text: String = ""
-var powerup_hint_until_msec: int = 0
 
 var init_peer = null
 var has_aimed := false
 # physics defaults to 60 ticks per second
 var cur_static_ticks = 0
+var midturn_start_msec: int = 0
 var requesting_reset: Array[bool] = [false, false] # index is player index
-
 
 @export var game_type: Utils.GameType = Utils.GameType.EIGHT_BALL_MULTIPLAYER
 @export var lobby_slot: int = -1
@@ -98,10 +97,28 @@ func turn_on_light():
 	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
 	await get_tree().create_timer(0.25).timeout
 	$OverheadLight/Light.light_energy = 1000
-	$UI.visible = true
-	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER: 
-		$UI/SafeAreaContainer/CashoutVoteButton.visible = true
+	if not $pUI.visible: # occurs if game was loaded
+		$UI.visible = true
+	update_cashout_vote_button_visibility()
 	$LabelLayer.visible = true
+
+func should_show_cashout_vote_button() -> bool:
+	if game_type != Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
+		return false
+	if not $UI.visible:
+		return false
+	if game_state == GameState.PLACING:
+		return false
+	if game_state == GameState.MIDTURN:
+		return false
+	if ball_manager == null:
+		return false
+	return ball_manager.check_all_not_moving()
+
+func update_cashout_vote_button_visibility() -> void:
+	if cashout_vote_button == null:
+		return
+	cashout_vote_button.visible = should_show_cashout_vote_button()
 	
 func _on_ai_aimed(dir: Vector2, force_value: float):
 	aim(dir)
@@ -185,16 +202,20 @@ func save() -> Dictionary:
 		"player_usernames": persistence_usernames.duplicate(),
 		"balls": ball_states,
 		"object_powers": object_power_states,
+		"play_again": play_again,
+		"first_hit_scratch": ball_manager.first_hit_scratch,
 		
 		"game_type": int(game_type),
+		"continue_after_crazy": continue_after_crazy,
 		"money": money.duplicate(),
-		"power_shop_options": power_shop_options.duplicate(),
-		"power_shop_costs": power_shop_costs.duplicate(),
-		"power_shop_used": power_shop_used.duplicate(),
+		"power_shop_options": shop_power_options.duplicate(),
+		"power_shop_costs": shop_power_costs.duplicate(),
+		"power_shop_used": used_shop_powers.duplicate(),
+		"reroll_tax": reroll_tax,
 	}
 	return save_dict
 
-func load(save_dict: Dictionary) -> void:
+func load_saved_game(save_dict: Dictionary) -> void:
 	set_visibility()
 	set_visibility.rpc_id(connected_peers[0])
 	set_visibility.rpc_id(connected_peers[1])
@@ -212,26 +233,31 @@ func load(save_dict: Dictionary) -> void:
 	next_solids_player = int(save_dict.get("solids_player", -1))
 	winner = int(save_dict.get("winner", -1))
 	game_state = int(save_dict.get("game_state", GameState.AIMING)) as GameState
+	play_again = bool(save_dict.get("play_again", false))
+	continue_after_crazy = bool(save_dict.get("continue_after_crazy", false))
+	ball_manager.first_hit_scratch = int(save_dict.get("first_hit_scratch", false))
 	
 	game_type = int(save_dict.get("game_type", Utils.GameType.EIGHT_BALL_MULTIPLAYER)) as Utils.GameType
 	money = save_dict.get("money", [0, 0])
 	var opt_string_arr: Array[String]
 	opt_string_arr.assign(save_dict.get("power_shop_options", []).duplicate())
-	power_shop_options = opt_string_arr
-	power_shop_costs = save_dict.get("power_shop_costs", {}).duplicate()
+	shop_power_options = opt_string_arr
+	shop_power_costs = save_dict.get("power_shop_costs", {}).duplicate()
 	var used_string_arr: Array[String]
 	used_string_arr.assign(save_dict.get("power_shop_used", []).duplicate())
-	power_shop_used = used_string_arr
+	used_shop_powers = used_string_arr
+	reroll_tax = int(save_dict.get("reroll_tax", 1))
 	
 	if game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
-		cashout_owner_ind = 1 - player_ind
-		set_cashout_owner.rpc(cashout_owner_ind)
-		$pUI/placementController.set_cashout_owner.rpc(connected_peers[cashout_owner_ind])
+		cashout_owner_index = 1 - player_ind
+		set_cashout_owner.rpc(cashout_owner_index)
+		$pUI/placementController.set_cashout_owner.rpc(connected_peers[cashout_owner_index])
 		if game_state == GameState.CASHOUT:
-			show_cashout_wait_menu.rpc(connected_peers[cashout_owner_ind])
-			show_cashout_menu.rpc_id(connected_peers[cashout_owner_ind], money, cashout_owner_ind)
+			show_cashout_wait_menu.rpc(connected_peers[cashout_owner_index])
+			show_cashout_menu.rpc_id(connected_peers[cashout_owner_index], cashout_owner_index)
 		elif game_state == GameState.CRAZY:
-			start_crazy_mode.rpc_id(connected_peers[cashout_owner_ind])
+			sync_power_shop_state(connected_peers[cashout_owner_index])
+			show_crazy_mode_ui.rpc_id(connected_peers[cashout_owner_index])
 
 	var saved_scores = save_dict.get("scores", [0, 0])
 	if saved_scores is Array and saved_scores.size() == 2:
@@ -450,15 +476,16 @@ func cashout_vote_request() -> void:
 			# Randomly select one of the two players
 			var random_player_ind = randi() % 2
 			# Create the cashout event for the random player
-			cashout_owner_ind = random_player_ind
+			cashout_owner_index = random_player_ind
 			var cashout_peer_id = connected_peers[random_player_ind]
 			if cashout_peer_id != -1:
 				game_state = GameState.CASHOUT
+				play_again = true
 				show_cashout_wait_menu.rpc(cashout_peer_id)
 				if cashout_peer_id == multiplayer.get_unique_id():
-					show_cashout_menu(money, random_player_ind)
+					show_cashout_menu(random_player_ind)
 				else:
-					show_cashout_menu.rpc_id(cashout_peer_id, money, random_player_ind)
+					show_cashout_menu.rpc_id(cashout_peer_id, random_player_ind)
 		$UI/SafeAreaContainer/CashoutVoteButton/CashoutRequestedLabel.visible = false
 		requesting_cashout_vote = [false, false]
 
@@ -467,7 +494,7 @@ func _on_first_hit_ball_changed():
 	
 func _on_ball_sunk(ball):
 	if not multiplayer.is_server():
-			return
+		return
 	if ball.is_eight_ball():
 		var hole_ind = Shot.calc_hole_ind_from_pos(ball.position)
 		if scores[player_ind] >= Constants.BALLS_BEFORE_EIGHT and target_hole == hole_ind:
@@ -497,7 +524,6 @@ func _on_ball_sunk(ball):
 			
 		elif ball.is_stripe() and player_ind != solids_player and solids_player != -1:
 			money[1 - player_ind] += 10
-	update_money_all.rpc(money)
 
 func shapecast_point_to_point(origin: Vector3, rel_target: Vector3) -> bool:
 	shape_cast.global_position = origin
@@ -583,12 +609,22 @@ func start_game() -> void:
 	round_num = 0
 	play_again = false
 	target_hole = -1
+	active_power_objects = 0
+	
+	reset_local_state.rpc()
 	
 	requesting_reset = [false, false]
 	requesting_cashout_vote = [false, false]
 	
 	ball_manager.start_game()
 	start_round()
+	
+@rpc("call_local")
+func reset_local_state():
+	aim_guide.hide()
+	
+	$pUI/placementController.remove_all_placed_powers()
+	ball_manager.clear_crazy_modifiers()
 
 @rpc("any_peer", "call_local")
 func rpc_sync_turn_ui(state: GameState) -> void:
@@ -742,6 +778,7 @@ func fire_cue():
 		cue_stick.striking = false
 		ball_manager.hit_cue_ball(force, offset_3d)
 	)
+	midturn_start_msec = Time.get_ticks_msec()
 	print("STRENGTH:", strength)
 	ball_manager.play_cue_ball_sound(strength)
 
@@ -774,6 +811,7 @@ func ai_play():
 		classical_ai.shoot()
 		
 func start_round(scratched_prev: bool = false) -> void:
+	ball_manager.unfreeze_balls()
 	if scratched_prev:
 		if ball_manager.check_eight_ball_potted():
 			end_game(player_ind)
@@ -792,6 +830,7 @@ func start_round(scratched_prev: bool = false) -> void:
 		ball_manager.cue_ball.sleeping = false
 		ball_manager.cue_ball.linear_velocity = Vector3.ZERO
 		ball_manager.cue_ball.angular_velocity = Vector3.ZERO
+		midturn_start_msec = 0
 
 	rpc_sync_turn_ui.rpc(game_state)
 	
@@ -800,33 +839,31 @@ func start_round(scratched_prev: bool = false) -> void:
 	
 func update_cashout_label() -> void:
 	var owner_money_text = "Money: ?"
-	var owner_index = cashout_owner_ind
+	var owner_index = cashout_owner_index
 	if owner_index == -1:
 		owner_index = get_local_player_index()
 	if owner_index >= 0 and owner_index < money.size():
 		owner_money_text = "Money: " + str(money[owner_index])
 	$CashOut/Panel/VBoxContainer/Label.text = "Cashout decision\n" + owner_money_text + "\nDo you want to cash out?"
 
-@rpc("any_peer", "reliable")
+@rpc("authority", "reliable")
 func show_cashout_wait_menu(owner_peer_id: int) -> void:
 	if multiplayer.get_unique_id() == owner_peer_id:
 		return
 	game_state = GameState.CASHOUT
 	$UI.visible = false
 
-@rpc("any_peer", "reliable")
+@rpc("authority", "reliable")
 func restore_ui_after_cashout() -> void:
 	$UI.visible = true
 
-@rpc("any_peer", "reliable")
+@rpc("authority", "reliable")
 func set_cashout_owner(owner_index: int) -> void:
-	cashout_owner_ind = owner_index
+	cashout_owner_index = owner_index
 
-@rpc("any_peer", "reliable")
-func show_cashout_menu(server_money: Array, owner_index: int) -> void:
-	local_cashout_owner = true
-	cashout_owner_ind = owner_index
-	money = server_money.duplicate()
+@rpc("authority", "reliable")
+func show_cashout_menu(owner_index: int) -> void:
+	cashout_owner_index = owner_index
 	game_state = GameState.CASHOUT
 	$UI.visible = false
 	$CashOut.visible = true
@@ -851,17 +888,16 @@ func end_round() -> void:
 		return
 	if not scratched and play_again:
 		if solids_player != -1 and game_type == Utils.GameType.CRAZY_EIGHT_BALL_MULTIPLAYER:
-			cashout = true
-			cashout_owner_ind = 1 - player_ind
-			set_cashout_owner.rpc(cashout_owner_ind)
-			var cashout_peer_id = connected_peers[cashout_owner_ind]
+			cashout_owner_index = 1 - player_ind
+			set_cashout_owner.rpc(cashout_owner_index)
+			var cashout_peer_id = connected_peers[cashout_owner_index]
 			if cashout_peer_id != -1:
 				game_state = GameState.CASHOUT
 				show_cashout_wait_menu.rpc(cashout_peer_id)
 				if cashout_peer_id == multiplayer.get_unique_id():
-					show_cashout_menu(money, cashout_owner_ind)
+					show_cashout_menu(cashout_owner_index)
 				else:
-					show_cashout_menu.rpc_id(cashout_peer_id, money, cashout_owner_ind)
+					show_cashout_menu.rpc_id(cashout_peer_id, cashout_owner_index)
 			await persist_game_state()
 			return
 		else:
@@ -879,8 +915,17 @@ func end_round() -> void:
 	stopped_moving.emit()
 	
 func process_midturn():
+	if midturn_start_msec != 0 and Time.get_ticks_msec() - midturn_start_msec > MIDTURN_TIMEOUT_MSEC:
+		force_end_round_after_timeout()
+		return
 	ball_manager.process_fallen_balls()
 	process_movement()
+
+func force_end_round_after_timeout() -> void:
+	print("Midturn timeout reached; forcing round end to avoid softlock")
+	ball_manager.freeze_balls()
+	cur_static_ticks = STATIC_TICKS_THRESHOLD
+	end_round()
 
 func process_movement():
 	if ball_manager.check_all_not_moving():
@@ -899,6 +944,7 @@ func _process(delta: float) -> void:
 	if OS.is_debug_build():
 		fill_debug_label()
 	fill_info_label()
+	update_cashout_vote_button_visibility()
 	if $pUI and $pUI.visible:
 		update_powerup_shop()
 
@@ -932,9 +978,9 @@ func fill_debug_label() -> void:
 	debug_label.text = label_txt
 
 func get_cashout_owner_peer_id() -> int:
-	if cashout_owner_ind < 0 or cashout_owner_ind >= connected_peers.size():
+	if cashout_owner_index < 0 or cashout_owner_index >= connected_peers.size():
 		return -1
-	return connected_peers[cashout_owner_ind]
+	return connected_peers[cashout_owner_index]
 
 func is_local_cashout_owner() -> bool:
 	return get_cashout_owner_peer_id() == multiplayer.get_unique_id()
@@ -950,6 +996,11 @@ func fill_info_label() -> void:
 			info_label.text += "Decide whether to cash out and use power ups.\n"
 		else:
 			info_label.text += "Opponent is deciding whether to cash out.\n"
+	if game_state == GameState.CRAZY:
+		if is_local_cashout_owner():
+			info_label.text += "Buy and use powerups in the shop.\n"
+		else:
+			info_label.text += "Opponent is deciding which powerups to use before your next move.\n"
 	if game_state != GameState.MIDTURN and game_state != GameState.ENDED and game_state != GameState.NOT_STARTED:
 		if multiplayer.is_server():
 			info_label.text += "Player " + str(player_ind + 1) + "'s turn.\n"
@@ -968,39 +1019,33 @@ func fill_info_label() -> void:
 			info_label.text += "Pick your target pocket for the 8-ball\n"
 		if game_state == GameState.PLACING:
 			info_label.text += "Your opponent scratched, click to place the cue ball\n"
+
+	if powerup_hint_text != "":
+		if info_label.text != "" and not info_label.text.ends_with("\n"):
+			info_label.text += "\n"
+		info_label.text += powerup_hint_text
 			
 	if about_to_exit:
 		info_label.text += "The other player left the game - returning to menu in a few seconds..."
 
-func show_powerup_hint(message: String, duration_seconds: float = 3.0) -> void:
+func show_powerup_hint(message: String) -> void:
 	if message == "":
 		powerup_hint_text = ""
-		powerup_hint_until_msec = 0
 		return
 	powerup_hint_text = message
-	powerup_hint_until_msec = Time.get_ticks_msec() + int(max(duration_seconds, 0.5) * 1000.0)
-
-	if powerup_hint_text != "" and Time.get_ticks_msec() < powerup_hint_until_msec:
-		if info_label.text != "" and not info_label.text.ends_with("\n"):
-			info_label.text += "\n"
-		info_label.text += powerup_hint_text
 
 func _on_no_pressed() -> void:
-	local_cashout_owner = false
 	$CashOut.visible = false
 	$UI.visible = true
-	cashout = false
 	end_round()
 	
-@export var objects = 0
+var active_power_objects: int = 0
 var randPower = []
 
 func _on_yes_pressed() -> void:
-	local_cashout_owner = false
 	game_state = GameState.CRAZY
 	$CashOut.visible = false
 	$pUI.visible = true
-	initialize_powerup_shop()
 	update_powerup_shop()
 
 func _on_done_powerup_pressed() -> void:
@@ -1011,35 +1056,50 @@ func _on_done_powerup_pressed() -> void:
 
 var reroll_tax = 1
 func _on_reroll_powerup_pressed() -> void:
-	if get_local_player_money() < 1:
+	if get_local_player_money() < reroll_tax:
 		return
-	var local_index = get_local_player_index()
-	if local_index == -1:
-		return
-	money[local_index] -= reroll_tax
-	update_money_all.rpc(money)
-	reroll_tax += 1
-	initialize_powerup_shop()
-	update_powerup_shop()
-	
+	request_reroll_power_shop.rpc()
+
 func has_modifiers_placed() -> bool:
 	var modifiers = get_tree().get_nodes_in_group("modifiers")
 	print(modifiers)
 	return modifiers.size() > 0
 
-func initialize_powerup_shop() -> void:
-	power_shop_options = ["block", "tungsten", "aerogel", "bumper", "gluetrap"]
-	if objects > 0:
-		power_shop_options.append("tnt")
+func refresh_power_shop_inventory(clear_used: bool = false) -> void:
+	if not multiplayer.is_server():
+		return
+	shop_power_options = ["block", "tungsten", "aerogel", "bumper", "gluetrap"]
+	if active_power_objects > 0:
+		shop_power_options.append("tnt")
 	if has_modifiers_placed():
-		power_shop_options.append("eraser")
-		
-	power_shop_options.shuffle()
-	power_shop_used.clear()
-	power_shop_costs.clear()
-	for power_name in power_shop_options:
-		power_shop_costs[power_name] = get_power_cost(power_name)
+		shop_power_options.append("eraser")
+	shop_power_options.shuffle()
+	if clear_used:
+		used_shop_powers.clear()
+	shop_power_costs.clear()
+	for power_name in shop_power_options:
+		shop_power_costs[power_name] = roll_power_cost(power_name)
 	$pUI/Panel/HBoxContainer2/RerollButton.text = "Reroll (%s)" % reroll_tax
+
+func sync_power_shop_state(target_peer_id: int = -1) -> void:
+	if not multiplayer.is_server():
+		return
+	if target_peer_id == -1:
+		apply_power_shop_state.rpc(shop_power_options, shop_power_costs, used_shop_powers, reroll_tax)
+	else:
+		apply_power_shop_state.rpc_id(target_peer_id, shop_power_options, shop_power_costs, used_shop_powers, reroll_tax)
+
+@rpc("authority", "reliable", "call_local")
+func apply_power_shop_state(options: Array, costs: Dictionary, used: Array, next_reroll_tax: int) -> void:
+	var options_cast: Array[String]
+	options_cast.assign(options)
+	shop_power_options = options_cast
+	shop_power_costs = costs.duplicate()
+	var used_cast: Array[String]
+	used_cast.assign(used)
+	used_shop_powers = used_cast
+	reroll_tax = max(next_reroll_tax, 1)
+	update_powerup_shop()
 
 func _on_no_pressed_local() -> void:
 	request_cashout_no.rpc()
@@ -1048,19 +1108,35 @@ func _on_yes_pressed_local() -> void:
 	request_cashout_yes.rpc()
 
 @rpc("any_peer", "reliable")
+func request_reroll_power_shop() -> void:
+	if not multiplayer.is_server() or game_state != GameState.CRAZY:
+		return
+	var sender_id = multiplayer.get_remote_sender_id()
+	if cashout_owner_index == -1 or sender_id != connected_peers[cashout_owner_index]:
+		return
+	var owner_index = connected_peers.find(sender_id)
+	if owner_index == -1 or money[owner_index] < reroll_tax:
+		return
+	money[owner_index] -= reroll_tax
+	reroll_tax += 1
+	refresh_power_shop_inventory(true)
+	sync_power_shop_state(sender_id)
+	await persist_game_state()
+
+@rpc("any_peer", "reliable")
 func request_finish_powerup_selection() -> void:
 	if not multiplayer.is_server():
 		return
 	var sender_id = multiplayer.get_remote_sender_id()
 	var owner_index = connected_peers.find(sender_id)
-	if owner_index == -1 or owner_index != cashout_owner_ind:
+	if owner_index == -1 or owner_index != cashout_owner_index:
 		return
 	var shooter_peer_id = connected_peers[player_ind]
 	if shooter_peer_id != -1:
 		restore_ui_after_cashout.rpc_id(shooter_peer_id)
 	end_round()
 
-func get_power_cost(power_name: String) -> int:
+func roll_power_cost(power_name: String) -> int:
 	var base_cost = POWER_BASE_COSTS.get(power_name, 0)
 	if base_cost == 0:
 		return 0
@@ -1076,29 +1152,36 @@ func get_local_player_money() -> int:
 		return money[idx]
 	return 0
 
-func get_current_player_money() -> int:
-	return money[player_ind]
-
-func purchase_power(power_name: String, cost: int) -> bool:
-	if cost <= 0:
+func server_try_consume_power_purchase(sender_id: int, power_name: String) -> bool:
+	if not multiplayer.is_server() or game_state != GameState.CRAZY:
 		return false
-	var local_index = get_local_player_index()
-	if local_index == -1:
+	if cashout_owner_index == -1 or sender_id != connected_peers[cashout_owner_index]:
 		return false
-	if cost > money[local_index]:
+	if not shop_power_options.has(power_name) or used_shop_powers.has(power_name):
 		return false
-	request_purchase_power.rpc(power_name, cost)
+	var owner_index = connected_peers.find(sender_id)
+	if owner_index == -1:
+		return false
+	var cost = int(shop_power_costs.get(power_name, 0))
+	if cost <= 0 or cost > money[owner_index]:
+		return false
+	money[owner_index] -= cost
+	used_shop_powers.append(power_name)
+	sync_power_shop_state(sender_id)
 	return true
 
 func try_purchase_power_for_peer(sender_id: int, power_name: String, client_cost: int) -> bool:
 	if not multiplayer.is_server():
 		return false
 
+	if not shop_power_options.has(power_name) or used_shop_powers.has(power_name):
+		return false
+
 	var buyer_index = connected_peers.find(sender_id)
 	if buyer_index == -1:
 		return false
 
-	var expected_cost = int(power_shop_costs.get(power_name, 0))
+	var expected_cost = int(shop_power_costs.get(power_name, 0))
 	if expected_cost <= 0:
 		# Fallback for temporary shop desync: accept the offered client cost if valid.
 		expected_cost = client_cost
@@ -1113,7 +1196,8 @@ func try_purchase_power_for_peer(sender_id: int, power_name: String, client_cost
 		return false
 
 	money[buyer_index] -= client_cost
-	update_money_all.rpc(money)
+	used_shop_powers.append(power_name)
+	sync_power_shop_state(sender_id)
 	return true
 
 @rpc("authority", "call_local")
@@ -1129,7 +1213,7 @@ func request_purchase_power(power_name: String, cost: int) -> void:
 		return
 
 	var sender_id = multiplayer.get_remote_sender_id()
-	if not try_purchase_power_for_peer(sender_id, power_name, cost):
+	if not server_try_consume_power_purchase(sender_id, power_name):
 		purchase_result.rpc_id(sender_id, false)
 		return
 
@@ -1140,6 +1224,7 @@ func update_powerup_shop() -> void:
 	if not $pUI or not $pUI/Panel:
 		return
 	$pUI/Panel/MoneyLabel.text = "Money: %s" % get_local_player_money()
+	$pUI/Panel/HBoxContainer2/RerollButton.text = "Reroll (%s)" % reroll_tax
 	var buttons = [
 		$pUI/Panel/HBoxContainer/Power1,
 		$pUI/Panel/HBoxContainer/Power2,
@@ -1147,10 +1232,10 @@ func update_powerup_shop() -> void:
 	]
 	for i in range(buttons.size()):
 		var button = buttons[i]
-		if i < power_shop_options.size():
-			var power_name = power_shop_options[i]
-			var cost = power_shop_costs.get(power_name, 0)
-			var used = power_shop_used.has(power_name)
+		if i < shop_power_options.size():
+			var power_name = shop_power_options[i]
+			var cost = shop_power_costs.get(power_name, 0)
+			var used = used_shop_powers.has(power_name)
 			var affordable = cost > 0 and cost <= get_local_player_money()
 			if used or not affordable:
 				button.visible = false
@@ -1168,14 +1253,14 @@ func update_powerup_shop() -> void:
 			button.disabled = true
 			button.set_meta("power_name", null)
 			button.set_meta("power_cost", 0)
-	reroll_button.disabled = get_local_player_money() < 1
+	reroll_button.disabled = get_local_player_money() < reroll_tax
 	var any_visible = false
 	for button in buttons:
 		if button.visible:
 			any_visible = true
 			break
 	if not any_visible:
-		if power_shop_used.size() >= power_shop_options.size():
+		if used_shop_powers.size() >= shop_power_options.size():
 			$pUI/Panel/NoticeLabel.text = "No power ups remain. Press Done."
 		else:
 			$pUI/Panel/NoticeLabel.text = "You lack funding. Play the game. Now."
@@ -1189,15 +1274,12 @@ func request_cashout_no() -> void:
 		return
 
 	var sender_id = multiplayer.get_remote_sender_id()
-	if cashout_owner_ind == -1 or sender_id != connected_peers[cashout_owner_ind]:
+	if cashout_owner_index == -1 or sender_id != connected_peers[cashout_owner_index]:
 		return
 
-	money[cashout_owner_ind] += 3
-	update_money_all.rpc(money)
+	money[cashout_owner_index] += 3
 	hide_cashout_menu.rpc_id(sender_id)
 	restore_ui_after_cashout.rpc()
-	cashout = false
-
 	if play_again:
 		play_again = false
 		start_round()
@@ -1210,27 +1292,26 @@ func request_cashout_yes() -> void:
 	if not multiplayer.is_server():
 		return
 	var sender_id = multiplayer.get_remote_sender_id()
-	if cashout_owner_ind == -1 or sender_id != connected_peers[cashout_owner_ind]:
+	if cashout_owner_index == -1 or sender_id != connected_peers[cashout_owner_index]:
 		return
-	cashout = false
 	continue_after_crazy = true
-	var owner_peer_id = connected_peers[cashout_owner_ind]
+	var owner_peer_id = connected_peers[cashout_owner_index]
+	refresh_power_shop_inventory(true)
+	sync_power_shop_state(sender_id)
 	$pUI/placementController.set_cashout_owner.rpc(owner_peer_id)
-	start_crazy_mode.rpc_id(sender_id)
+	show_crazy_mode_ui.rpc_id(sender_id)
 	game_state = GameState.CRAZY
 
 @rpc("authority", "call_local")
 func hide_cashout_menu() -> void:
-	local_cashout_owner = false
 	$CashOut.visible = false
 	$UI.visible = true
 
 @rpc("authority", "call_local")
-func start_crazy_mode() -> void:
-	local_cashout_owner = false
+func show_crazy_mode_ui() -> void:
 	$CashOut.visible = false
 	$pUI.visible = true
-	initialize_powerup_shop()
+	$UI.visible = false
 	update_powerup_shop()
 
 
@@ -1241,12 +1322,12 @@ func _on_menu_button_pressed() -> void:
 func _on_menu_resume_button_pressed() -> void:
 	$UI/PauseMenu.hide()
 
-
 func _on_menu_exit_button_pressed() -> void:
 	ball_manager.stop_synchronizing_all_balls()
 	get_tree().get_root().multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	get_tree().call_deferred("change_scene_to_file", "res://Scenes/Menu.tscn")
-
-@rpc("any_peer", "reliable")
-func update_money_all(server_money: Array) -> void:
-	money = server_money.duplicate()
+	
+func _new_delta_sync_received() -> void:
+	# delta sync can be a change in money
+	update_cashout_label()
+	update_powerup_shop()

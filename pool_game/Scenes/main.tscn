@@ -20,7 +20,7 @@
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="15_hpc6h"]
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://Scripts/ball_manager.gd" id="15_vivmo"]
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="16_kltya"]
-[ext_resource type="Shape3D" path="res://ball_shape.tres" id="17_e08e2"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://Resources/ball_shape.tres" id="17_e08e2"]
 [ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://Scripts/classical_ai.gd" id="20_hibaj"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
@@ -237,22 +237,31 @@ properties/9/spawn = true
 properties/9/replication_mode = 2
 properties/10/path = NodePath("UI/AimVisuals/CueStick:position")
 properties/10/spawn = true
-properties/10/replication_mode = 2
+properties/10/replication_mode = 1
 properties/11/path = NodePath("UI/AimVisuals/CueStick:visible")
 properties/11/spawn = true
 properties/11/replication_mode = 2
 properties/12/path = NodePath("UI/AimVisuals/CueStick:rotation")
 properties/12/spawn = true
-properties/12/replication_mode = 2
+properties/12/replication_mode = 1
 properties/13/path = NodePath(".:money")
 properties/13/spawn = true
 properties/13/replication_mode = 2
 properties/14/path = NodePath("BallManager:balls_sunk")
 properties/14/spawn = true
-properties/14/replication_mode = 1
+properties/14/replication_mode = 2
 properties/15/path = NodePath(".:game_type")
 properties/15/spawn = true
 properties/15/replication_mode = 2
+properties/16/path = NodePath("BallManager:first_hit_scratch")
+properties/16/spawn = true
+properties/16/replication_mode = 2
+properties/17/path = NodePath("BallManager:cue_ball:first_hit_ball_num")
+properties/17/spawn = true
+properties/17/replication_mode = 2
+properties/18/path = NodePath(".:round_num")
+properties/18/spawn = true
+properties/18/replication_mode = 2
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_h1bgf")
@@ -484,6 +493,7 @@ offset_right = -217.0
 offset_bottom = 119.0
 grow_horizontal = 0
 theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 30
 text = "Vote Cashout"
 
 [node name="CashoutRequestedLabel" type="Label" parent="UI/SafeAreaContainer/CashoutVoteButton" unique_id=953158475]
@@ -497,6 +507,7 @@ offset_top = 80.0
 offset_right = -12.0
 offset_bottom = 103.0
 grow_horizontal = 0
+theme_override_font_sizes/font_size = 25
 text = "Cashout voted"
 horizontal_alignment = 1
 
@@ -657,9 +668,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -375.0
+offset_left = -625.0
 offset_top = -150.0
-offset_right = 375.0
+offset_right = 625.0
 offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -904,3 +915,4 @@ script = ExtResource("20_hibaj")
 [connection signal="button_up" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_up"]
 [connection signal="button_down" from="pUI/Rotate/rotateRight" to="pUI/placementController" method="_on_rotate_right_button_down"]
 [connection signal="button_up" from="pUI/Rotate/rotateRight" to="pUI/placementController" method="_on_rotate_right_button_up"]
+[connection signal="delta_synchronized" from="MultiplayerSynchronizer" to="." method="_new_delta_sync_received"]

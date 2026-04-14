@@ -210,6 +210,7 @@ func _on_confirm_pressed() -> void:
 	if code == 200 or code == 201:
 		auth_status_label.text = ""
 		await _refresh_session_view()
+		$/root/Menu._refresh_resume_button_state()
 		return
 	auth_status_label.text = _response_text(response, "Authentication failed.")
 
@@ -224,6 +225,7 @@ func _on_logout_pressed() -> void:
 	game_invites = []
 	_show_auth()
 	password_input.text = ""
+	$/root/Menu._refresh_resume_button_state()
 
 func _on_add_friend_pressed() -> void:
 	var to_user: String = add_friend_input.text.strip_edges()

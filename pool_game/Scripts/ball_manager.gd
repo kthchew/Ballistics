@@ -32,6 +32,12 @@ func start_game():
 	
 	balls_sunk = [0, 0]
 	
+func clear_crazy_modifiers():
+	for ball in balls:
+		ball.mass = 1
+		ball.modifiers.clear()
+		color_ball(get_node(NodePath(ball.get_name())))
+	
 func end_round():
 	first_hit_scratch = false
 	cue_ball.first_hit_ball_num = -1
@@ -57,6 +63,12 @@ func play_cue_ball_sound(strength):
 func freeze_balls():
 	for ball in balls:
 		ball.freeze = true
+
+func unfreeze_balls():
+	for ball in balls:
+		if ball.potted:
+			continue
+		ball.freeze = false
 		
 func check_scratch():
 	return cue_ball.potted or first_hit_scratch
@@ -76,6 +88,7 @@ func create_balls() -> void:
 		var ball: RigidBody3D = ball_scene.instantiate()
 		ball.ball_num = i
 		ball.name = "Ball%s" % i
+		ball.freeze = true
 		
 		add_child(ball)
 		balls.append(ball)

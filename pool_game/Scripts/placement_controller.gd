@@ -10,7 +10,6 @@ var owner_peer_id := -1
 var game_root: Node = null
 var preview_container: Node = null
 var power_name = null
-var selected_power_cost: int = 0
 
 const power_scenes: Dictionary[String, Resource] = {
 	"block": preload("res://Scenes/Powers/block.tscn"),
@@ -37,57 +36,44 @@ func _ready():
 	preview_container = game_root.get_node("PreviewContainer")
 
 @rpc("authority", "call_local")
-func set_cashout_owner(owner_peer_id: int):
-	self.owner_peer_id = owner_peer_id
+func set_cashout_owner(cashout_owner_peer_id: int):
+	self.owner_peer_id = cashout_owner_peer_id
 
 func _on_power_1_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
 	var button = $"../Panel/HBoxContainer/Power1"
 	var selected_power = button.get_meta("power_name")
-	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
-		return
-	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	selected_power_cost = selected_cost
-	start_placement(power_name, selected_power_cost)
+	start_placement(power_name)
 
 func _on_power_2_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
 	var button = $"../Panel/HBoxContainer/Power2"
 	var selected_power = button.get_meta("power_name")
-	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
-		return
-	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	selected_power_cost = selected_cost
-	start_placement(power_name, selected_power_cost)
+	start_placement(power_name)
 
 func _on_power_3_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
 		return
 	var button = $"../Panel/HBoxContainer/Power3"
 	var selected_power = button.get_meta("power_name")
-	var selected_cost = int(button.get_meta("power_cost"))
 	if selected_power == null:
-		return
-	if selected_cost <= 0:
 		return
 	self.visible = true
 	power_name = selected_power
-	selected_power_cost = selected_cost
-	start_placement(power_name, selected_power_cost)
+	start_placement(power_name)
 
 
-func start_placement(power_key: String, cost: int):
-	selected_power_cost = cost
+func start_placement(power_key: String):
 	var scene: Resource = power_scenes[power_key]
 	preview = scene.instantiate()
 	preview.visible = true
@@ -184,14 +170,9 @@ func _on_place_button_pressed():
 	if not preview.canPlace():
 		print("preview cannot be placed here")
 		return
-
-	var power_cost = selected_power_cost
-	if power_cost <= 0 and game_root:
-		power_cost = int(game_root.power_shop_costs.get(power_name, 0))
-	
-	if power_cost <= 0:
-		print("power_cost <= 0")
-		return
+		
+	if game_root and game_root.has_method("show_powerup_hint"):
+		game_root.show_powerup_hint("")
 
 	var target_path = ""
 	if preview.power_type == "Modifier":
@@ -203,7 +184,6 @@ func _on_place_button_pressed():
 			preview.global_position,
 			preview.global_rotation,
 			preview.power_scene_name,
-			power_cost,
 			target_path
 		)
 	else:
@@ -213,7 +193,6 @@ func _on_place_button_pressed():
 			preview.global_position,
 			preview.global_rotation,
 			preview.power_scene_name,
-			power_cost,
 			target_path
 		)
 
@@ -237,7 +216,7 @@ func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Ve
 	elif power_type == "Object":
 		obj.collision_layer = (1 << 2) | (1 << 3)
 		obj.collision_mask = (1 << 0) | (1 << 2) | (1 << 3)
-		game_root.objects += 1
+		game_root.active_power_objects += 1
 
 	return obj
 
@@ -280,14 +259,14 @@ func load_object_powers(saved_object_powers: Array) -> void:
 	_clear_object_powers()
 
 	if game_root:
-		game_root.objects = 0
+		game_root.active_power_objects = 0
 
 	for state in saved_object_powers:
 		if not (state is Dictionary):
 			continue
 
-		var power_name := String(state.get("type", ""))
-		if power_name == "" or not power_scenes.has(power_name):
+		var saved_power_name := String(state.get("type", ""))
+		if saved_power_name == "" or not power_scenes.has(saved_power_name):
 			continue
 
 		var pos := Vector3(
@@ -301,13 +280,20 @@ func load_object_powers(saved_object_powers: Array) -> void:
 			float(state.get("rot_z", 0.0))
 		)
 
-		_spawn_power_local("Object", power_name, pos, rot)
+		_spawn_power_local("Object", saved_power_name, pos, rot)
 		if multiplayer.is_server():
-			rpc("rpc_spawn_power", "Object", power_name, pos, rot)
+			rpc("rpc_spawn_power", "Object", saved_power_name, pos, rot)
 
 @rpc("any_peer", "reliable")
 func rpc_spawn_power(power_type: String, pName: String, pos: Vector3, rot: Vector3):
 	_spawn_power_local(power_type, pName, pos, rot)
+	
+func remove_all_placed_powers():
+	if not preview_container:
+		return
+
+	for child in preview_container.get_children():
+		child.queue_free()
 
 func _get_node_by_global_path(path: String) -> Node:
 	if path == "":
@@ -345,6 +331,9 @@ func _apply_modifier(pName: String, modified_path: String, target_pos: Vector3 =
 	var scene: PackedScene = power_scenes.get(pName)
 	if not scene:
 		return
+		
+	if "modifiers" in target:
+		target.modifiers.append(pName)
 
 	var power_instance = scene.instantiate()
 	preview_container.add_child(power_instance)
@@ -359,7 +348,7 @@ func rpc_apply_modifier(pName: String, modified_path: String, target_pos: Vector
 	_apply_modifier(pName, modified_path, target_pos)
 
 @rpc("any_peer", "reliable")
-func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, cost: int, target_path: String = ""):
+func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, target_path: String = ""):
 	if not multiplayer.is_server():
 		return
 	
@@ -410,7 +399,7 @@ func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: 
 		power_instance.queue_free()
 		return
 
-	if not game_root or not game_root.try_purchase_power_for_peer(sender, pName, cost):
+	if not game_root or not game_root.server_try_consume_power_purchase(sender, pName):
 		print("purchase rejected for power placement")
 		power_instance.queue_free()
 		return
@@ -441,9 +430,6 @@ func finish_placement():
 	if preview:
 		preview.queue_free()
 		preview = null
-	if power_name != null and game_root:
-		if not game_root.power_shop_used.has(power_name):
-			game_root.power_shop_used.append(power_name)
 	if game_root and game_root.has_method("update_powerup_shop"):
 		game_root.update_powerup_shop()
 	if game_root and game_root.has_node("pUI"):
@@ -452,7 +438,6 @@ func finish_placement():
 		if p_ui.has_node("Panel"):
 			p_ui.get_node("Panel").visible = true
 	power_name = null
-	selected_power_cost = 0
 	rpc("rpc_clear_preview")
 	rpc("rpc_exit_powerup_ui")
 
@@ -482,11 +467,11 @@ func _process(delta):
 		var rotated := false
 
 		if rotating_left:
-			preview.rotate_y(deg_to_rad(1))
+			preview.rotate_y(deg_to_rad(2))
 			rotated = true
 
 		if rotating_right:
-			preview.rotate_y(deg_to_rad(-1))
+			preview.rotate_y(deg_to_rad(-2))
 			rotated = true
 
 		if rotated:
