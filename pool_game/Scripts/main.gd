@@ -610,6 +610,7 @@ func start_game() -> void:
 	play_again = false
 	target_hole = -1
 	active_power_objects = 0
+	reroll_tax = 1
 	
 	reset_local_state.rpc()
 	
@@ -910,6 +911,7 @@ func end_round() -> void:
 	play_again = false
 	turn_num += 1
 	player_ind = 1 - player_ind
+	reroll_tax = 1
 	start_round(scratched)
 	await persist_game_state()
 	stopped_moving.emit()
