@@ -557,6 +557,8 @@ func cast_aim_ray(aim_dir: Vector2) -> void:
 
 	$UI/AimVisuals/AimGuide/AimGuideMarker.position = camera.unproject_position(ghost_ball_pos)
 	$UI/AimVisuals/AimGuide/AimGuideCircle.position = camera.unproject_position(ghost_ball_pos)
+	if camera.projection == Camera3D.ProjectionType.PROJECTION_PERSPECTIVE:
+		$UI/AimVisuals/AimGuide/AimGuideCircle.scale = Vector2.ONE * 1.8
 	
 	aim_guide_line.set_point_position(0, camera.unproject_position(origin))
 	aim_guide_line.set_point_position(1, camera.unproject_position(ghost_ball_pos))
