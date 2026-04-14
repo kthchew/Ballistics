@@ -604,7 +604,7 @@ func start_game() -> void:
 	solids_player = -1
 	next_solids_player = -1
 	scores = [0, 0]
-	money = [100, 100]
+	money = [0, 0]
 	turn_num = 0
 	round_num = 0
 	play_again = false
