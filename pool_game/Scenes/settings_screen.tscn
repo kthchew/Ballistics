@@ -3,6 +3,9 @@
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="1_85ujs"]
 [ext_resource type="Script" uid="uid://c8g61hyi2hpe5" path="res://Scripts/settings_screen.gd" id="1_bu2iy"]
 
+[sub_resource type="Theme" id="Theme_bu2iy"]
+default_font_size = 32
+
 [node name="SettingsScreen" type="Control" unique_id=2040582154]
 layout_mode = 3
 anchors_preset = 8
@@ -103,6 +106,7 @@ text = "Camera Mode"
 [node name="OptionButton" type="OptionButton" parent="MarginContainer/VBoxContainer/Camera" unique_id=2052432709]
 layout_mode = 2
 size_flags_horizontal = 3
+theme = SubResource("Theme_bu2iy")
 theme_override_font_sizes/font_size = 32
 selected = 0
 item_count = 2
