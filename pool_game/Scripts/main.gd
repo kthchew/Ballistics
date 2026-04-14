@@ -408,14 +408,14 @@ func select_hole(hole_ind: int) -> void:
 	color_hole_button.rpc_id(connected_peers[player_ind], hole_ind)
 	color_hole_button.rpc_id(connected_peers[1 - player_ind], hole_ind)
 	
+	start_round()
+	
 	await get_tree().create_timer(1.0).timeout
 	
 	change_hole_button_visibility.rpc_id(connected_peers[player_ind], false)
 	change_hole_button_visibility.rpc_id(connected_peers[1 - player_ind], false)
 	reset_hole_button_color.rpc_id(connected_peers[player_ind], hole_ind)
 	reset_hole_button_color.rpc_id(connected_peers[1 - player_ind], hole_ind)
-	
-	start_round()
 
 func _on_reset_button_pressed() -> void:
 	reset_request.rpc_id(1)
