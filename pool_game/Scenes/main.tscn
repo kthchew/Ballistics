@@ -843,7 +843,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_074og")
 text = "Right"
 
 [node name="TableGroup" parent="." unique_id=1955985234 instance=ExtResource("14_7k868")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
 [node name="Floor" type="MeshInstance3D" parent="." unique_id=1063051328]
 transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.2828827, -63.39213, 0.6614113)
@@ -872,6 +871,7 @@ volume_db = 30.0
 [node name="PreviewContainer" type="Node3D" parent="." unique_id=1410175614]
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -25, 0)
 shape = ExtResource("17_e08e2")
 
 [node name="BallManager" type="Node" parent="." unique_id=1345349029]
