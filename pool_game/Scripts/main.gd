@@ -645,13 +645,13 @@ func _on_aim_input(touch_pos: Vector2):
 	if not is_your_turn():
 		return
 	var camera := get_viewport().get_camera_3d()
+	var ray_origin: Vector3 = camera.project_ray_origin(touch_pos)
+	var ray_normal: Vector3 = camera.project_ray_normal(touch_pos)
+	var drop_plane: Plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
+	var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
+	if intersection == null:
+		return
 	if game_state == GameState.PLACING:
-		var ray_origin: Vector3 = camera.project_ray_origin(touch_pos)
-		var ray_normal: Vector3 = camera.project_ray_normal(touch_pos)
-		var drop_plane: Plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
-		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		if intersection == null:
-			return
 		if shapecast_point_to_point(intersection, Vector3.ZERO) \
 			and abs(intersection.x) < 96 \
 			and abs(intersection.z) < 44.5:
@@ -662,8 +662,8 @@ func _on_aim_input(touch_pos: Vector2):
 		# calculate difference between cue ball position and touch pos, use that to set cue stick angle
 		# this is done so that the vector provided to the server is consistent even if the window's size or aspect ratio is different
 		var ball_center_3d = ball_manager.get_cue_ball_global_pos()
-		var ball_screen_pos: Vector2 = camera.unproject_position(ball_center_3d)
-		var dir: Vector2 = ball_screen_pos - touch_pos
+		var dir_3d: Vector3 = ball_center_3d - intersection
+		var dir = Vector2(dir_3d.x, dir_3d.z)
 		if dir.length() >= 20:
 			aim(dir)
 
