@@ -3,6 +3,9 @@
 [ext_resource type="Theme" uid="uid://b160023562ie" path="res://Art/Button.tres" id="1_85ujs"]
 [ext_resource type="Script" uid="uid://c8g61hyi2hpe5" path="res://Scripts/settings_screen.gd" id="1_bu2iy"]
 
+[sub_resource type="Theme" id="Theme_bu2iy"]
+default_font_size = 32
+
 [node name="SettingsScreen" type="Control" unique_id=2040582154]
 layout_mode = 3
 anchors_preset = 8
@@ -90,6 +93,48 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 placeholder_text = "https://ball-staging-0.kpchew.com:18362"
+
+[node name="Camera" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=245670877]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/Camera" unique_id=1537531349]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Camera Mode (Regular Mode)"
+
+[node name="OptionButton" type="OptionButton" parent="MarginContainer/VBoxContainer/Camera" unique_id=2052432709]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("Theme_bu2iy")
+theme_override_font_sizes/font_size = 32
+selected = 0
+item_count = 2
+popup/item_0/text = "Perspective (3D)"
+popup/item_0/id = 0
+popup/item_1/text = "Orthogonal (2D-like)"
+popup/item_1/id = 1
+
+[node name="CameraCrazy" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=189352523]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CameraCrazy" unique_id=199420966]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Camera Mode (Crazy Mode)"
+
+[node name="OptionButton" type="OptionButton" parent="MarginContainer/VBoxContainer/CameraCrazy" unique_id=1756280225]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("Theme_bu2iy")
+theme_override_font_sizes/font_size = 32
+selected = 0
+item_count = 2
+popup/item_0/text = "Perspective (3D)"
+popup/item_0/id = 0
+popup/item_1/text = "Orthogonal (2D-like)"
+popup/item_1/id = 1
 
 [node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1849299776]
 custom_minimum_size = Vector2(320, 64)

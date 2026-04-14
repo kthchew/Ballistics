@@ -9,7 +9,6 @@ signal stopped_moving
 @onready var aimer = $UI/SafeAreaContainer/Aimer
 @onready var menu_button = $UI/SafeAreaContainer/MenuButton
 @onready var cashout_vote_button: Control = $UI/SafeAreaContainer/CashoutVoteButton
-@onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_guide = $UI/AimVisuals/AimGuide
 @onready var cue_stick = $UI/AimVisuals/CueStick
@@ -98,7 +97,7 @@ func _ready() -> void:
 func turn_on_light():
 	$OverheadLight/Light/AudioStreamPlayer3D.play(0.0)
 	await get_tree().create_timer(0.25).timeout
-	$OverheadLight/Light.light_energy = 1000
+	$OverheadLight/Light.light_energy = 300
 	if not $pUI.visible: # occurs if game was loaded
 		$UI.visible = true
 	update_cashout_vote_button_visibility()
@@ -551,6 +550,7 @@ func set_aim_guide_visibility(visible: bool):
 
 @rpc("any_peer")
 func cast_aim_ray(aim_dir: Vector2) -> void:
+	var camera := get_viewport().get_camera_3d()
 	var origin = ball_manager.get_cue_ball_global_pos()
 	var dir = Vector3(aim_dir.x, 0, aim_dir.y).normalized()
 	if shapecast_point_to_point(origin, 500 * dir):
@@ -653,13 +653,14 @@ func rpc_sync_turn_ui(state: GameState) -> void:
 func _on_aim_input(touch_pos: Vector2):
 	if not is_your_turn():
 		return
+	var camera := get_viewport().get_camera_3d()
+	var ray_origin: Vector3 = camera.project_ray_origin(touch_pos)
+	var ray_normal: Vector3 = camera.project_ray_normal(touch_pos)
+	var drop_plane: Plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
+	var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
+	if intersection == null:
+		return
 	if game_state == GameState.PLACING:
-		var ray_origin: Vector3 = camera.project_ray_origin(touch_pos)
-		var ray_normal: Vector3 = camera.project_ray_normal(touch_pos)
-		var drop_plane: Plane = Plane(Vector3.UP, Vector3(0, Constants.BALL_RADIUS, 0))
-		var intersection = drop_plane.intersects_ray(ray_origin, ray_normal)
-		if intersection == null:
-			return
 		if shapecast_point_to_point(intersection, Vector3.ZERO) \
 			and abs(intersection.x) < 96 \
 			and abs(intersection.z) < 44.5:
@@ -670,8 +671,8 @@ func _on_aim_input(touch_pos: Vector2):
 		# calculate difference between cue ball position and touch pos, use that to set cue stick angle
 		# this is done so that the vector provided to the server is consistent even if the window's size or aspect ratio is different
 		var ball_center_3d = ball_manager.get_cue_ball_global_pos()
-		var ball_screen_pos: Vector2 = camera.unproject_position(ball_center_3d)
-		var dir: Vector2 = ball_screen_pos - touch_pos
+		var dir_3d: Vector3 = ball_center_3d - intersection
+		var dir = Vector2(dir_3d.x, dir_3d.z)
 		if dir.length() >= 20:
 			aim(dir)
 
@@ -712,13 +713,13 @@ func change_force(value: float):
 	cue_stick.set_force_strength(normalized)
 
 func shake_camera(intensity: float, duration: float) -> void:
-	var cam := $CameraPivot/Camera3D
-	var original :Vector3 = cam.rotation_degrees
+	var camera := get_viewport().get_camera_3d()
+	var original :Vector3 = camera.rotation_degrees
 	var tween := create_tween()
-	tween.tween_property(cam, "rotation_degrees", original + Vector3(intensity, intensity, intensity), duration / 2)
+	tween.tween_property(camera, "rotation_degrees", original + Vector3(intensity, intensity, intensity), duration / 2)
 	tween.set_trans(Tween.TRANS_SINE)  # Set transition type to sine for smoothness
 	tween.set_ease(Tween.EASE_OUT)     # Set easing type to ease out for dampening
-	tween.tween_property(cam, "rotation_degrees", original, duration / 2)
+	tween.tween_property(camera, "rotation_degrees", original, duration / 2)
 
 func sway_light(amount: float, duration: float) -> void:
 	var light := $OverheadLight/Light

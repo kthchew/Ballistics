@@ -3,7 +3,7 @@ extends Control
 signal hole_selected(hole_ind: int)
 
 const hole_btn_scene = preload("res://Scenes/hole_button.tscn")
-@onready var camera = $"../../CameraPivot/Camera3D"
+@onready var camera: Camera3D = get_viewport().get_camera_3d()
 
 func _ready() -> void:
 	place_hole_buttons()
