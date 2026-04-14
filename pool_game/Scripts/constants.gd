@@ -4,6 +4,8 @@ const BALL_RADIUS: float = 2.85
 # real game = 7, cue + eight game = 0
 const BALLS_BEFORE_EIGHT: int = 7
 const SHAPECAST_LAYER: int = 1 << 2
+
+const GLUE_TRAP_LAYER: int = 1 << 3
 const AI_DRAW_AIM_GUIDE: bool = false
 
 const DEFAULT_GAME_SERVER_ADDRESS: String = "ball-staging-0.kpchew.com"

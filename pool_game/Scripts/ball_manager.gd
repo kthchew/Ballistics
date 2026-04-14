@@ -63,6 +63,12 @@ func play_cue_ball_sound(strength):
 func freeze_balls():
 	for ball in balls:
 		ball.freeze = true
+
+func unfreeze_balls():
+	for ball in balls:
+		if ball.potted:
+			continue
+		ball.freeze = false
 		
 func check_scratch():
 	return cue_ball.potted or first_hit_scratch
@@ -97,6 +103,7 @@ func create_balls() -> void:
 			cue_ball.max_contacts_reported = 3
 		else:
 			ball.collision_layer += Constants.SHAPECAST_LAYER
+		ball.collision_mask |= Constants.GLUE_TRAP_LAYER
 
 func place_rack(x_shift: float, z_shift: float, spacing: float = 1.05):
 	balls.sort_custom(func(a, b): return a.ball_num < b.ball_num)

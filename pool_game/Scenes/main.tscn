@@ -481,6 +481,36 @@ theme_override_font_sizes/font_size = 64
 text = "| |"
 script = ExtResource("11_hibaj")
 
+[node name="CashoutVoteButton" type="Button" parent="UI/SafeAreaContainer" unique_id=2103840495]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -400.0
+offset_top = 47.0
+offset_right = -217.0
+offset_bottom = 119.0
+grow_horizontal = 0
+theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 30
+text = "Vote Cashout"
+
+[node name="CashoutRequestedLabel" type="Label" parent="UI/SafeAreaContainer/CashoutVoteButton" unique_id=953158475]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -138.0
+offset_top = 80.0
+offset_right = -12.0
+offset_bottom = 103.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 25
+text = "Cashout voted"
+horizontal_alignment = 1
+
 [node name="PauseMenu" type="Panel" parent="UI" unique_id=2117890982]
 visible = false
 anchors_preset = 15
@@ -638,9 +668,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -375.0
+offset_left = -625.0
 offset_top = -150.0
-offset_right = 375.0
+offset_right = 625.0
 offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -824,7 +854,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_074og")
 text = "Right"
 
 [node name="TableGroup" parent="." unique_id=1955985234 instance=ExtResource("14_7k868")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
 [node name="Floor" type="MeshInstance3D" parent="." unique_id=1063051328]
 transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.2828827, -63.39213, 0.6614113)
@@ -853,6 +882,7 @@ volume_db = 30.0
 [node name="PreviewContainer" type="Node3D" parent="." unique_id=1410175614]
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -25, 0)
 shape = ExtResource("17_e08e2")
 
 [node name="BallManager" type="Node" parent="." unique_id=1345349029]
@@ -871,6 +901,7 @@ public_visibility = false
 script = ExtResource("20_hibaj")
 
 [connection signal="pressed" from="UI/SafeAreaContainer/MenuButton" to="." method="_on_menu_button_pressed"]
+[connection signal="pressed" from="UI/SafeAreaContainer/CashoutVoteButton" to="." method="_on_cashout_vote_button_pressed"]
 [connection signal="pressed" from="UI/PauseMenu/GridContainer/ResumeButton" to="." method="_on_menu_resume_button_pressed"]
 [connection signal="pressed" from="UI/PauseMenu/GridContainer/ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="UI/PauseMenu/GridContainer/ExitButton" to="." method="_on_menu_exit_button_pressed"]
