@@ -3,7 +3,6 @@ extends Control
 signal hole_selected(hole_ind: int)
 
 const hole_btn_scene = preload("res://Scenes/hole_button.tscn")
-@onready var camera: Camera3D = get_viewport().get_camera_3d()
 
 func _ready() -> void:
 	place_hole_buttons()
@@ -41,6 +40,6 @@ func reposition_hole_buttons() -> void:
 	for i in range(6):
 		var path_str = "../../TableGroup/Table/Holes/Hole" + str(i + 1) + "/HoleMarker"
 		var hole_marker = get_node(path_str)
-		var screen_pos = camera.unproject_position(hole_marker.global_position)
+		var screen_pos = get_viewport().get_camera_3d().unproject_position(hole_marker.global_position)
 		var hole_btn = get_child(i)
 		hole_btn.position = screen_pos - hole_btn.size / 2
