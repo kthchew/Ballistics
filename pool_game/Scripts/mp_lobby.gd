@@ -586,7 +586,7 @@ func enter_ai_normal_game():
 		maintenance_notice.rpc_id(sender_id, TLS_MAINTENANCE_MESSAGE)
 		return
 	_remove_from_private_room(sender_id, false)
-	_start_game_for_peers([1, sender_id], Utils.GameType.EIGHT_BALL_SINGLEPLAYER)
+	_start_game_for_peers([sender_id, 1], Utils.GameType.EIGHT_BALL_SINGLEPLAYER)
 
 @rpc("any_peer")
 func request_create_private_room(game_type: Utils.GameType):
