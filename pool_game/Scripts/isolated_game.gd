@@ -4,10 +4,11 @@ extends Node3D
 @onready var subviewport: SubViewport = $SubViewportContainer/SubViewport
 
 func _ready() -> void:
-	_sync_subviewport_size()
 	var viewport := get_viewport()
 	if viewport != null and not viewport.size_changed.is_connected(_sync_subviewport_size):
 		viewport.size_changed.connect(_sync_subviewport_size)
+	await get_tree().process_frame
+	_sync_subviewport_size()
 
 func _sync_subviewport_size() -> void:
 	var viewport := get_viewport()
