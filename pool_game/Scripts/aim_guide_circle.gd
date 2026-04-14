@@ -2,7 +2,7 @@ extends Node2D
 
 func _draw():
 	var viewport_height = get_viewport().size.y
-	var camera_height = $"../../../../CameraPivot/Camera3D".size
+	var camera_height := get_viewport().get_camera_3d().size
 	var ball_3d_rad: float = Constants.BALL_RADIUS
 	var ball_2d_rad = (ball_3d_rad / camera_height) * viewport_height
 	var width = 2

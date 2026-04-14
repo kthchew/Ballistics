@@ -20,7 +20,7 @@ func _sync_subviewport_size() -> void:
 	if subviewport.size != target_size:
 		subviewport.size = target_size
 	var game: Node = subviewport.get_node("Game")
-	var camera: Camera3D = game.get_node("CameraPivot/Camera3D")
+	var camera: Camera3D = game.get_viewport().get_camera_3d()
 	var hole_buttons: Node = game.get_node("UI/HoleButtons")
 	var table_group: Node = game.get_node("TableGroup")
 	var cue_stick: Node = game.get_node("UI/AimVisuals/CueStick")

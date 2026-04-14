@@ -812,8 +812,15 @@ func send_to_game(slot: int, peers: Array, game_type: Utils.GameType):
 	game.game_type = game_type
 	game.visible = true
 	game.connected_peers = peers
-	var camera = game.get_node("CameraPivot/Camera3D")
-	camera.make_current()
+	
+	var camera_mode = config.get_value("graphics", "camera_mode", 0)
+	var camera: Camera3D
+	if camera_mode == 0: # perspective
+		camera = game.get_node("PerspectiveCamPivot/Camera3D")
+		camera.make_current()
+	elif camera_mode == 1: # orthogonal
+		camera = game.get_node("OrthogonalCamPivot/Camera3D")
+		camera.make_current()
 	$ClientUI/VBoxContainer/TitleLabel.text = "In game"
 	$ClientUI/VBoxContainer/InfoLabel.text = "Currently playing a game"
 
@@ -1065,6 +1072,7 @@ func despawn_game_at(spot: int):
 		games.remove_child(container)
 		container.queue_free()
 	games_about_to_close.erase(spot)
+	print("erasing game at spot " + str(spot))
 
 func clear_all_games():
 	for spot in regular_games.keys():

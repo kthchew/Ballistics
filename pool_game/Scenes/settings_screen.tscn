@@ -91,6 +91,26 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 placeholder_text = "https://ball-staging-0.kpchew.com:18362"
 
+[node name="Camera" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=245670877]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/Camera" unique_id=1537531349]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Camera Mode"
+
+[node name="OptionButton" type="OptionButton" parent="MarginContainer/VBoxContainer/Camera" unique_id=2052432709]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+selected = 0
+item_count = 2
+popup/item_0/text = "Perspective (3D)"
+popup/item_0/id = 0
+popup/item_1/text = "Orthogonal (2D-like)"
+popup/item_1/id = 1
+
 [node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1849299776]
 custom_minimum_size = Vector2(320, 64)
 layout_mode = 2

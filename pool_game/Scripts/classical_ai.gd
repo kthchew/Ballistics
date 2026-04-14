@@ -4,7 +4,7 @@ signal ai_aimed(dir: Vector2)
 signal ai_placed_cue_ball(pos: Vector3)
 signal ai_picked_pocket(hole_ind: int)
 
-@onready var camera = $"../CameraPivot/Camera3D"
+@onready var camera: Camera3D = get_viewport().get_camera_3d()
 @onready var circle_artist = $"../UI/AimVisuals/CircleArtist"
 
 var hole_locs: Array[Vector3]

@@ -9,7 +9,6 @@ signal stopped_moving
 @onready var aimer = $UI/SafeAreaContainer/Aimer
 @onready var menu_button = $UI/SafeAreaContainer/MenuButton
 @onready var cashout_vote_button: Control = $UI/SafeAreaContainer/CashoutVoteButton
-@onready var camera = $CameraPivot/Camera3D
 @onready var hole_buttons = $UI/HoleButtons
 @onready var aim_guide = $UI/AimVisuals/AimGuide
 @onready var cue_stick = $UI/AimVisuals/CueStick
@@ -17,6 +16,8 @@ signal stopped_moving
 @onready var shape_cast = $ShapeCast3D
 @onready var ball_manager = $BallManager
 @onready var classical_ai = $ClassicalAI
+
+var camera: Camera3D
 
 enum GameState {AIMING, MIDTURN, PLACING, PICKPOCKET, ENDED, CRAZY, NOT_STARTED, CASHOUT}
 var cashout_owner_index: int = -1
@@ -64,6 +65,8 @@ var about_to_exit = false
 func _ready() -> void:
 	if not OS.is_debug_build():
 		debug_label.hide()
+	
+	camera = get_viewport().get_camera_3d()
 	
 	$CashOut/Panel/VBoxContainer/HBoxContainer/Yes.pressed.connect(_on_yes_pressed_local)
 	$CashOut/Panel/VBoxContainer/HBoxContainer/No.pressed.connect(_on_no_pressed_local)
@@ -699,13 +702,12 @@ func change_force(value: float):
 	cue_stick.set_force_strength(normalized)
 
 func shake_camera(intensity: float, duration: float) -> void:
-	var cam := $CameraPivot/Camera3D
-	var original :Vector3 = cam.rotation_degrees
+	var original :Vector3 = camera.rotation_degrees
 	var tween := create_tween()
-	tween.tween_property(cam, "rotation_degrees", original + Vector3(intensity, intensity, intensity), duration / 2)
+	tween.tween_property(camera, "rotation_degrees", original + Vector3(intensity, intensity, intensity), duration / 2)
 	tween.set_trans(Tween.TRANS_SINE)  # Set transition type to sine for smoothness
 	tween.set_ease(Tween.EASE_OUT)     # Set easing type to ease out for dampening
-	tween.tween_property(cam, "rotation_degrees", original, duration / 2)
+	tween.tween_property(camera, "rotation_degrees", original, duration / 2)
 
 func sway_light(amount: float, duration: float) -> void:
 	var light := $OverheadLight/Light

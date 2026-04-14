@@ -267,17 +267,30 @@ properties/18/replication_mode = 2
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_h1bgf")
 
-[node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
+[node name="PerspectiveCamPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
+[node name="Camera3D" type="Camera3D" parent="PerspectiveCamPivot" unique_id=142044440]
 transform = Transform3D(1, 0, 0, 0, 0.9063079, -0.42261833, 0, 0.42261833, 0.9063079, 0, -90, 190)
 keep_aspect = 0
 projection = 1
 current = true
 size = 260.0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="PerspectiveCamPivot/Camera3D" unique_id=2088635213]
+environment = SubResource("Environment_4c57u")
+
+[node name="OrthogonalCamPivot" type="Node3D" parent="." unique_id=1737268356]
+transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="OrthogonalCamPivot" unique_id=61672867]
+transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.4210855e-14, 0, 1.4210855e-14, 1.0000001, 0, 0, 200)
+keep_aspect = 0
+projection = 1
+current = true
+size = 260.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="OrthogonalCamPivot/Camera3D" unique_id=1353386412]
 environment = SubResource("Environment_4c57u")
 
 [node name="LabelLayer" type="CanvasLayer" parent="." unique_id=1486846883]
