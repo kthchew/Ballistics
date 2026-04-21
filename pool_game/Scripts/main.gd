@@ -49,7 +49,7 @@ var requesting_reset: Array[bool] = [false, false] # index is player index
 @export var play_again: bool = false
 @export var target_hole: int = -1
 @export var connected_peers = [-1, -1]
-@export var money = [10,10]
+@export var money = [100,100]
 
 var requesting_cashout_vote: Array[bool] = [false, false] # index is player index
 var persisted_game_id: String = ""
@@ -616,7 +616,7 @@ func start_game() -> void:
 	solids_player = -1
 	next_solids_player = -1
 	scores = [0, 0]
-	money = [0, 0]
+	money = [100, 100]
 	turn_num = 0
 	round_num = 0
 	play_again = false
