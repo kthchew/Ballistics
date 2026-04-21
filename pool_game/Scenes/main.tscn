@@ -12,7 +12,7 @@
 [ext_resource type="Script" uid="uid://6w0diyfrqf7x" path="res://Scripts/aim_guide_circle.gd" id="10_cbgmd"]
 [ext_resource type="FontFile" uid="uid://bbym76m246dwq" path="res://Art/beleren-bold_P1.01.ttf" id="11_1w6v2"]
 [ext_resource type="Script" uid="uid://vx6fp008aa4j" path="res://Scripts/game_menu_button.gd" id="11_hibaj"]
-[ext_resource type="Script" path="res://Scripts/circle_artist.gd" id="11_pdsj5"]
+[ext_resource type="Script" uid="uid://bjwyxti52ing3" path="res://Scripts/circle_artist.gd" id="11_pdsj5"]
 [ext_resource type="Script" uid="uid://dhbyon53ionqb" path="res://Scripts/PowerButton.gd" id="12_ueoa1"]
 [ext_resource type="Script" uid="uid://fajq87jhdqt3" path="res://Scripts/placement_controller.gd" id="13_6vcvc"]
 [ext_resource type="PackedScene" uid="uid://bpnsf6ju2q7jc" path="res://Scenes/table_group.tscn" id="14_7k868"]
@@ -20,8 +20,8 @@
 [ext_resource type="Texture2D" uid="uid://ci5fbdgxigfld" path="res://Art/2K/Poliigon_WoodVeneerOak_7760_BaseColor.jpg" id="15_hpc6h"]
 [ext_resource type="Script" uid="uid://cdpofo620cpjv" path="res://Scripts/ball_manager.gd" id="15_vivmo"]
 [ext_resource type="AudioStream" uid="uid://blssougo50dj5" path="res://Sounds/lightOn.mp3" id="16_kltya"]
-[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://ball_shape.tres" id="17_e08e2"]
-[ext_resource type="Script" path="res://Scripts/classical_ai.gd" id="20_hibaj"]
+[ext_resource type="Shape3D" uid="uid://c4jiclxugp3xu" path="res://Resources/ball_shape.tres" id="17_e08e2"]
+[ext_resource type="Script" uid="uid://ckiy6dc3lysx1" path="res://Scripts/classical_ai.gd" id="20_hibaj"]
 
 [sub_resource type="Environment" id="Environment_4c57u"]
 background_mode = 2
@@ -202,7 +202,8 @@ albedo_texture = ExtResource("15_hpc6h")
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_4c57u"]
 material = SubResource("StandardMaterial3D_vivmo")
-top_radius = 300.0
+top_radius = 400.0
+bottom_radius = 12.0
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_efxa6"]
 properties/0/path = NodePath(".:player_ind")
@@ -237,34 +238,56 @@ properties/9/spawn = true
 properties/9/replication_mode = 2
 properties/10/path = NodePath("UI/AimVisuals/CueStick:position")
 properties/10/spawn = true
-properties/10/replication_mode = 2
+properties/10/replication_mode = 1
 properties/11/path = NodePath("UI/AimVisuals/CueStick:visible")
 properties/11/spawn = true
 properties/11/replication_mode = 2
 properties/12/path = NodePath("UI/AimVisuals/CueStick:rotation")
 properties/12/spawn = true
-properties/12/replication_mode = 2
+properties/12/replication_mode = 1
 properties/13/path = NodePath(".:money")
 properties/13/spawn = true
 properties/13/replication_mode = 2
 properties/14/path = NodePath("BallManager:balls_sunk")
 properties/14/spawn = true
-properties/14/replication_mode = 1
+properties/14/replication_mode = 2
+properties/15/path = NodePath(".:game_type")
+properties/15/spawn = true
+properties/15/replication_mode = 2
+properties/16/path = NodePath("BallManager:first_hit_scratch")
+properties/16/spawn = true
+properties/16/replication_mode = 2
+properties/17/path = NodePath("BallManager:cue_ball:first_hit_ball_num")
+properties/17/spawn = true
+properties/17/replication_mode = 2
+properties/18/path = NodePath(".:round_num")
+properties/18/spawn = true
+properties/18/replication_mode = 2
 
 [node name="Main" type="Node3D" unique_id=1362962675]
 script = ExtResource("1_h1bgf")
 
-[node name="CameraPivot" type="Node3D" parent="." unique_id=1177074352]
+[node name="PerspectiveCamPivot" type="Node3D" parent="." unique_id=1177074352]
 transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=142044440]
-transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.4210855e-14, 0, 1.4210855e-14, 1.0000001, 0, -3.5294624e-06, 115.74469)
+[node name="Camera3D" type="Camera3D" parent="PerspectiveCamPivot" unique_id=142044440]
+transform = Transform3D(1, 0, 0, 0, 0.9063079, -0.42261833, 0, 0.42261833, 0.9063079, 0, -90, 190)
 keep_aspect = 0
-projection = 1
 current = true
 size = 260.0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="CameraPivot/Camera3D" unique_id=2088635213]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="PerspectiveCamPivot/Camera3D" unique_id=2088635213]
+environment = SubResource("Environment_4c57u")
+
+[node name="OrthogonalCamPivot" type="Node3D" parent="." unique_id=1737268356]
+transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.9999999, 0, -0.9999999, -4.3711385e-08, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="OrthogonalCamPivot" unique_id=61672867]
+transform = Transform3D(1, 0, 0, 0, 1.0000001, -1.4210855e-14, 0, 1.4210855e-14, 1.0000001, 0, 0, 200)
+projection = 1
+size = 150.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="OrthogonalCamPivot/Camera3D" unique_id=1353386412]
 environment = SubResource("Environment_4c57u")
 
 [node name="LabelLayer" type="CanvasLayer" parent="." unique_id=1486846883]
@@ -469,6 +492,36 @@ theme_override_font_sizes/font_size = 64
 text = "| |"
 script = ExtResource("11_hibaj")
 
+[node name="CashoutVoteButton" type="Button" parent="UI/SafeAreaContainer" unique_id=2103840495]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -400.0
+offset_top = 47.0
+offset_right = -217.0
+offset_bottom = 119.0
+grow_horizontal = 0
+theme = ExtResource("6_ee4r6")
+theme_override_font_sizes/font_size = 30
+text = "Vote Cashout"
+
+[node name="CashoutRequestedLabel" type="Label" parent="UI/SafeAreaContainer/CashoutVoteButton" unique_id=953158475]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -138.0
+offset_top = 80.0
+offset_right = -12.0
+offset_bottom = 103.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 25
+text = "Cashout voted"
+horizontal_alignment = 1
+
 [node name="PauseMenu" type="Panel" parent="UI" unique_id=2117890982]
 visible = false
 anchors_preset = 15
@@ -626,9 +679,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -375.0
+offset_left = -625.0
 offset_top = -150.0
-offset_right = 375.0
+offset_right = 625.0
 offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -812,27 +865,31 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_074og")
 text = "Right"
 
 [node name="TableGroup" parent="." unique_id=1955985234 instance=ExtResource("14_7k868")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03479004, 0.18527603, -0.051101685)
 
 [node name="Floor" type="MeshInstance3D" parent="." unique_id=1063051328]
 transform = Transform3D(0.08699928, 0, -0.99620837, 0, 1, 0, 0.99620837, 0, 0.08699928, 0.2828827, -63.39213, 0.6614113)
 mesh = SubResource("CylinderMesh_4c57u")
 
 [node name="OverheadLight" type="Node3D" parent="." unique_id=2043813551]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 90.53031, 2.2737368e-13)
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 100, 0)
 
-[node name="Light" type="SpotLight3D" parent="OverheadLight" unique_id=1803592501]
-transform = Transform3D(0.036294907, -0.99934113, -4.3682583e-08, 0.99934113, 0.036294907, -4.212489e-08, 4.3682586e-08, -4.2124885e-08, 1, 0, 1.1592451e-06, -26.520363)
-light_energy = 0.0
+[node name="Light" type="SpotLight3D" parent="OverheadLight" unique_id=3114236]
+transform = Transform3D(0.036294907, -0.99934113, -4.3682583e-08, 0.99934113, 0.036294907, -4.212489e-08, 4.3682586e-08, -4.2124885e-08, 1, 0, 0, 0)
+light_energy = 80.0
 light_volumetric_fog_energy = 0.0
-light_size = 1.0
+light_size = 0.01
 light_specular = 0.35
 light_bake_mode = 1
 shadow_enabled = true
-shadow_bias = 0.075
+shadow_bias = 0.15
+shadow_normal_bias = 1.2
 shadow_opacity = 0.7
-spot_range = 270.72592
-spot_angle = 72.564
+distance_fade_begin = 200.0
+distance_fade_length = 50.0
+spot_range = 250.0
+spot_attenuation = 0.19
+spot_angle = 60.0
+spot_angle_attenuation = 8.57418
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="OverheadLight/Light" unique_id=935783405]
 stream = ExtResource("16_kltya")
@@ -841,6 +898,7 @@ volume_db = 30.0
 [node name="PreviewContainer" type="Node3D" parent="." unique_id=1410175614]
 
 [node name="ShapeCast3D" type="ShapeCast3D" parent="." unique_id=230143487]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -25, 0)
 shape = ExtResource("17_e08e2")
 
 [node name="BallManager" type="Node" parent="." unique_id=1345349029]
@@ -848,7 +906,6 @@ script = ExtResource("15_vivmo")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1750200922]
 transform = Transform3D(0.9985055, 0.008959861, -0.053913288, 0.014109601, 0.9107674, 0.41267863, 0.05280001, -0.4128225, 0.9092798, -14.222816, 97.954666, 209.47566)
-projection = 1
 size = 130.0
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1196634560]
@@ -859,6 +916,7 @@ public_visibility = false
 script = ExtResource("20_hibaj")
 
 [connection signal="pressed" from="UI/SafeAreaContainer/MenuButton" to="." method="_on_menu_button_pressed"]
+[connection signal="pressed" from="UI/SafeAreaContainer/CashoutVoteButton" to="." method="_on_cashout_vote_button_pressed"]
 [connection signal="pressed" from="UI/PauseMenu/GridContainer/ResumeButton" to="." method="_on_menu_resume_button_pressed"]
 [connection signal="pressed" from="UI/PauseMenu/GridContainer/ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="UI/PauseMenu/GridContainer/ExitButton" to="." method="_on_menu_exit_button_pressed"]
@@ -872,3 +930,4 @@ script = ExtResource("20_hibaj")
 [connection signal="button_up" from="pUI/Rotate/rotateLeft" to="pUI/placementController" method="_on_rotate_left_button_up"]
 [connection signal="button_down" from="pUI/Rotate/rotateRight" to="pUI/placementController" method="_on_rotate_right_button_down"]
 [connection signal="button_up" from="pUI/Rotate/rotateRight" to="pUI/placementController" method="_on_rotate_right_button_up"]
+[connection signal="delta_synchronized" from="MultiplayerSynchronizer" to="." method="_new_delta_sync_received"]

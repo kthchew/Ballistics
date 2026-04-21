@@ -13,9 +13,27 @@ var teleport_requested: bool = false
 var teleport_pos: Vector3 = Vector3.ZERO
 var potted: bool = false
 
+var modifiers: Array[String] = []
+
 func _ready() -> void:
 	HoleSound.max_db = 80.0
 	BallCollide.max_db = 80.0
+	add_to_group("balls")
+	
+func save() -> Dictionary:
+	var save_dict: Dictionary[Variant, Variant] = {
+		"ball_num": ball_num,
+		"pos_x": position.x,
+		"pos_y": position.y,
+		"pos_z": position.z,
+		"rot_x": rotation.x,
+		"rot_y": rotation.y,
+		"rot_z": rotation.z,
+		"potted": potted,
+		
+		"modifiers": modifiers.duplicate(),
+	}
+	return save_dict
 
 func teleport(pos: Vector3) -> void:
 	teleport_requested = true
@@ -31,6 +49,15 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var new_transform: Transform3D = Transform3D(new_basis)
 		new_transform.origin = teleport_pos
 		state.transform = new_transform
+	
+	# Handle bumper collision for extra ricochet force
+	for i in range(state.get_contact_count()):
+		var collider = state.get_contact_collider_object(i)
+		if collider and collider.is_in_group("bumpers"):
+			var normal = state.get_contact_local_normal(i)
+			var velocity = state.linear_velocity
+			var reflected = velocity.reflect(normal)
+			state.linear_velocity = reflected * 1.5  # Increase force by 50%
 		
 func reset(pos: Vector3):
 	teleport(pos)
@@ -52,8 +79,9 @@ func pot():
 	position = pos
 	teleport(pos)
 	potted = true
-
+	
 func _physics_process(delta):
+	
 	var friction_accel := 2
 
 	linear_velocity = linear_velocity.move_toward(Vector3.ZERO, friction_accel * delta)

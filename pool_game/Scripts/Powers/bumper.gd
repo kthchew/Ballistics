@@ -1,8 +1,11 @@
 extends StaticBody3D
 
 @export var power_type: String = "Object"
-@export var power_scene_name = "block"
-@export var cost = 15
+@export var power_scene_name = "bumper"
+@export var cost = 20
+
+func _ready() -> void:
+	add_to_group("bumpers")
 
 func canPlace() -> bool:
 	var bodies = $Area3D.get_overlapping_areas()

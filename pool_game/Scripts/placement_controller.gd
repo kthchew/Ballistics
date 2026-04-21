@@ -14,7 +14,21 @@ var power_name = null
 const power_scenes: Dictionary[String, Resource] = {
 	"block": preload("res://Scenes/Powers/block.tscn"),
 	"tnt": preload("res://Scenes/Powers/tnt.tscn"),
-	"tungsten": preload("res://Scenes/Powers/tungsten.tscn")
+	"tungsten": preload("res://Scenes/Powers/tungsten.tscn"),
+	"aerogel": preload("res://Scenes/Powers/aerogel.tscn"),
+	"bumper": preload("res://Scenes/Powers/bumper.tscn"),
+	"eraser": preload("res://Scenes/Powers/eraser.tscn"),
+	"gluetrap": preload("res://Scenes/Powers/gluetrap.tscn")
+}
+
+const power_descriptions: Dictionary[String, String] = {
+	"block": "Block places a barrier that balls cannot pass through.",
+	"tnt": "TNT destroys a placed object.",
+	"tungsten": "Tungsten makes a ball heavier so it deflects less.",
+	"aerogel": "Aerogel makes a ball lighter so it reacts more to hits.",
+	"bumper": "Bumper bounces balls off it harder.",
+	"eraser": "Eraser removes the active modifier from a ball.",
+	"gluetrap": "Glue Trap stops balls that roll through it."
 }
 
 func _ready():
@@ -22,8 +36,8 @@ func _ready():
 	preview_container = game_root.get_node("PreviewContainer")
 
 @rpc("authority", "call_local")
-func set_cashout_owner(owner_peer_id: int):
-	self.owner_peer_id = owner_peer_id
+func set_cashout_owner(cashout_owner_peer_id: int):
+	self.owner_peer_id = cashout_owner_peer_id
 
 func _on_power_1_pressed():
 	if multiplayer.get_unique_id() != owner_peer_id:
@@ -64,11 +78,19 @@ func start_placement(power_key: String):
 	preview = scene.instantiate()
 	preview.visible = true
 	preview_container.add_child(preview)
-	illegalMat = preview.get_node_or_null("MeshInstance3D").get_active_material(0).duplicate()
-	illegalMat.albedo_color = Color(1, 0.3, 0.3)
-	illegalMat.emission_enabled = true
-	illegalMat.emission = Color(1, 0, 0)
-	legalMat = preview.get_node_or_null("MeshInstance3D").get_active_material(0)
+	if game_root and game_root.has_method("show_powerup_hint"):
+		var desc = power_descriptions.get(power_key, "Place this power-up on the table.")
+		game_root.show_powerup_hint(desc)
+
+	var mesh = preview.get_node_or_null("MeshInstance3D")
+	if mesh:
+		var active_mat = mesh.get_active_material(0)
+		if active_mat:
+			illegalMat = active_mat.duplicate()
+			illegalMat.albedo_color = Color(1, 0.3, 0.3)
+			illegalMat.emission_enabled = true
+			illegalMat.emission = Color(1, 0, 0)
+		legalMat = active_mat
 
 	rpc_spawn_preview.rpc(power_key)
 
@@ -115,8 +137,15 @@ func _gui_input(event):
 		var hit = from + dir * t
 
 		var shape = preview.get_node("CollisionShape3D").shape
-		var half_height = shape.size.y * 0.5
-		preview.global_position = hit + Vector3(0, half_height, 0)
+		var half_height = 0
+		if shape is CylinderShape3D :
+			half_height = shape.height * 0.5
+		else:
+			half_height = shape.size.y * 0.5
+		var placement_offset_y := 0.0
+		if power_name == "gluetrap":
+			placement_offset_y = 5.0
+		preview.global_position = hit + Vector3(0, half_height + placement_offset_y, 0)
 
 		rpc("rpc_update_preview", preview.global_position, preview.global_rotation)
 
@@ -130,40 +159,42 @@ func rpc_update_preview(pos: Vector3, rot: Vector3):
 		preview.global_rotation = rot
 
 func _on_place_button_pressed():
+
 	if multiplayer.get_unique_id() != owner_peer_id:
+		print("multiplayer.get_unique_id() != owner_peer_id")
 		return
 	if not preview:
+		print("not preview")
 		return
 
-	var power_cost = 0
-	for name in ["Power1", "Power2", "Power3"]:
-		var path = "../Panel/HBoxContainer/%s" % name
-		var button = get_node(path)
-
-		if button.get_meta("power_name") == power_name:
-			power_cost = button.get_meta("power_cost")
-			break
-	if power_cost <= 0:
+	if not preview.canPlace():
+		print("preview cannot be placed here")
 		return
-	if not game_root or not game_root.purchase_power(power_name, power_cost):
-		return
+		
+	if game_root and game_root.has_method("show_powerup_hint"):
+		game_root.show_powerup_hint("")
 
-	var target_path := ""
+	var target_path = ""
 	if preview.power_type == "Modifier":
-		var area = preview.get_node_or_null("Area3D")
-		if area:
-			var overlaps = area.get_overlapping_areas()
-			if overlaps.size() == 1:
-				target_path = overlaps[0].get_parent().get_path()
-
-	request_place_power.rpc(
-		preview.power_type,
-		preview.global_position,
-		preview.global_rotation,
-		preview.occupied,
-		preview.power_scene_name,
-		target_path
-	)
+		target_path = preview.get_target()
+		
+	if multiplayer.is_server():
+		request_place_power(
+			preview.power_type,
+			preview.global_position,
+			preview.global_rotation,
+			preview.power_scene_name,
+			target_path
+		)
+	else:
+		request_place_power.rpc_id(
+			1,
+			preview.power_type,
+			preview.global_position,
+			preview.global_rotation,
+			preview.power_scene_name,
+			target_path
+		)
 
 
 func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Vector3) -> Node:
@@ -177,83 +208,220 @@ func _spawn_power_local(power_type: String, pName: String, pos: Vector3, rot: Ve
 	if obj is RigidBody3D:
 		obj.freeze = false
 
-	if power_type == "Object":
+	if pName == "gluetrap" and obj.has_method("mark_placed"):
+		obj.mark_placed()
+	if pName == "gluetrap":
+		obj.collision_layer = Constants.GLUE_TRAP_LAYER
+		obj.collision_mask = (1 << 0) | Constants.SHAPECAST_LAYER | Constants.GLUE_TRAP_LAYER
+	elif power_type == "Object":
 		obj.collision_layer = (1 << 2) | (1 << 3)
 		obj.collision_mask = (1 << 0) | (1 << 2) | (1 << 3)
-		game_root.objects += 1
+		game_root.active_power_objects += 1
 
 	return obj
+
+func save_object_powers() -> Array:
+	var object_states: Array = []
+	if not preview_container:
+		return object_states
+
+	for child in preview_container.get_children():
+		if child == preview:
+			continue
+		if not ("power_type" in child) or child.power_type != "Object":
+			continue
+		if not ("power_scene_name" in child):
+			continue
+
+		object_states.append({
+			"type": String(child.power_scene_name),
+			"pos_x": child.global_position.x,
+			"pos_y": child.global_position.y,
+			"pos_z": child.global_position.z,
+			"rot_x": child.global_rotation.x,
+			"rot_y": child.global_rotation.y,
+			"rot_z": child.global_rotation.z,
+		})
+
+	return object_states
+
+func _clear_object_powers() -> void:
+	if not preview_container:
+		return
+
+	for child in preview_container.get_children():
+		if child == preview:
+			continue
+		if ("power_type" in child) and child.power_type == "Object":
+			child.queue_free()
+
+func load_object_powers(saved_object_powers: Array) -> void:
+	_clear_object_powers()
+
+	if game_root:
+		game_root.active_power_objects = 0
+
+	for state in saved_object_powers:
+		if not (state is Dictionary):
+			continue
+
+		var saved_power_name := String(state.get("type", ""))
+		if saved_power_name == "" or not power_scenes.has(saved_power_name):
+			continue
+
+		var pos := Vector3(
+			float(state.get("pos_x", 0.0)),
+			float(state.get("pos_y", 0.0)),
+			float(state.get("pos_z", 0.0))
+		)
+		var rot := Vector3(
+			float(state.get("rot_x", 0.0)),
+			float(state.get("rot_y", 0.0)),
+			float(state.get("rot_z", 0.0))
+		)
+
+		_spawn_power_local("Object", saved_power_name, pos, rot)
+		if multiplayer.is_server():
+			rpc("rpc_spawn_power", "Object", saved_power_name, pos, rot)
 
 @rpc("any_peer", "reliable")
 func rpc_spawn_power(power_type: String, pName: String, pos: Vector3, rot: Vector3):
 	_spawn_power_local(power_type, pName, pos, rot)
+	
+func remove_all_placed_powers():
+	if not preview_container:
+		return
+
+	for child in preview_container.get_children():
+		child.queue_free()
 
 func _get_node_by_global_path(path: String) -> Node:
 	if path == "":
 		return null
 	var root = get_tree().get_root()
-	return root.get_node_or_null(path)
+	var absolute_node = root.get_node_or_null(path)
+	if absolute_node:
+		return absolute_node
+	if game_root:
+		return game_root.get_node_or_null(path)
+	return null
 
-func _apply_modifier(pName: String, modified_path: String) -> void:
+func _find_object_power_near(world_pos: Vector3, max_distance: float = 8.0) -> Node:
+	if not preview_container:
+		return null
+
+	var closest: Node = null
+	var closest_distance := max_distance
+	for child in preview_container.get_children():
+		if str(child.get("power_type")) != "Object":
+			continue
+		var distance = child.global_position.distance_to(world_pos)
+		if distance < closest_distance:
+			closest_distance = distance
+			closest = child
+	return closest
+
+func _apply_modifier(pName: String, modified_path: String, target_pos: Vector3 = Vector3.ZERO) -> void:
 	var target = _get_node_by_global_path(modified_path)
+	if not target and pName == "tnt":
+		target = _find_object_power_near(target_pos)
 	if not target:
 		return
 
-	if pName == "tnt":
-		var low = target.name.to_lower()
-		if not low.contains("ball") and not low.contains("table"):
-			target.queue_free()
-			game_root.objects = max(0, game_root.objects - 1)
+	var scene: PackedScene = power_scenes.get(pName)
+	if not scene:
+		return
+		
+	if "modifiers" in target:
+		target.modifiers.append(pName)
 
-	elif pName == "tungsten":
-		if target is RigidBody3D:
-			target.mass = 11
-			var mesh = target.get_node_or_null("MeshInstance3D")
-			if mesh:
-				var mat = mesh.get_active_material(0)
-				if mat:
-					mat = mat.duplicate()
-					mat.albedo_color = Color.GRAY
-					mat.metallic = 1.0
-					mat.roughness = 0.1
-					mesh.set_surface_override_material(0, mat)
+	var power_instance = scene.instantiate()
+	preview_container.add_child(power_instance)
+
+	if power_instance.has_method("apply_to"):
+		power_instance.apply_to(target)
+
+	power_instance.visible = false
 
 @rpc("any_peer", "reliable")
-func rpc_apply_modifier(pName: String, modified_path: String) -> void:
-	_apply_modifier(pName, modified_path)
+func rpc_apply_modifier(pName: String, modified_path: String, target_pos: Vector3 = Vector3.ZERO) -> void:
+	_apply_modifier(pName, modified_path, target_pos)
 
 @rpc("any_peer", "reliable")
-func request_place_power(power_type: String, pos: Vector3, rot: Vector3, occupied: int, pName: String, target_path: String = ""):
+func request_place_power(power_type: String, pos: Vector3, rot: Vector3, pName: String, target_path: String = ""):
 	if not multiplayer.is_server():
 		return
-
+	
 	var sender = multiplayer.get_remote_sender_id()
 	if sender != owner_peer_id:
+		print("sender != owner_peer_id")
 		return
 
-	if power_type == "Object" and occupied > 0:
+	var scene: PackedScene = power_scenes.get(pName)
+	if not scene:
+		print("not scene")
 		return
-	if power_type == "Modifier" and occupied != 1:
+	var power_instance = scene.instantiate()
+	
+	preview_container.add_child(power_instance)
+	power_instance.global_position = pos
+	power_instance.global_rotation = rot
+	power_instance.force_update_transform()
+	var probe_area = power_instance.get_node_or_null("Area3D")
+	if probe_area:
+		probe_area.force_update_transform()
+	
+	# Wait for physics to process collision detection for modifiers
+	if power_type == "Modifier":
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+
+	var resolved_target_path := target_path
+	if power_type == "Modifier" and (resolved_target_path == "" or _get_node_by_global_path(resolved_target_path) == null):
+		if power_instance.has_method("get_target"):
+			resolved_target_path = power_instance.get_target()
+		if (resolved_target_path == "" or _get_node_by_global_path(resolved_target_path) == null) and power_instance.has_method("get_target"):
+			await get_tree().physics_frame
+			resolved_target_path = power_instance.get_target()
+	
+	var placement_valid = power_instance.canPlace()
+	if not placement_valid and power_type == "Modifier" and target_path != "":
+		# Fallback for occasional client/server overlap timing mismatch.
+		placement_valid = _get_node_by_global_path(resolved_target_path) != null
+
+	if not placement_valid:
+		print("not power_instance.canPlace()")
+		power_instance.queue_free()
+		return
+
+	if power_type == "Modifier" and _get_node_by_global_path(resolved_target_path) == null:
+		print("modifier target missing on server")
+		power_instance.queue_free()
+		return
+
+	if not game_root or not game_root.server_try_consume_power_purchase(sender, pName):
+		print("purchase rejected for power placement")
+		power_instance.queue_free()
 		return
 
 	if power_type == "Object":
+		power_instance.queue_free()
 		_spawn_power_local(power_type, pName, pos, rot)
 		rpc("rpc_spawn_power", power_type, pName, pos, rot)
 
 	else:
-		var target = _get_node_by_global_path(target_path)
-		if not target:
-			var obj = _spawn_power_local(power_type, pName, pos, rot)
-			var area = obj.get_node_or_null("Area3D")
-			if area and area.get_overlapping_areas().size() == 1:
-				target = area.get_overlapping_areas()[0].get_parent()
-			obj.queue_free()
+		var target = _get_node_by_global_path(resolved_target_path)
 
 		if target:
-			_apply_modifier(pName, target.get_path())
-			rpc("rpc_apply_modifier", pName, target.get_path())
-
+			var target_path_for_rpc = str(game_root.get_path_to(target)) if game_root else str(target.get_path())
+			_apply_modifier(pName, target_path_for_rpc, target.global_position)
+			rpc("rpc_apply_modifier", pName, target_path_for_rpc, target.global_position)
+		else:
+			print("modifier apply skipped: target not found")
+		power_instance.queue_free()
 	finish_placement.rpc_id(sender)
+	if game_root and game_root.has_method("persist_game_state"):
+		game_root.persist_game_state()
 
 
 @rpc("any_peer", "call_local")
@@ -262,9 +430,6 @@ func finish_placement():
 	if preview:
 		preview.queue_free()
 		preview = null
-	if power_name != null and game_root:
-		if not game_root.power_shop_used.has(power_name):
-			game_root.power_shop_used.append(power_name)
 	if game_root and game_root.has_method("update_powerup_shop"):
 		game_root.update_powerup_shop()
 	if game_root and game_root.has_node("pUI"):
@@ -302,11 +467,11 @@ func _process(delta):
 		var rotated := false
 
 		if rotating_left:
-			preview.rotate_y(deg_to_rad(1))
+			preview.rotate_y(deg_to_rad(2))
 			rotated = true
 
 		if rotating_right:
-			preview.rotate_y(deg_to_rad(-1))
+			preview.rotate_y(deg_to_rad(-2))
 			rotated = true
 
 		if rotated:
