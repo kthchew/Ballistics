@@ -8,6 +8,8 @@ import game
 import json
 import random
 import string
+import socket
+import ipaddress
 
 from flask import Flask, session, request, jsonify
 from game import GameInstance
@@ -21,6 +23,22 @@ def _generate_room_code() -> str:
     chunks = ["".join(random.choice(alphabet) for _ in range(4)) for _ in range(3)]
     return "-".join(chunks)
 
+
+def is_local_host(host: str | None) -> bool:
+    """
+    To lock certain endpoints to localhost:
+    1. Put this service behind a reverse proxy (we use Caddy) that sets the X-Forwarded-For header.
+    2. Check the X-Forwarded-For header against this function.
+    3. In /etc/hosts on the server, set the hostname to 127.0.0.1.
+
+    :param host: A hostname or IP address.
+    :return: Whether the host is localhost.
+    """
+    if host is None:
+        return False
+
+    host_ip = socket.gethostbyname(host)
+    return ipaddress.ip_address(host_ip).is_loopback
 
 @app.post("/register")
 def register():
@@ -322,9 +340,11 @@ def cancel_sent_game_invite():
         return "Game invite cancelled", 200
     return "Game invite was already cleared", 200
 
-# FIXME: anything below this should be restricted to requests from a trusted Godot game server
 @app.post("/newGame")
 def new_game():
+    forwarded_for = request.headers.get('X-Forwarded-For')
+    if not is_local_host(forwarded_for):
+        return "Unauthorized", 401
     json_req = request.get_json()
     if 'game_state' not in json_req:
         return "Bad request", 400
@@ -342,6 +362,9 @@ def new_game():
 
 @app.post("/updateGame")
 def update_game_state():
+    forwarded_for = request.headers.get('X-Forwarded-For')
+    if not is_local_host(forwarded_for):
+        return "Unauthorized", 401
     json_req = request.get_json()
     if 'game_state' not in json_req or 'game_id' not in json_req:
         return "Bad request", 400
